@@ -1,0 +1,100 @@
+CẢNH 001: Người phụ nữ đứng trước cửa kính mờ sương lúc bình minh, cinematic realism, ánh sáng mềm, không chữ, không watermark.
+CẢNH 002: Người đàn ông mặc áo khoác đen đi trong hành lang khách sạn sang trọng, wide shot, high detail, không chữ, không watermark.
+CẢNH 003: Cô gái cầm ly cà phê ngồi cạnh cửa sổ trời mưa, close-up, natural skin texture, bokeh nhẹ, không chữ.
+CẢNH 004: Nhân viên bếp đứng dưới đèn vàng trong bếp công nghiệp, documentary style, medium shot, không logo.
+CẢNH 005: Người mẫu quay lưng nhìn skyline thành phố ban đêm trên sân thượng, low-angle shot, dramatic lighting.
+CẢNH 006: Cô gái mặc sơ mi trắng bước qua hành lang tàu điện ngầm đông người, motion blur nhẹ, editorial photo.
+CẢNH 007: Người phụ nữ ngồi bên bàn gỗ cũ, ánh nắng xiên buổi sáng, film still, tone ấm, không watermark.
+CẢNH 008: Chàng trai tựa vào tường bê tông trong bãi xe ngầm, high contrast, cinematic frame, không chữ.
+CẢNH 009: Cô gái đứng trước gương phòng thay đồ nhỏ, ánh đèn huỳnh quang, realism, chi tiết cao.
+CẢNH 010: Người đàn ông cúi nhìn điện thoại dưới mái hiên khi mưa lớn, night scene, neon reflections.
+CẢNH 011: Người phụ nữ cầm ô đi qua đường phố đông đúc, street photography style, dynamic composition.
+CẢNH 012: Cô gái ngồi trên ghế da trong quán bar vắng, moody light, close-up portrait, không logo.
+CẢNH 013: Nhân vật đứng trước thang máy inox phản chiếu, symmetry composition, clean frame.
+CẢNH 014: Người đàn ông mở cửa căn hộ nhỏ, ánh sáng vàng từ trong phòng tràn ra, cinematic realism.
+CẢNH 015: Cô gái ngồi trên bậc thang thoát hiểm ngoài trời, urban texture, natural documentary look.
+CẢNH 016: Người phụ nữ bước qua cánh cửa nhà bếp phía sau nhà hàng, gritty detail, shallow depth.
+CẢNH 017: Nhân vật đứng trước biển quảng cáo LED lớn, phản xạ ánh sáng xanh đỏ trên mặt.
+CẢNH 018: Cô gái đeo tai nghe ngồi trên xe buýt đêm, ánh đèn đường chạy ngang cửa kính.
+CẢNH 019: Người đàn ông đứng dưới bóng cây trong công viên sớm, soft haze, realistic photo.
+CẢNH 020: Cô gái cầm tập hồ sơ đi nhanh qua văn phòng mở, over-shoulder shot, editorial.
+CẢNH 021: Người phụ nữ ngồi một mình trong phòng chờ sân bay, ambient blue light, cinematic.
+CẢNH 022: Nhân vật đứng ở quầy thanh toán siêu thị lúc nửa đêm, fluorescent light realism.
+CẢNH 023: Cô gái quay sang nhìn camera trong tiệm giặt tự động, color contrast mạnh.
+CẢNH 024: Người đàn ông đứng cạnh xe taxi vàng giữa phố New York, rain reflections, film look.
+CẢNH 025: Cô gái tựa lan can cầu đi bộ, gió thổi tóc, golden hour, high detail portrait.
+CẢNH 026: Người phụ nữ trong phòng làm việc tối giản, cửa sổ lớn, soft daylight, clean composition.
+CẢNH 027: Nhân vật cúi buộc dây giày trong hành lang dài, leading lines, realistic texture.
+CẢNH 028: Cô gái cầm túi giấy đi qua khu chợ đêm, colorful bokeh, candid photography.
+CẢNH 029: Người đàn ông ngồi trên ghế đá trước ga tàu, contemplative mood, medium shot.
+CẢNH 030: Cô gái mở tủ locker kim loại, ánh sáng lạnh, industrial style, cinematic realism.
+CẢNH 031: Người phụ nữ đứng trong bãi đỗ xe tầng hầm, low-key lighting, dramatic frame.
+CẢNH 032: Nhân vật đi dọc hành lang bệnh viện vắng, sterile light, documentary still.
+CẢNH 033: Cô gái ngồi ở trạm xe buýt với áo khoác dài, early morning fog, neutral tone.
+CẢNH 034: Người đàn ông đứng trước cửa hàng đóng cửa, neon sign phản chiếu nền ướt.
+CẢNH 035: Cô gái nhìn bản đồ tàu điện trên tường, side profile, realistic city life.
+CẢNH 036: Người phụ nữ mang khay thức ăn bước ra khỏi bếp, action still, motion sense nhẹ.
+CẢNH 037: Nhân vật đứng giữa sân bóng rổ ngoài trời lúc chiều muộn, cinematic wide shot.
+CẢNH 038: Cô gái đặt tay lên cửa kính xe lửa, cảm xúc trầm, soft backlight.
+CẢNH 039: Người đàn ông ngồi bàn góc trong quán ăn nhanh, overhead practical light.
+CẢNH 040: Cô gái bước xuống cầu thang cuốn trong trung tâm thương mại, dynamic perspective.
+CẢNH 041: Người phụ nữ đứng bên máy photocopy văn phòng, neutral color grade, realism.
+CẢNH 042: Nhân vật đeo balo đi qua ngõ nhỏ lát gạch, urban documentary photography.
+CẢNH 043: Cô gái đứng dưới biển chỉ dẫn giao thông, wide lens, natural street light.
+CẢNH 044: Người đàn ông nghiêng người buộc tạp dề trong bếp, close-up hands detail.
+CẢNH 045: Cô gái ngồi bên bàn trang điểm với gương tròn, warm bulbs, cinematic portrait.
+CẢNH 046: Người phụ nữ cầm chìa khóa đứng trước cửa căn hộ, tense mood, film still.
+CẢNH 047: Nhân vật bước nhanh qua lối đi bộ trên cao, city skyline background.
+CẢNH 048: Cô gái đứng sát tường kính văn phòng đêm, reflections layered composition.
+CẢNH 049: Người đàn ông đứng cạnh máy bán hàng tự động, blue neon cast, high contrast.
+CẢNH 050: Cô gái trong thư viện yên tĩnh, ánh nắng qua rèm, editorial realism.
+CẢNH 051: Người phụ nữ ngồi ở mép giường phòng trọ nhỏ, intimate framing, soft shadows.
+CẢNH 052: Nhân vật mở rèm cửa nhìn ra trời mưa, window light portrait, cinematic.
+CẢNH 053: Cô gái tựa cột bê tông trong bến xe, gritty texture, neutral tones.
+CẢNH 054: Người đàn ông đi bộ qua cầu vượt lúc hoàng hôn, long perspective lines.
+CẢNH 055: Cô gái cầm hộp cơm đứng gần cửa sau nhà hàng, candid documentary style.
+CẢNH 056: Người phụ nữ nhìn đồng hồ cổ tay trong hành lang khách sạn, suspense mood.
+CẢNH 057: Nhân vật ngồi ghế chờ phòng khám, desaturated palette, realistic detail.
+CẢNH 058: Cô gái đi qua cửa xoay tòa nhà kính, city business vibe, motion blur nhẹ.
+CẢNH 059: Người đàn ông đứng dưới mái che xe buýt khi gió mạnh, dramatic rain scene.
+CẢNH 060: Cô gái cúi chỉnh cổ áo trước gương dài, fashion editorial lighting.
+CẢNH 061: Người phụ nữ cầm tập giấy đứng cạnh máy in, office candid, natural frame.
+CẢNH 062: Nhân vật ngồi trên bậc tam cấp bên ngoài quán ăn, night ambience.
+CẢNH 063: Cô gái đứng giữa kho hàng có đèn trần cao, industrial cinematic look.
+CẢNH 064: Người đàn ông nhìn qua vai trong thang máy đông người, close composition.
+CẢNH 065: Cô gái ngồi cạnh cửa kính quán cà phê, mưa rơi thành vệt ngoài phố.
+CẢNH 066: Người phụ nữ bước qua cửa bếp inox với khói nhẹ, kitchen realism.
+CẢNH 067: Nhân vật đứng trước bảng điện tử nhà ga, blue-cyan tone, wide shot.
+CẢNH 068: Cô gái cầm mũ bảo hiểm đứng trong bãi xe nhiều tầng, contrast light.
+CẢNH 069: Người đàn ông ngồi ở bàn dài thư viện công cộng, quiet cinematic still.
+CẢNH 070: Cô gái quay đầu lại trên cầu thang bộ, over-shoulder frame, dramatic.
+CẢNH 071: Người phụ nữ ôm hộp carton đi trong kho lạnh, white fluorescent lighting.
+CẢNH 072: Nhân vật đứng cạnh cửa sổ hẹp trong cầu thang thoát hiểm, rim light.
+CẢNH 073: Cô gái ngồi ghế nhựa ở hành lang sau bếp, documentary style.
+CẢNH 074: Người đàn ông kéo vali qua sảnh khách sạn, polished floor reflections.
+CẢNH 075: Cô gái đứng trên sân thượng nhìn xuống đường đông xe, dusk city mood.
+CẢNH 076: Người phụ nữ cầm khăn lau bàn trong nhà hàng vắng, warm practical light.
+CẢNH 077: Nhân vật đi qua lối đi tàu điện với đèn tuyến tính, leading lines.
+CẢNH 078: Cô gái đứng trong tiệm tiện lợi mở 24h, bright overhead light.
+CẢNH 079: Người đàn ông ngồi một mình ở ghế cuối xe buýt, nighttime realism.
+CẢNH 080: Cô gái chỉnh tóc trước gương nhỏ trong phòng thay đồ, close-up detail.
+CẢNH 081: Người phụ nữ bước ra cửa sau tòa nhà vào ngõ hẹp, gritty urban look.
+CẢNH 082: Nhân vật đứng trước quầy bar cà phê mang đi, morning rush ambience.
+CẢNH 083: Cô gái dựa tường cạnh biển chỉ đường tàu điện, candid portrait.
+CẢNH 084: Người đàn ông cầm điện thoại dưới mái hiên đêm mưa, neon highlights.
+CẢNH 085: Cô gái ngồi trên bậc cầu thang kính tòa nhà văn phòng, minimal style.
+CẢNH 086: Người phụ nữ đứng cạnh cửa tự động siêu thị, greenish fluorescent tone.
+CẢNH 087: Nhân vật bước ngang khung cửa gỗ cũ, vintage texture, film still.
+CẢNH 088: Cô gái đứng trong quầy bếp mở, background blur, realistic food station.
+CẢNH 089: Người đàn ông tựa lan can cầu vượt, gió mạnh, wide cinematic framing.
+CẢNH 090: Cô gái nhìn qua vai khi đi trong phố đêm, reflective wet asphalt.
+CẢNH 091: Người phụ nữ ngồi cạnh máy bán vé tự động, soft cool lighting.
+CẢNH 092: Nhân vật đứng trước cửa cuốn kim loại có graffiti, urban editorial.
+CẢNH 093: Cô gái cầm cốc giấy đứng cạnh máy pha cà phê công nghiệp.
+CẢNH 094: Người đàn ông mở tủ dụng cụ trong bếp, close-up hands and metal texture.
+CẢNH 095: Cô gái dựa vào cột nhà ga, sâu trường ảnh mỏng, cinematic realism.
+CẢNH 096: Người phụ nữ bước vào phòng họp trống với cửa kính lớn, neutral palette.
+CẢNH 097: Nhân vật ngồi ở cuối hành lang dài, ánh sáng đổ vệt mạnh trên sàn.
+CẢNH 098: Cô gái đứng chờ thang máy với túi xách đen, corporate mood.
+CẢNH 099: Người đàn ông cúi nhặt tờ giấy trên nền đá hoa cương, dramatic low angle.
+CẢNH 100: Cô gái nhìn ra ngoài cửa sổ xe lửa lúc trời chạng vạng, emotional cinematic shot.

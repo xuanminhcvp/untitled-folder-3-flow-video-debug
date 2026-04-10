@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.pyc
+
+# Local runtime outputs
+output_images/
+debug_sessions/
+progress_dreamina.json
+
+# OS/editor
+.DS_Store

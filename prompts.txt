@@ -1,0 +1,200 @@
+CẢNH 0001: nhân vật mở cửa kim loại tại nhà ga tàu điện ngầm hiện đại, medium shot, eye-level, soft cool lighting, cinematic realism.
+CẢNH 0002: nhân vật mở cửa kim loại tại hành lang văn phòng kính, medium shot, eye-level, soft cool lighting, cinematic realism.
+CẢNH 0003: nhân vật mở cửa kim loại tại quán cafe phong cách tối giản, medium shot, eye-level, soft cool lighting, cinematic realism.
+CẢNH 0004: nhân vật mở cửa kim loại tại bãi đỗ xe ngầm ánh đèn lạnh, medium shot, eye-level, soft cool lighting, cinematic realism.
+CẢNH 0005: nhân vật mở cửa kim loại tại sảnh khách sạn cao cấp, medium shot, eye-level, soft cool lighting, cinematic realism.
+CẢNH 0006: nhân vật mở cửa kim loại tại khu công nghiệp về đêm, medium shot, eye-level, soft cool lighting, cinematic realism.
+CẢNH 0007: nhân vật mở cửa kim loại tại phòng họp corporate hiện đại, medium shot, eye-level, soft cool lighting, cinematic realism.
+CẢNH 0008: nhân vật mở cửa kim loại tại siêu thị tự phục vụ, medium shot, eye-level, soft cool lighting, editorial photography.
+CẢNH 0009: nhân vật mở cửa kim loại tại xưởng cơ khí ánh sáng mạnh, medium shot, eye-level, soft cool lighting, editorial photography.
+CẢNH 0010: nhân vật mở cửa kim loại tại con phố mưa phản chiếu neon, medium shot, eye-level, soft cool lighting, editorial photography.
+CẢNH 0011: cô gái nhìn qua khung kính tại nhà ga tàu điện ngầm hiện đại, medium shot, eye-level, soft cool lighting, editorial photography.
+CẢNH 0012: cô gái nhìn qua khung kính tại hành lang văn phòng kính, medium shot, eye-level, soft cool lighting, editorial photography.
+CẢNH 0013: cô gái nhìn qua khung kính tại quán cafe phong cách tối giản, medium shot, eye-level, soft cool lighting, editorial photography.
+CẢNH 0014: cô gái nhìn qua khung kính tại bãi đỗ xe ngầm ánh đèn lạnh, close-up portrait, shallow depth of field, soft cool lighting, editorial photography.
+CẢNH 0015: cô gái nhìn qua khung kính tại sảnh khách sạn cao cấp, close-up portrait, shallow depth of field, soft cool lighting, documentary style.
+CẢNH 0016: cô gái nhìn qua khung kính tại khu công nghiệp về đêm, close-up portrait, shallow depth of field, soft cool lighting, documentary style.
+CẢNH 0017: cô gái nhìn qua khung kính tại phòng họp corporate hiện đại, close-up portrait, shallow depth of field, soft cool lighting, documentary style.
+CẢNH 0018: cô gái nhìn qua khung kính tại siêu thị tự phục vụ, close-up portrait, shallow depth of field, high contrast key light, documentary style.
+CẢNH 0019: cô gái nhìn qua khung kính tại xưởng cơ khí ánh sáng mạnh, close-up portrait, shallow depth of field, high contrast key light, documentary style.
+CẢNH 0020: cô gái nhìn qua khung kính tại con phố mưa phản chiếu neon, close-up portrait, shallow depth of field, high contrast key light, documentary style.
+CẢNH 0021: người đàn ông kiểm tra điện thoại tại nhà ga tàu điện ngầm hiện đại, close-up portrait, shallow depth of field, high contrast key light, documentary style.
+CẢNH 0022: người đàn ông kiểm tra điện thoại tại hành lang văn phòng kính, close-up portrait, shallow depth of field, high contrast key light, film still look.
+CẢNH 0023: người đàn ông kiểm tra điện thoại tại quán cafe phong cách tối giản, close-up portrait, shallow depth of field, high contrast key light, film still look.
+CẢNH 0024: người đàn ông kiểm tra điện thoại tại bãi đỗ xe ngầm ánh đèn lạnh, close-up portrait, shallow depth of field, high contrast key light, film still look.
+CẢNH 0025: người đàn ông kiểm tra điện thoại tại sảnh khách sạn cao cấp, close-up portrait, shallow depth of field, high contrast key light, film still look.
+CẢNH 0026: người đàn ông kiểm tra điện thoại tại khu công nghiệp về đêm, close-up portrait, shallow depth of field, high contrast key light, film still look.
+CẢNH 0027: người đàn ông kiểm tra điện thoại tại phòng họp corporate hiện đại, wide shot with strong leading lines, high contrast key light, film still look.
+CẢNH 0028: người đàn ông kiểm tra điện thoại tại siêu thị tự phục vụ, wide shot with strong leading lines, high contrast key light, film still look.
+CẢNH 0029: người đàn ông kiểm tra điện thoại tại xưởng cơ khí ánh sáng mạnh, wide shot with strong leading lines, high contrast key light, ultra-detailed realism.
+CẢNH 0030: người đàn ông kiểm tra điện thoại tại con phố mưa phản chiếu neon, wide shot with strong leading lines, high contrast key light, ultra-detailed realism.
+CẢNH 0031: nhân vật bước nhanh qua hành lang tại nhà ga tàu điện ngầm hiện đại, wide shot with strong leading lines, high contrast key light, ultra-detailed realism.
+CẢNH 0032: nhân vật bước nhanh qua hành lang tại hành lang văn phòng kính, wide shot with strong leading lines, high contrast key light, ultra-detailed realism.
+CẢNH 0033: nhân vật bước nhanh qua hành lang tại quán cafe phong cách tối giản, wide shot with strong leading lines, high contrast key light, ultra-detailed realism.
+CẢNH 0034: nhân vật bước nhanh qua hành lang tại bãi đỗ xe ngầm ánh đèn lạnh, wide shot with strong leading lines, high contrast key light, ultra-detailed realism.
+CẢNH 0035: nhân vật bước nhanh qua hành lang tại sảnh khách sạn cao cấp, wide shot with strong leading lines, neon rim light + ambient fill, ultra-detailed realism.
+CẢNH 0036: nhân vật bước nhanh qua hành lang tại khu công nghiệp về đêm, wide shot with strong leading lines, neon rim light + ambient fill, cinematic realism.
+CẢNH 0037: nhân vật bước nhanh qua hành lang tại phòng họp corporate hiện đại, wide shot with strong leading lines, neon rim light + ambient fill, cinematic realism.
+CẢNH 0038: nhân vật bước nhanh qua hành lang tại siêu thị tự phục vụ, wide shot with strong leading lines, neon rim light + ambient fill, cinematic realism.
+CẢNH 0039: nhân vật bước nhanh qua hành lang tại xưởng cơ khí ánh sáng mạnh, wide shot with strong leading lines, neon rim light + ambient fill, cinematic realism.
+CẢNH 0040: nhân vật bước nhanh qua hành lang tại con phố mưa phản chiếu neon, over-shoulder composition, neon rim light + ambient fill, cinematic realism.
+CẢNH 0041: cô gái ngồi đợi cạnh máy bán vé tại nhà ga tàu điện ngầm hiện đại, over-shoulder composition, neon rim light + ambient fill, cinematic realism.
+CẢNH 0042: cô gái ngồi đợi cạnh máy bán vé tại hành lang văn phòng kính, over-shoulder composition, neon rim light + ambient fill, cinematic realism.
+CẢNH 0043: cô gái ngồi đợi cạnh máy bán vé tại quán cafe phong cách tối giản, over-shoulder composition, neon rim light + ambient fill, editorial photography.
+CẢNH 0044: cô gái ngồi đợi cạnh máy bán vé tại bãi đỗ xe ngầm ánh đèn lạnh, over-shoulder composition, neon rim light + ambient fill, editorial photography.
+CẢNH 0045: cô gái ngồi đợi cạnh máy bán vé tại sảnh khách sạn cao cấp, over-shoulder composition, neon rim light + ambient fill, editorial photography.
+CẢNH 0046: cô gái ngồi đợi cạnh máy bán vé tại khu công nghiệp về đêm, over-shoulder composition, neon rim light + ambient fill, editorial photography.
+CẢNH 0047: cô gái ngồi đợi cạnh máy bán vé tại phòng họp corporate hiện đại, over-shoulder composition, neon rim light + ambient fill, editorial photography.
+CẢNH 0048: cô gái ngồi đợi cạnh máy bán vé tại siêu thị tự phục vụ, over-shoulder composition, neon rim light + ambient fill, editorial photography.
+CẢNH 0049: cô gái ngồi đợi cạnh máy bán vé tại xưởng cơ khí ánh sáng mạnh, over-shoulder composition, neon rim light + ambient fill, editorial photography.
+CẢNH 0050: cô gái ngồi đợi cạnh máy bán vé tại con phố mưa phản chiếu neon, over-shoulder composition, neon rim light + ambient fill, documentary style.
+CẢNH 0051: nhân vật cúi nhặt tờ giấy tại nhà ga tàu điện ngầm hiện đại, over-shoulder composition, neon rim light + ambient fill, documentary style.
+CẢNH 0052: nhân vật cúi nhặt tờ giấy tại hành lang văn phòng kính, over-shoulder composition, warm practical lights with shadows, documentary style.
+CẢNH 0053: nhân vật cúi nhặt tờ giấy tại quán cafe phong cách tối giản, low-angle dramatic shot, warm practical lights with shadows, documentary style.
+CẢNH 0054: nhân vật cúi nhặt tờ giấy tại bãi đỗ xe ngầm ánh đèn lạnh, low-angle dramatic shot, warm practical lights with shadows, documentary style.
+CẢNH 0055: nhân vật cúi nhặt tờ giấy tại sảnh khách sạn cao cấp, low-angle dramatic shot, warm practical lights with shadows, documentary style.
+CẢNH 0056: nhân vật cúi nhặt tờ giấy tại khu công nghiệp về đêm, low-angle dramatic shot, warm practical lights with shadows, documentary style.
+CẢNH 0057: nhân vật cúi nhặt tờ giấy tại phòng họp corporate hiện đại, low-angle dramatic shot, warm practical lights with shadows, film still look.
+CẢNH 0058: nhân vật cúi nhặt tờ giấy tại siêu thị tự phục vụ, low-angle dramatic shot, warm practical lights with shadows, film still look.
+CẢNH 0059: nhân vật cúi nhặt tờ giấy tại xưởng cơ khí ánh sáng mạnh, low-angle dramatic shot, warm practical lights with shadows, film still look.
+CẢNH 0060: nhân vật cúi nhặt tờ giấy tại con phố mưa phản chiếu neon, low-angle dramatic shot, warm practical lights with shadows, film still look.
+CẢNH 0061: người phụ nữ đẩy xe hàng tại nhà ga tàu điện ngầm hiện đại, low-angle dramatic shot, warm practical lights with shadows, film still look.
+CẢNH 0062: người phụ nữ đẩy xe hàng tại hành lang văn phòng kính, low-angle dramatic shot, warm practical lights with shadows, film still look.
+CẢNH 0063: người phụ nữ đẩy xe hàng tại quán cafe phong cách tối giản, low-angle dramatic shot, warm practical lights with shadows, film still look.
+CẢNH 0064: người phụ nữ đẩy xe hàng tại bãi đỗ xe ngầm ánh đèn lạnh, low-angle dramatic shot, warm practical lights with shadows, ultra-detailed realism.
+CẢNH 0065: người phụ nữ đẩy xe hàng tại sảnh khách sạn cao cấp, low-angle dramatic shot, warm practical lights with shadows, ultra-detailed realism.
+CẢNH 0066: người phụ nữ đẩy xe hàng tại khu công nghiệp về đêm, medium shot, eye-level, warm practical lights with shadows, ultra-detailed realism.
+CẢNH 0067: người phụ nữ đẩy xe hàng tại phòng họp corporate hiện đại, medium shot, eye-level, warm practical lights with shadows, ultra-detailed realism.
+CẢNH 0068: người phụ nữ đẩy xe hàng tại siêu thị tự phục vụ, medium shot, eye-level, warm practical lights with shadows, ultra-detailed realism.
+CẢNH 0069: người phụ nữ đẩy xe hàng tại xưởng cơ khí ánh sáng mạnh, medium shot, eye-level, natural daylight through glass, ultra-detailed realism.
+CẢNH 0070: người phụ nữ đẩy xe hàng tại con phố mưa phản chiếu neon, medium shot, eye-level, natural daylight through glass, ultra-detailed realism.
+CẢNH 0071: nhân vật dừng lại trước bảng chỉ dẫn tại nhà ga tàu điện ngầm hiện đại, medium shot, eye-level, natural daylight through glass, cinematic realism.
+CẢNH 0072: nhân vật dừng lại trước bảng chỉ dẫn tại hành lang văn phòng kính, medium shot, eye-level, natural daylight through glass, cinematic realism.
+CẢNH 0073: nhân vật dừng lại trước bảng chỉ dẫn tại quán cafe phong cách tối giản, medium shot, eye-level, natural daylight through glass, cinematic realism.
+CẢNH 0074: nhân vật dừng lại trước bảng chỉ dẫn tại bãi đỗ xe ngầm ánh đèn lạnh, medium shot, eye-level, natural daylight through glass, cinematic realism.
+CẢNH 0075: nhân vật dừng lại trước bảng chỉ dẫn tại sảnh khách sạn cao cấp, medium shot, eye-level, natural daylight through glass, cinematic realism.
+CẢNH 0076: nhân vật dừng lại trước bảng chỉ dẫn tại khu công nghiệp về đêm, medium shot, eye-level, natural daylight through glass, cinematic realism.
+CẢNH 0077: nhân vật dừng lại trước bảng chỉ dẫn tại phòng họp corporate hiện đại, medium shot, eye-level, natural daylight through glass, cinematic realism.
+CẢNH 0078: nhân vật dừng lại trước bảng chỉ dẫn tại siêu thị tự phục vụ, medium shot, eye-level, natural daylight through glass, editorial photography.
+CẢNH 0079: nhân vật dừng lại trước bảng chỉ dẫn tại xưởng cơ khí ánh sáng mạnh, close-up portrait, shallow depth of field, natural daylight through glass, editorial photography.
+CẢNH 0080: nhân vật dừng lại trước bảng chỉ dẫn tại con phố mưa phản chiếu neon, close-up portrait, shallow depth of field, natural daylight through glass, editorial photography.
+CẢNH 0081: cô gái mở tủ locker tại nhà ga tàu điện ngầm hiện đại, close-up portrait, shallow depth of field, natural daylight through glass, editorial photography.
+CẢNH 0082: cô gái mở tủ locker tại hành lang văn phòng kính, close-up portrait, shallow depth of field, natural daylight through glass, editorial photography.
+CẢNH 0083: cô gái mở tủ locker tại quán cafe phong cách tối giản, close-up portrait, shallow depth of field, natural daylight through glass, editorial photography.
+CẢNH 0084: cô gái mở tủ locker tại bãi đỗ xe ngầm ánh đèn lạnh, close-up portrait, shallow depth of field, natural daylight through glass, editorial photography.
+CẢNH 0085: cô gái mở tủ locker tại sảnh khách sạn cao cấp, close-up portrait, shallow depth of field, natural daylight through glass, documentary style.
+CẢNH 0086: cô gái mở tủ locker tại khu công nghiệp về đêm, close-up portrait, shallow depth of field, soft cool lighting, documentary style.
+CẢNH 0087: cô gái mở tủ locker tại phòng họp corporate hiện đại, close-up portrait, shallow depth of field, soft cool lighting, documentary style.
+CẢNH 0088: cô gái mở tủ locker tại siêu thị tự phục vụ, close-up portrait, shallow depth of field, soft cool lighting, documentary style.
+CẢNH 0089: cô gái mở tủ locker tại xưởng cơ khí ánh sáng mạnh, close-up portrait, shallow depth of field, soft cool lighting, documentary style.
+CẢNH 0090: cô gái mở tủ locker tại con phố mưa phản chiếu neon, close-up portrait, shallow depth of field, soft cool lighting, documentary style.
+CẢNH 0091: nhân vật kéo vali đi qua cửa xoay tại nhà ga tàu điện ngầm hiện đại, close-up portrait, shallow depth of field, soft cool lighting, documentary style.
+CẢNH 0092: nhân vật kéo vali đi qua cửa xoay tại hành lang văn phòng kính, wide shot with strong leading lines, soft cool lighting, film still look.
+CẢNH 0093: nhân vật kéo vali đi qua cửa xoay tại quán cafe phong cách tối giản, wide shot with strong leading lines, soft cool lighting, film still look.
+CẢNH 0094: nhân vật kéo vali đi qua cửa xoay tại bãi đỗ xe ngầm ánh đèn lạnh, wide shot with strong leading lines, soft cool lighting, film still look.
+CẢNH 0095: nhân vật kéo vali đi qua cửa xoay tại sảnh khách sạn cao cấp, wide shot with strong leading lines, soft cool lighting, film still look.
+CẢNH 0096: nhân vật kéo vali đi qua cửa xoay tại khu công nghiệp về đêm, wide shot with strong leading lines, soft cool lighting, film still look.
+CẢNH 0097: nhân vật kéo vali đi qua cửa xoay tại phòng họp corporate hiện đại, wide shot with strong leading lines, soft cool lighting, film still look.
+CẢNH 0098: nhân vật kéo vali đi qua cửa xoay tại siêu thị tự phục vụ, wide shot with strong leading lines, soft cool lighting, film still look.
+CẢNH 0099: nhân vật kéo vali đi qua cửa xoay tại xưởng cơ khí ánh sáng mạnh, wide shot with strong leading lines, soft cool lighting, ultra-detailed realism.
+CẢNH 0100: nhân vật kéo vali đi qua cửa xoay tại con phố mưa phản chiếu neon, wide shot with strong leading lines, soft cool lighting, ultra-detailed realism.
+CẢNH 0101: nhân vật mở cửa kim loại tại nhà ga tàu điện ngầm hiện đại, wide shot with strong leading lines, soft cool lighting, ultra-detailed realism.
+CẢNH 0102: nhân vật mở cửa kim loại tại hành lang văn phòng kính, wide shot with strong leading lines, soft cool lighting, ultra-detailed realism.
+CẢNH 0103: nhân vật mở cửa kim loại tại quán cafe phong cách tối giản, wide shot with strong leading lines, high contrast key light, ultra-detailed realism.
+CẢNH 0104: nhân vật mở cửa kim loại tại bãi đỗ xe ngầm ánh đèn lạnh, wide shot with strong leading lines, high contrast key light, ultra-detailed realism.
+CẢNH 0105: nhân vật mở cửa kim loại tại sảnh khách sạn cao cấp, over-shoulder composition, high contrast key light, ultra-detailed realism.
+CẢNH 0106: nhân vật mở cửa kim loại tại khu công nghiệp về đêm, over-shoulder composition, high contrast key light, cinematic realism.
+CẢNH 0107: nhân vật mở cửa kim loại tại phòng họp corporate hiện đại, over-shoulder composition, high contrast key light, cinematic realism.
+CẢNH 0108: nhân vật mở cửa kim loại tại siêu thị tự phục vụ, over-shoulder composition, high contrast key light, cinematic realism.
+CẢNH 0109: nhân vật mở cửa kim loại tại xưởng cơ khí ánh sáng mạnh, over-shoulder composition, high contrast key light, cinematic realism.
+CẢNH 0110: nhân vật mở cửa kim loại tại con phố mưa phản chiếu neon, over-shoulder composition, high contrast key light, cinematic realism.
+CẢNH 0111: cô gái nhìn qua khung kính tại nhà ga tàu điện ngầm hiện đại, over-shoulder composition, high contrast key light, cinematic realism.
+CẢNH 0112: cô gái nhìn qua khung kính tại hành lang văn phòng kính, over-shoulder composition, high contrast key light, cinematic realism.
+CẢNH 0113: cô gái nhìn qua khung kính tại quán cafe phong cách tối giản, over-shoulder composition, high contrast key light, editorial photography.
+CẢNH 0114: cô gái nhìn qua khung kính tại bãi đỗ xe ngầm ánh đèn lạnh, over-shoulder composition, high contrast key light, editorial photography.
+CẢNH 0115: cô gái nhìn qua khung kính tại sảnh khách sạn cao cấp, over-shoulder composition, high contrast key light, editorial photography.
+CẢNH 0116: cô gái nhìn qua khung kính tại khu công nghiệp về đêm, over-shoulder composition, high contrast key light, editorial photography.
+CẢNH 0117: cô gái nhìn qua khung kính tại phòng họp corporate hiện đại, over-shoulder composition, high contrast key light, editorial photography.
+CẢNH 0118: cô gái nhìn qua khung kính tại siêu thị tự phục vụ, low-angle dramatic shot, high contrast key light, editorial photography.
+CẢNH 0119: cô gái nhìn qua khung kính tại xưởng cơ khí ánh sáng mạnh, low-angle dramatic shot, high contrast key light, editorial photography.
+CẢNH 0120: cô gái nhìn qua khung kính tại con phố mưa phản chiếu neon, low-angle dramatic shot, neon rim light + ambient fill, documentary style.
+CẢNH 0121: người đàn ông kiểm tra điện thoại tại nhà ga tàu điện ngầm hiện đại, low-angle dramatic shot, neon rim light + ambient fill, documentary style.
+CẢNH 0122: người đàn ông kiểm tra điện thoại tại hành lang văn phòng kính, low-angle dramatic shot, neon rim light + ambient fill, documentary style.
+CẢNH 0123: người đàn ông kiểm tra điện thoại tại quán cafe phong cách tối giản, low-angle dramatic shot, neon rim light + ambient fill, documentary style.
+CẢNH 0124: người đàn ông kiểm tra điện thoại tại bãi đỗ xe ngầm ánh đèn lạnh, low-angle dramatic shot, neon rim light + ambient fill, documentary style.
+CẢNH 0125: người đàn ông kiểm tra điện thoại tại sảnh khách sạn cao cấp, low-angle dramatic shot, neon rim light + ambient fill, documentary style.
+CẢNH 0126: người đàn ông kiểm tra điện thoại tại khu công nghiệp về đêm, low-angle dramatic shot, neon rim light + ambient fill, documentary style.
+CẢNH 0127: người đàn ông kiểm tra điện thoại tại phòng họp corporate hiện đại, low-angle dramatic shot, neon rim light + ambient fill, film still look.
+CẢNH 0128: người đàn ông kiểm tra điện thoại tại siêu thị tự phục vụ, low-angle dramatic shot, neon rim light + ambient fill, film still look.
+CẢNH 0129: người đàn ông kiểm tra điện thoại tại xưởng cơ khí ánh sáng mạnh, low-angle dramatic shot, neon rim light + ambient fill, film still look.
+CẢNH 0130: người đàn ông kiểm tra điện thoại tại con phố mưa phản chiếu neon, low-angle dramatic shot, neon rim light + ambient fill, film still look.
+CẢNH 0131: nhân vật bước nhanh qua hành lang tại nhà ga tàu điện ngầm hiện đại, medium shot, eye-level, neon rim light + ambient fill, film still look.
+CẢNH 0132: nhân vật bước nhanh qua hành lang tại hành lang văn phòng kính, medium shot, eye-level, neon rim light + ambient fill, film still look.
+CẢNH 0133: nhân vật bước nhanh qua hành lang tại quán cafe phong cách tối giản, medium shot, eye-level, neon rim light + ambient fill, film still look.
+CẢNH 0134: nhân vật bước nhanh qua hành lang tại bãi đỗ xe ngầm ánh đèn lạnh, medium shot, eye-level, neon rim light + ambient fill, ultra-detailed realism.
+CẢNH 0135: nhân vật bước nhanh qua hành lang tại sảnh khách sạn cao cấp, medium shot, eye-level, neon rim light + ambient fill, ultra-detailed realism.
+CẢNH 0136: nhân vật bước nhanh qua hành lang tại khu công nghiệp về đêm, medium shot, eye-level, neon rim light + ambient fill, ultra-detailed realism.
+CẢNH 0137: nhân vật bước nhanh qua hành lang tại phòng họp corporate hiện đại, medium shot, eye-level, warm practical lights with shadows, ultra-detailed realism.
+CẢNH 0138: nhân vật bước nhanh qua hành lang tại siêu thị tự phục vụ, medium shot, eye-level, warm practical lights with shadows, ultra-detailed realism.
+CẢNH 0139: nhân vật bước nhanh qua hành lang tại xưởng cơ khí ánh sáng mạnh, medium shot, eye-level, warm practical lights with shadows, ultra-detailed realism.
+CẢNH 0140: nhân vật bước nhanh qua hành lang tại con phố mưa phản chiếu neon, medium shot, eye-level, warm practical lights with shadows, ultra-detailed realism.
+CẢNH 0141: cô gái ngồi đợi cạnh máy bán vé tại nhà ga tàu điện ngầm hiện đại, medium shot, eye-level, warm practical lights with shadows, cinematic realism.
+CẢNH 0142: cô gái ngồi đợi cạnh máy bán vé tại hành lang văn phòng kính, medium shot, eye-level, warm practical lights with shadows, cinematic realism.
+CẢNH 0143: cô gái ngồi đợi cạnh máy bán vé tại quán cafe phong cách tối giản, medium shot, eye-level, warm practical lights with shadows, cinematic realism.
+CẢNH 0144: cô gái ngồi đợi cạnh máy bán vé tại bãi đỗ xe ngầm ánh đèn lạnh, close-up portrait, shallow depth of field, warm practical lights with shadows, cinematic realism.
+CẢNH 0145: cô gái ngồi đợi cạnh máy bán vé tại sảnh khách sạn cao cấp, close-up portrait, shallow depth of field, warm practical lights with shadows, cinematic realism.
+CẢNH 0146: cô gái ngồi đợi cạnh máy bán vé tại khu công nghiệp về đêm, close-up portrait, shallow depth of field, warm practical lights with shadows, cinematic realism.
+CẢNH 0147: cô gái ngồi đợi cạnh máy bán vé tại phòng họp corporate hiện đại, close-up portrait, shallow depth of field, warm practical lights with shadows, cinematic realism.
+CẢNH 0148: cô gái ngồi đợi cạnh máy bán vé tại siêu thị tự phục vụ, close-up portrait, shallow depth of field, warm practical lights with shadows, editorial photography.
+CẢNH 0149: cô gái ngồi đợi cạnh máy bán vé tại xưởng cơ khí ánh sáng mạnh, close-up portrait, shallow depth of field, warm practical lights with shadows, editorial photography.
+CẢNH 0150: cô gái ngồi đợi cạnh máy bán vé tại con phố mưa phản chiếu neon, close-up portrait, shallow depth of field, warm practical lights with shadows, editorial photography.
+CẢNH 0151: nhân vật cúi nhặt tờ giấy tại nhà ga tàu điện ngầm hiện đại, close-up portrait, shallow depth of field, warm practical lights with shadows, editorial photography.
+CẢNH 0152: nhân vật cúi nhặt tờ giấy tại hành lang văn phòng kính, close-up portrait, shallow depth of field, warm practical lights with shadows, editorial photography.
+CẢNH 0153: nhân vật cúi nhặt tờ giấy tại quán cafe phong cách tối giản, close-up portrait, shallow depth of field, warm practical lights with shadows, editorial photography.
+CẢNH 0154: nhân vật cúi nhặt tờ giấy tại bãi đỗ xe ngầm ánh đèn lạnh, close-up portrait, shallow depth of field, natural daylight through glass, editorial photography.
+CẢNH 0155: nhân vật cúi nhặt tờ giấy tại sảnh khách sạn cao cấp, close-up portrait, shallow depth of field, natural daylight through glass, documentary style.
+CẢNH 0156: nhân vật cúi nhặt tờ giấy tại khu công nghiệp về đêm, close-up portrait, shallow depth of field, natural daylight through glass, documentary style.
+CẢNH 0157: nhân vật cúi nhặt tờ giấy tại phòng họp corporate hiện đại, wide shot with strong leading lines, natural daylight through glass, documentary style.
+CẢNH 0158: nhân vật cúi nhặt tờ giấy tại siêu thị tự phục vụ, wide shot with strong leading lines, natural daylight through glass, documentary style.
+CẢNH 0159: nhân vật cúi nhặt tờ giấy tại xưởng cơ khí ánh sáng mạnh, wide shot with strong leading lines, natural daylight through glass, documentary style.
+CẢNH 0160: nhân vật cúi nhặt tờ giấy tại con phố mưa phản chiếu neon, wide shot with strong leading lines, natural daylight through glass, documentary style.
+CẢNH 0161: người phụ nữ đẩy xe hàng tại nhà ga tàu điện ngầm hiện đại, wide shot with strong leading lines, natural daylight through glass, documentary style.
+CẢNH 0162: người phụ nữ đẩy xe hàng tại hành lang văn phòng kính, wide shot with strong leading lines, natural daylight through glass, film still look.
+CẢNH 0163: người phụ nữ đẩy xe hàng tại quán cafe phong cách tối giản, wide shot with strong leading lines, natural daylight through glass, film still look.
+CẢNH 0164: người phụ nữ đẩy xe hàng tại bãi đỗ xe ngầm ánh đèn lạnh, wide shot with strong leading lines, natural daylight through glass, film still look.
+CẢNH 0165: người phụ nữ đẩy xe hàng tại sảnh khách sạn cao cấp, wide shot with strong leading lines, natural daylight through glass, film still look.
+CẢNH 0166: người phụ nữ đẩy xe hàng tại khu công nghiệp về đêm, wide shot with strong leading lines, natural daylight through glass, film still look.
+CẢNH 0167: người phụ nữ đẩy xe hàng tại phòng họp corporate hiện đại, wide shot with strong leading lines, natural daylight through glass, film still look.
+CẢNH 0168: người phụ nữ đẩy xe hàng tại siêu thị tự phục vụ, wide shot with strong leading lines, natural daylight through glass, film still look.
+CẢNH 0169: người phụ nữ đẩy xe hàng tại xưởng cơ khí ánh sáng mạnh, wide shot with strong leading lines, natural daylight through glass, ultra-detailed realism.
+CẢNH 0170: người phụ nữ đẩy xe hàng tại con phố mưa phản chiếu neon, over-shoulder composition, natural daylight through glass, ultra-detailed realism.
+CẢNH 0171: nhân vật dừng lại trước bảng chỉ dẫn tại nhà ga tàu điện ngầm hiện đại, over-shoulder composition, soft cool lighting, ultra-detailed realism.
+CẢNH 0172: nhân vật dừng lại trước bảng chỉ dẫn tại hành lang văn phòng kính, over-shoulder composition, soft cool lighting, ultra-detailed realism.
+CẢNH 0173: nhân vật dừng lại trước bảng chỉ dẫn tại quán cafe phong cách tối giản, over-shoulder composition, soft cool lighting, ultra-detailed realism.
+CẢNH 0174: nhân vật dừng lại trước bảng chỉ dẫn tại bãi đỗ xe ngầm ánh đèn lạnh, over-shoulder composition, soft cool lighting, ultra-detailed realism.
+CẢNH 0175: nhân vật dừng lại trước bảng chỉ dẫn tại sảnh khách sạn cao cấp, over-shoulder composition, soft cool lighting, ultra-detailed realism.
+CẢNH 0176: nhân vật dừng lại trước bảng chỉ dẫn tại khu công nghiệp về đêm, over-shoulder composition, soft cool lighting, cinematic realism.
+CẢNH 0177: nhân vật dừng lại trước bảng chỉ dẫn tại phòng họp corporate hiện đại, over-shoulder composition, soft cool lighting, cinematic realism.
+CẢNH 0178: nhân vật dừng lại trước bảng chỉ dẫn tại siêu thị tự phục vụ, over-shoulder composition, soft cool lighting, cinematic realism.
+CẢNH 0179: nhân vật dừng lại trước bảng chỉ dẫn tại xưởng cơ khí ánh sáng mạnh, over-shoulder composition, soft cool lighting, cinematic realism.
+CẢNH 0180: nhân vật dừng lại trước bảng chỉ dẫn tại con phố mưa phản chiếu neon, over-shoulder composition, soft cool lighting, cinematic realism.
+CẢNH 0181: cô gái mở tủ locker tại nhà ga tàu điện ngầm hiện đại, over-shoulder composition, soft cool lighting, cinematic realism.
+CẢNH 0182: cô gái mở tủ locker tại hành lang văn phòng kính, over-shoulder composition, soft cool lighting, cinematic realism.
+CẢNH 0183: cô gái mở tủ locker tại quán cafe phong cách tối giản, low-angle dramatic shot, soft cool lighting, editorial photography.
+CẢNH 0184: cô gái mở tủ locker tại bãi đỗ xe ngầm ánh đèn lạnh, low-angle dramatic shot, soft cool lighting, editorial photography.
+CẢNH 0185: cô gái mở tủ locker tại sảnh khách sạn cao cấp, low-angle dramatic shot, soft cool lighting, editorial photography.
+CẢNH 0186: cô gái mở tủ locker tại khu công nghiệp về đêm, low-angle dramatic shot, soft cool lighting, editorial photography.
+CẢNH 0187: cô gái mở tủ locker tại phòng họp corporate hiện đại, low-angle dramatic shot, soft cool lighting, editorial photography.
+CẢNH 0188: cô gái mở tủ locker tại siêu thị tự phục vụ, low-angle dramatic shot, high contrast key light, editorial photography.
+CẢNH 0189: cô gái mở tủ locker tại xưởng cơ khí ánh sáng mạnh, low-angle dramatic shot, high contrast key light, editorial photography.
+CẢNH 0190: cô gái mở tủ locker tại con phố mưa phản chiếu neon, low-angle dramatic shot, high contrast key light, documentary style.
+CẢNH 0191: nhân vật kéo vali đi qua cửa xoay tại nhà ga tàu điện ngầm hiện đại, low-angle dramatic shot, high contrast key light, documentary style.
+CẢNH 0192: nhân vật kéo vali đi qua cửa xoay tại hành lang văn phòng kính, low-angle dramatic shot, high contrast key light, documentary style.
+CẢNH 0193: nhân vật kéo vali đi qua cửa xoay tại quán cafe phong cách tối giản, low-angle dramatic shot, high contrast key light, documentary style.
+CẢNH 0194: nhân vật kéo vali đi qua cửa xoay tại bãi đỗ xe ngầm ánh đèn lạnh, low-angle dramatic shot, high contrast key light, documentary style.
+CẢNH 0195: nhân vật kéo vali đi qua cửa xoay tại sảnh khách sạn cao cấp, low-angle dramatic shot, high contrast key light, documentary style.
+CẢNH 0196: nhân vật kéo vali đi qua cửa xoay tại khu công nghiệp về đêm, medium shot, eye-level, high contrast key light, documentary style.
+CẢNH 0197: nhân vật kéo vali đi qua cửa xoay tại phòng họp corporate hiện đại, medium shot, eye-level, high contrast key light, film still look.
+CẢNH 0198: nhân vật kéo vali đi qua cửa xoay tại siêu thị tự phục vụ, medium shot, eye-level, high contrast key light, film still look.
+CẢNH 0199: nhân vật kéo vali đi qua cửa xoay tại xưởng cơ khí ánh sáng mạnh, medium shot, eye-level, high contrast key light, film still look.
+CẢNH 0200: nhân vật kéo vali đi qua cửa xoay tại con phố mưa phản chiếu neon, medium shot, eye-level, high contrast key light, film still look.
