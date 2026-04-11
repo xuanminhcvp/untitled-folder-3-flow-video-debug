@@ -25,8 +25,10 @@ import subprocess
 import re
 import glob
 import shutil
+from typing import Optional
 from pathlib import Path
 from datetime import datetime
+from urllib.parse import urljoin
 from playwright.async_api import async_playwright
 
 # ───────────────────────────────────────────────
@@ -57,11 +59,20 @@ GOOGLE_FLOW_RANDOM_PROMPTS_COUNT = int(os.environ.get("GOOGLE_FLOW_RANDOM_PROMPT
 GOOGLE_FLOW_FORCE_NEW_PROJECT = os.environ.get("GOOGLE_FLOW_FORCE_NEW_PROJECT", "1").strip() in {"1", "true", "yes"}
 # Tự động upscale ảnh đã tạo lên 2K bằng API (không bấm UI).
 GOOGLE_FLOW_AUTO_UPSCALE_2K = os.environ.get("GOOGLE_FLOW_AUTO_UPSCALE_2K", "1").strip() in {"1", "true", "yes"}
+# Chọn loại media khi chạy auto Google Flow:
+# - image: tạo ảnh như hiện tại
+# - video: tạo video (test request/response video)
+GOOGLE_FLOW_MEDIA_MODE = os.environ.get("GOOGLE_FLOW_MEDIA_MODE", "image").strip().lower()
+# Chờ tối đa bao nhiêu giây để thu đủ response upscale 2K sau khi đã queue xong.
+GOOGLE_FLOW_UPSCALE_WAIT_TIMEOUT_SEC = int(os.environ.get("GOOGLE_FLOW_UPSCALE_WAIT_TIMEOUT_SEC", "180"))
 # Dọn thư mục output trước khi chạy Google Flow hay không.
 # Mặc định tắt để giữ ảnh các lần chạy cũ cho bạn dễ đối chiếu.
 GOOGLE_FLOW_CLEAR_OUTPUT_BEFORE_RUN = os.environ.get("GOOGLE_FLOW_CLEAR_OUTPUT_BEFORE_RUN", "0").strip() in {"1", "true", "yes"}
-# Chờ thêm sau prompt cuối để Flow kịp trả kết quả API (giây)
-GOOGLE_FLOW_WAIT_AFTER_LAST_PROMPT_SEC = int(os.environ.get("GOOGLE_FLOW_WAIT_AFTER_LAST_PROMPT_SEC", "60"))
+# Chờ thêm sau prompt cuối để Flow kịp trả kết quả API (giây).
+# Theo yêu cầu hiện tại: mặc định 40s rồi bắt đầu tải ảnh thường.
+GOOGLE_FLOW_WAIT_AFTER_LAST_PROMPT_SEC = int(os.environ.get("GOOGLE_FLOW_WAIT_AFTER_LAST_PROMPT_SEC", "40"))
+# Chờ sau prompt cuối cho luồng video (thường cần lâu hơn ảnh).
+GOOGLE_FLOW_VIDEO_WAIT_AFTER_LAST_PROMPT_SEC = int(os.environ.get("GOOGLE_FLOW_VIDEO_WAIT_AFTER_LAST_PROMPT_SEC", "45"))
 # Poll map API scene->image trong mode Google Flow (giây)
 GOOGLE_FLOW_API_MAP_TIMEOUT_SEC = int(os.environ.get("GOOGLE_FLOW_API_MAP_TIMEOUT_SEC", "120"))
 # Nếu bật, script sẽ mở Flow và chờ bạn setup xong rồi Enter mới bắt đầu gửi prompt.
@@ -167,6 +178,7 @@ _run_started_ts: float = 0.0  # mốc thời gian bắt đầu gửi prompt củ
 _pending_api_tasks: list = []  # danh sách task async parse response API
 _upscale_events: list = []  # log riêng cho flow upscale 2K
 _scene_to_media_ids: dict = {}  # scene_no -> [media_id...]
+_scene_to_video_media_ids: dict = {}  # scene_no -> [video_media_id...]
 _last_flow_client_context: dict = {}  # clientContext gần nhất từ request generate
 _upscale_success_by_media: dict = {}  # media_id -> {"encoded_image": "...", "status": int, ...}
 
@@ -181,7 +193,7 @@ def _init_debug_session():
     global _trace_zip_path
     global _api_events, _api_req_meta, _scene_to_task_ids, _task_to_image_urls, _scene_to_image_urls
     global _submit_to_scene, _trusted_submit_ids, _run_started_ts, _pending_api_tasks, _upscale_events
-    global _scene_to_media_ids, _last_flow_client_context, _upscale_success_by_media
+    global _scene_to_media_ids, _scene_to_video_media_ids, _last_flow_client_context, _upscale_success_by_media
     Path(DEBUG_DIR).mkdir(parents=True, exist_ok=True)
 
     # ── Auto-cleanup: xóa sessions cũ nhất, giữ max N ──
@@ -211,6 +223,7 @@ def _init_debug_session():
     _pending_api_tasks = []
     _upscale_events = []
     _scene_to_media_ids = {}
+    _scene_to_video_media_ids = {}
     _last_flow_client_context = {}
     _upscale_success_by_media = {}
     _trace_zip_path = os.path.join(_debug_session_dir, "playwright_trace.zip")
@@ -617,6 +630,22 @@ def _collect_urls_from_obj(obj, out: list):
             out.append(obj)
 
 
+def _collect_video_urls_from_obj(obj, out: list):
+    """Duyệt JSON để gom URL video (mp4/webm/m3u8)."""
+    if isinstance(obj, dict):
+        for _, v in obj.items():
+            _collect_video_urls_from_obj(v, out)
+    elif isinstance(obj, list):
+        for v in obj:
+            _collect_video_urls_from_obj(v, out)
+    elif isinstance(obj, str):
+        low = obj.lower()
+        if not low.startswith("http"):
+            return
+        if any(x in low for x in [".mp4", ".webm", ".m3u8", "/video/"]):
+            out.append(obj)
+
+
 def _collect_task_ids_from_obj(obj, out: list):
     """Duyệt JSON để gom task/job id."""
     if isinstance(obj, dict):
@@ -742,7 +771,7 @@ def _extract_scene_cover_urls_from_history_json(body_json) -> dict:
 
 def _extract_scene_cover_and_submit_map_from_history_json(
     body_json,
-    trusted_submit_ids: set | None = None,
+    trusted_submit_ids: Optional[set] = None,
     run_started_ts: float = 0.0,
     max_age_sec: int = API_HISTORY_MAX_AGE_SEC,
 ) -> tuple[dict, dict]:
@@ -878,9 +907,11 @@ def setup_image_network_debug(page):
 
         task_ids = []
         image_urls = []
+        video_urls = []
         if body_json is not None:
             _collect_task_ids_from_obj(body_json, task_ids)
             _collect_urls_from_obj(body_json, image_urls)
+            _collect_video_urls_from_obj(body_json, video_urls)
 
             # Parse riêng cho Flow generate: lấy mediaId để upscale 2K sau đó.
             if "flowmedia:batchgenerateimages" in (url or "").lower():
@@ -911,6 +942,60 @@ def setup_image_network_debug(page):
 
                         if scene_no:
                             _append_unique_dict_list(_scene_to_media_ids, scene_no, [media_id])
+                except Exception:
+                    pass
+
+            # Parse riêng cho Flow generate VIDEO: scene -> video mediaId.
+            if "video:batchasyncgeneratevideotext" in (url or "").lower():
+                try:
+                    media = (body_json or {}).get("media", []) or []
+                    scenes_local = meta.get("scene_numbers", []) or []
+                    for idx, item in enumerate(media):
+                        if not isinstance(item, dict):
+                            continue
+                        media_id = str(item.get("name", "") or "")
+                        if not media_id:
+                            continue
+
+                        scene_no = 0
+                        if len(scenes_local) == 1:
+                            scene_no = scenes_local[0]
+                        elif idx < len(scenes_local):
+                            scene_no = scenes_local[idx]
+
+                        if not scene_no:
+                            video_obj = item.get("video", {}) or {}
+                            generated_video = video_obj.get("generatedVideo", {}) or {}
+                            prompt_text = str(generated_video.get("prompt", "") or "")
+                            if not prompt_text:
+                                media_meta = (item.get("mediaMetadata", {}) or {})
+                                prompt_text = str(media_meta.get("mediaTitle", "") or "")
+                            scene_no = _extract_scene_number_from_any_text(prompt_text, 0)
+
+                        if scene_no:
+                            _append_unique_dict_list(_scene_to_video_media_ids, scene_no, [media_id])
+                except Exception:
+                    pass
+
+            # Parse projectInitialData để cập nhật scene -> video mediaId khi job cập nhật trạng thái.
+            if "flow.projectinitialdata" in (url or "").lower():
+                try:
+                    data_json = ((((body_json or {}).get("result", {}) or {}).get("data", {}) or {}).get("json", {}) or {})
+                    media = (data_json.get("media", []) or [])
+                    for item in media:
+                        if not isinstance(item, dict):
+                            continue
+                        media_id = str(item.get("name", "") or "")
+                        if not media_id:
+                            continue
+                        video_obj = item.get("video", {}) or {}
+                        generated_video = video_obj.get("generatedVideo", {}) or {}
+                        prompt_text = str(generated_video.get("prompt", "") or "")
+                        if not prompt_text:
+                            prompt_text = str(((item.get("mediaMetadata", {}) or {}).get("mediaTitle", "")) or "")
+                        scene_no = _extract_scene_number_from_any_text(prompt_text, 0)
+                        if scene_no:
+                            _append_unique_dict_list(_scene_to_video_media_ids, scene_no, [media_id])
                 except Exception:
                     pass
 
@@ -967,6 +1052,8 @@ def setup_image_network_debug(page):
             "task_ids": task_ids,
             "image_urls_count": len(image_urls),
             "image_urls_sample": image_urls[:12],
+            "video_urls_count": len(video_urls),
+            "video_urls_sample": video_urls[:12],
             "request_post_data_sample": request_post_data[:3000],
             "response_body_sample": body_sample[:3000] if body_sample else "",
         })
@@ -1193,6 +1280,7 @@ def save_api_debug() -> str:
         "task_to_image_urls": _task_to_image_urls,
         "scene_to_image_urls": _scene_to_image_urls,
         "scene_to_media_ids": _scene_to_media_ids,
+        "scene_to_video_media_ids": _scene_to_video_media_ids,
         "upscale_success_media_ids": sorted(list(_upscale_success_by_media.keys())),
         "last_flow_client_context_exists": bool(_last_flow_client_context),
         "submit_to_scene": _submit_to_scene,
@@ -2463,7 +2551,7 @@ def save_gallery_snapshot(entries: list, new_srcs: list) -> str:
         return ""
 
 
-async def dump_detailed_dom(page, stage: str, new_srcs: list | None = None) -> dict:
+async def dump_detailed_dom(page, stage: str, new_srcs: Optional[list] = None) -> dict:
     """
     Dump DOM chi tiết để debug map tải ảnh:
     - Full HTML toàn trang
@@ -3068,6 +3156,216 @@ async def run_google_flow_auto_request_response(page, prompts: list[str]) -> int
     return saved_total
 
 
+async def switch_google_flow_to_video_mode(page) -> bool:
+    """
+    Chuyển UI Flow sang chế độ tạo video.
+    Trả về True nếu click thành công một trong các nút video mode.
+    """
+    patterns = [
+        re.compile(r"trình tạo cảnh", re.IGNORECASE),
+        re.compile(r"play_movies", re.IGNORECASE),
+        re.compile(r"create video", re.IGNORECASE),
+        re.compile(r"tạo video", re.IGNORECASE),
+    ]
+    for patt in patterns:
+        try:
+            btn = page.locator("button").filter(has_text=patt).first
+            if await btn.count() > 0 and await btn.is_visible():
+                await btn.click()
+                await asyncio.sleep(0.8)
+                return True
+        except Exception:
+            pass
+    return False
+
+
+async def send_video_prompt(page) -> bool:
+    """
+    Gửi prompt ở chế độ video:
+    - ưu tiên nút Create video/Tạo video
+    - fallback Enter
+    """
+    patterns = [
+        re.compile(r"create video", re.IGNORECASE),
+        re.compile(r"tạo video", re.IGNORECASE),
+        re.compile(r"create videos", re.IGNORECASE),
+    ]
+    for patt in patterns:
+        try:
+            btn = page.locator("button").filter(has_text=patt).first
+            if await btn.count() > 0 and await btn.is_visible() and await btn.is_enabled():
+                await btn.click()
+                await asyncio.sleep(0.8)
+                return True
+        except Exception:
+            pass
+
+    # fallback dùng logic send chung
+    return await send_prompt(page)
+
+
+async def run_google_flow_auto_video_request_response(page, prompts: list[str]) -> int:
+    """
+    Auto mode cho Google Flow VIDEO:
+    - Tự gửi prompt video
+    - Bắt request/response video API
+    - Tải file mp4 theo scene từ mediaId.
+    """
+    global _run_started_ts
+    saved_total = 0
+
+    # Video mode: User đã setup sẵn project ở chế độ Veo 3.
+    # Không tạo project mới, không click "Trình tạo cảnh" — cứ vào editor hiện tại.
+    target_url = get_target_home_url()
+    log(f"Đang mở Google Flow (video): {target_url}", "WEB")
+    await page.goto(target_url, wait_until="domcontentloaded", timeout=60000)
+    await asyncio.sleep(2)
+
+    # Chờ editor ready (project đã setup sẵn video mode bởi user)
+    editor_ready = await ensure_google_flow_editor(page, timeout_sec=45)
+
+    if not editor_ready:
+        log("Không vào được editor Google Flow (video). Hãy mở Flow và setup project trước.", "ERR")
+        return 0
+
+    log("Editor Flow video đã sẵn sàng (user pre-setup).", "OK")
+
+    await debug_step(page, "google_flow_video_editor_ready", extra={"url": page.url, "prompts": len(prompts)})
+    _run_started_ts = time.time()
+
+    for i, prompt in enumerate(prompts):
+        scene_no = extract_scene_number(prompt, i + 1)
+        log(f"[FLOW-VIDEO {i+1}/{len(prompts)}] Gửi: {prompt[:70]}", "SEND")
+        try:
+            await type_prompt(page, prompt)
+            sent = await send_video_prompt(page)
+            await debug_step(
+                page,
+                f"flow_video_sent_prompt_{i+1:02d}",
+                job_id=f"canh_{scene_no:03d}",
+                extra={"sent_ok": sent, "prompt_preview": prompt[:90]},
+            )
+            await capture_prompt_submission_trace(page, i, prompt)
+        except Exception as e:
+            log(f"Lỗi gửi prompt video #{i+1}: {e}", "WARN")
+        await asyncio.sleep(max(0.2, DELAY_SEC))
+
+    log(f"Đã gửi xong {len(prompts)} prompt video, chờ {GOOGLE_FLOW_VIDEO_WAIT_AFTER_LAST_PROMPT_SEC}s...", "WAIT")
+    for remaining in range(GOOGLE_FLOW_VIDEO_WAIT_AFTER_LAST_PROMPT_SEC, 0, -1):
+        if remaining % 5 == 0:
+            log(f"  Còn {remaining}s...", "WAIT")
+        await asyncio.sleep(1)
+
+    await debug_step(page, "flow_video_after_wait", extra={"waited_sec": GOOGLE_FLOW_VIDEO_WAIT_AFTER_LAST_PROMPT_SEC})
+    await wait_pending_api_tasks(timeout_sec=3.0)
+
+    prompt_scene_order = [extract_scene_number(p, i + 1) for i, p in enumerate(prompts)]
+    missing = [sc for sc in prompt_scene_order if not _scene_to_video_media_ids.get(sc)]
+    log(
+        f"Flow VIDEO map scene->mediaId: {len(prompt_scene_order)-len(missing)}/{len(prompt_scene_order)}"
+        + (f" | thiếu: {missing}" if missing else ""),
+        "DBG",
+    )
+
+    Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
+    for scene_no in prompt_scene_order:
+        media_ids = _scene_to_video_media_ids.get(scene_no, []) or []
+        if not media_ids:
+            log(f"  Thiếu video mediaId cho canh_{scene_no:03d}", "WARN")
+            continue
+        media_id = str(media_ids[0])
+
+        # ── URL đúng format API thực (không cần mediaUrlType cho video) ──
+        # API trả 307 redirect → URL GCS thực chứa file video mp4.
+        redirect_url = f"https://labs.google/fx/api/trpc/media.getMediaUrlRedirect?name={media_id}"
+
+        fpath = os.path.join(OUTPUT_DIR, f"canh_{scene_no:03d}.mp4")
+        got = False
+        for attempt in range(20):
+            try:
+                # Bước 1: Gọi redirect API — nhận 307 + header Location chứa URL video thực
+                resp = await page.context.request.get(redirect_url, timeout=30000, max_redirects=0)
+                location = str((resp.headers or {}).get("location", "")).strip()
+
+                # Nếu API trả redirect (307) → lấy URL từ header Location
+                if resp.status in (301, 302, 307, 308) and location:
+                    log(f"  [attempt {attempt+1}] Redirect 307 → {location[:80]}...", "DBG")
+                    # Bước 2: Tải video thực từ URL GCS
+                    video_resp = await page.context.request.get(location, timeout=60000)
+                    if not video_resp.ok:
+                        log(f"  [attempt {attempt+1}] GCS trả status {video_resp.status}", "WARN")
+                        await asyncio.sleep(3)
+                        continue
+                    body = await video_resp.body()
+                    if len(body) < 50000:
+                        log(f"  [attempt {attempt+1}] File quá nhỏ ({len(body)} bytes), video chưa ready?", "WARN")
+                        await asyncio.sleep(5)
+                        continue
+                    with open(fpath, "wb") as f:
+                        f.write(body)
+                    try:
+                        sha = _sha256_file(fpath)
+                    except Exception:
+                        sha = ""
+                    _download_hash_records.append({
+                        "filename": os.path.basename(fpath),
+                        "prompt_num": scene_no,
+                        "prompt_index": scene_no,
+                        "img_num": 1,
+                        "src": location,
+                        "media_id": media_id,
+                        "method": "request.get_flow_video_307_redirect",
+                        "size_bytes": len(body),
+                        "sha256": sha,
+                    })
+                    log(f"  canh_{scene_no:03d}.mp4 ({len(body)//1024}KB) [flow-video-redirect]", "OK")
+                    saved_total += 1
+                    got = True
+                    break
+
+                # Nếu API follow redirect tự động (status 200) → body có thể là video
+                elif resp.ok:
+                    body = await resp.body()
+                    ct = str((resp.headers or {}).get("content-type", "")).lower()
+                    if ("video" in ct or len(body) > 200000):
+                        with open(fpath, "wb") as f:
+                            f.write(body)
+                        try:
+                            sha = _sha256_file(fpath)
+                        except Exception:
+                            sha = ""
+                        _download_hash_records.append({
+                            "filename": os.path.basename(fpath),
+                            "prompt_num": scene_no,
+                            "prompt_index": scene_no,
+                            "img_num": 1,
+                            "src": redirect_url,
+                            "media_id": media_id,
+                            "method": "request.get_flow_video_direct",
+                            "size_bytes": len(body),
+                            "sha256": sha,
+                        })
+                        log(f"  canh_{scene_no:03d}.mp4 ({len(body)//1024}KB) [flow-video-direct]", "OK")
+                        saved_total += 1
+                        got = True
+                        break
+                    else:
+                        log(f"  [attempt {attempt+1}] Status 200 nhưng body nhỏ/ct={ct[:30]}, chờ thêm...", "WARN")
+
+                else:
+                    log(f"  [attempt {attempt+1}] Status {resp.status}, chờ thêm...", "WARN")
+
+            except Exception as e:
+                log(f"  [attempt {attempt+1}] Lỗi tải video: {str(e)[:80]}", "WARN")
+
+            await asyncio.sleep(3)
+
+        if not got:
+            log(f"  Không tải được video canh_{scene_no:03d} (media={media_id[:8]}...)", "WARN")
+
+    return saved_total
+
+
 # ───────────────────────────────────────────────
 # MANUAL NETWORK CAPTURE (CHO SITE KHÁC DREAMINA)
 # ───────────────────────────────────────────────
@@ -3296,6 +3594,46 @@ async def _wait_upscale_result_for_media(media_id: str, prev_event_count: int, t
     return False, (last_status or "timeout")
 
 
+def _save_upscale_image_from_memory(scene_no: int, media_id: str) -> bool:
+    """
+    Lưu ảnh 2K từ cache response đã bắt được (_upscale_success_by_media).
+    Trả về True nếu lưu thành công.
+    """
+    encoded = str((_upscale_success_by_media.get(media_id, {}) or {}).get("encoded_image", "") or "")
+    if not encoded:
+        return False
+
+    try:
+        raw = base64.b64decode(encoded)
+    except Exception:
+        return False
+    if len(raw) <= 5000:
+        return False
+
+    fname = f"canh_{scene_no:03d}_2k.jpg"
+    fpath = os.path.join(OUTPUT_DIR, fname)
+    with open(fpath, "wb") as f:
+        f.write(raw)
+
+    try:
+        sha = _sha256_file(fpath)
+    except Exception:
+        sha = ""
+    _download_hash_records.append({
+        "filename": fname,
+        "prompt_num": scene_no,
+        "prompt_index": scene_no,
+        "img_num": 1,
+        "src": "flow_ui_upsample_response",
+        "media_id": media_id,
+        "method": "request_response_upsample_2k_ui_trigger_batch",
+        "size_bytes": len(raw),
+        "sha256": sha,
+    })
+    log(f"  {fname} ({len(raw)//1024}KB) [upscale-2k-batch-response]", "OK")
+    return True
+
+
 async def auto_upscale_2k_by_api(page, scene_order: list[int]) -> int:
     """
     Auto upscale 2K theo luồng chuẩn của Flow:
@@ -3308,10 +3646,17 @@ async def auto_upscale_2k_by_api(page, scene_order: list[int]) -> int:
         return 0
 
     project_id = _extract_flow_project_id_from_url(page.url) or str(_last_flow_client_context.get("projectId", "") or "")
-    if project_id:
-        await _open_flow_gallery_for_project(page, project_id)
-    else:
+    if not project_id:
         log("Không tìm được project_id để mở gallery upscale 2K.", "WARN")
+        return 0
+
+    # Đưa tab chính về gallery để có ngữ cảnh ổn định.
+    await _open_flow_gallery_for_project(page, project_id)
+
+    # Mỗi scene giữ 1 tab riêng để request 2K không bị hủy khi chuyển scene.
+    # worker_tabs: scene_no -> tab object (để đóng tab khi scene đó xong).
+    worker_tabs: dict[int, object] = {}
+    queued_scene_to_media: dict[int, str] = {}
 
     for scene_no in scene_order:
         media_ids = _scene_to_media_ids.get(scene_no, []) or []
@@ -3320,75 +3665,90 @@ async def auto_upscale_2k_by_api(page, scene_order: list[int]) -> int:
             continue
         media_id = str(media_ids[0])
 
-        if not await _open_flow_edit_for_media(page, media_id):
-            log(f"Upscale 2K: không mở được trang edit cho media {media_id[:8]}...", "WARN")
-            if project_id:
-                await _open_flow_gallery_for_project(page, project_id)
-            continue
-
-        await debug_step(
-            page,
-            f"flow_upscale_open_edit_scene_{scene_no:03d}",
-            job_id=f"canh_{scene_no:03d}",
-            extra={"media_id": media_id, "url": page.url},
-        )
-
-        prev_event_count = len(_upscale_events)
-        clicked = await _click_upscale_2k_in_edit_page(page)
-        if not clicked:
-            log(f"Upscale 2K: không click được nút 2K cho canh_{scene_no:03d}", "WARN")
-            if project_id:
-                await _open_flow_gallery_for_project(page, project_id)
-            continue
-
-        ok, reason = await _wait_upscale_result_for_media(media_id, prev_event_count, timeout_sec=50)
-        if not ok:
-            log(f"Upscale 2K fail canh_{scene_no:03d}: {reason}", "WARN")
-            if project_id:
-                await _open_flow_gallery_for_project(page, project_id)
-            continue
-
-        encoded = str((_upscale_success_by_media.get(media_id, {}) or {}).get("encoded_image", "") or "")
-        if not encoded:
-            log(f"Upscale 2K fail canh_{scene_no:03d}: thiếu encodedImage", "WARN")
-            if project_id:
-                await _open_flow_gallery_for_project(page, project_id)
-            continue
-
+        tab = await page.context.new_page()
         try:
-            raw = base64.b64decode(encoded)
-        except Exception:
-            raw = b""
-        if len(raw) <= 5000:
-            log(f"Upscale 2K fail canh_{scene_no:03d}: file quá nhỏ", "WARN")
-            if project_id:
-                await _open_flow_gallery_for_project(page, project_id)
-            continue
+            gallery_url = f"{GOOGLE_FLOW_HOME}/project/{project_id}"
+            await tab.goto(gallery_url, wait_until="domcontentloaded", timeout=60000)
+            await asyncio.sleep(0.6)
 
-        fname = f"canh_{scene_no:03d}_2k.jpg"
-        fpath = os.path.join(OUTPUT_DIR, fname)
-        with open(fpath, "wb") as f:
-            f.write(raw)
+            if not await _open_flow_edit_for_media(tab, media_id):
+                log(f"Upscale 2K: tab riêng không mở được edit cho media {media_id[:8]}...", "WARN")
+                await tab.close()
+                continue
+
+            await debug_step(
+                tab,
+                f"flow_upscale_open_edit_scene_{scene_no:03d}",
+                job_id=f"canh_{scene_no:03d}",
+                extra={"media_id": media_id, "url": tab.url, "mode": "multi_tab"},
+            )
+
+            clicked = await _click_upscale_2k_in_edit_page(tab)
+            if not clicked:
+                log(f"Upscale 2K: tab riêng không click được nút 2K cho canh_{scene_no:03d}", "WARN")
+                await tab.close()
+                continue
+
+            queued_scene_to_media[scene_no] = media_id
+            worker_tabs[scene_no] = tab
+            log(f"Upscale 2K queued: canh_{scene_no:03d} (media={media_id[:8]}...) [tab riêng]", "DBG")
+        except Exception as e:
+            log(f"Upscale 2K exception canh_{scene_no:03d}: {e}", "WARN")
+            try:
+                await tab.close()
+            except Exception:
+                pass
+
+    if not queued_scene_to_media:
+        return 0
+
+    # Chờ response theo kiểu event-driven:
+    # scene nào có encodedImage trước -> lưu ngay -> đóng tab scene đó ngay.
+    pending = set(queued_scene_to_media.keys())
+    timeout_sec = max(30, GOOGLE_FLOW_UPSCALE_WAIT_TIMEOUT_SEC)
+    deadline = time.time() + timeout_sec
+    log(
+        f"Đã queue {len(queued_scene_to_media)} request 2K (multi-tab), bắt đầu nhận và lưu ngay khi response về...",
+        "WAIT",
+    )
+
+    while pending and time.time() < deadline:
+        done_now = []
+        for scene_no in list(pending):
+            media_id = queued_scene_to_media.get(scene_no, "")
+            if not media_id:
+                done_now.append(scene_no)
+                continue
+
+            if media_id in _upscale_success_by_media:
+                if _save_upscale_image_from_memory(scene_no, media_id):
+                    success += 1
+                else:
+                    log(f"Upscale 2K fail canh_{scene_no:03d}: encodedImage lỗi/nhỏ", "WARN")
+                done_now.append(scene_no)
+
+        for scene_no in done_now:
+            pending.discard(scene_no)
+            tab = worker_tabs.pop(scene_no, None)
+            if tab is not None:
+                try:
+                    await tab.close()
+                except Exception:
+                    pass
+
+        if pending:
+            await asyncio.sleep(0.35)
+
+    if pending:
+        left = sorted(list(pending))
+        log(f"Upscale 2K timeout, còn thiếu: {left}", "WARN")
+
+    # Dọn tab còn mở (nếu timeout/lỗi).
+    for _, tab in list(worker_tabs.items()):
         try:
-            sha = _sha256_file(fpath)
+            await tab.close()
         except Exception:
-            sha = ""
-        _download_hash_records.append({
-            "filename": fname,
-            "prompt_num": scene_no,
-            "prompt_index": scene_no,
-            "img_num": 1,
-            "src": "flow_ui_upsample_response",
-            "media_id": media_id,
-            "method": "request_response_upsample_2k_ui_trigger",
-            "size_bytes": len(raw),
-            "sha256": sha,
-        })
-        success += 1
-        log(f"  {fname} ({len(raw)//1024}KB) [upscale-2k-ui+response]", "OK")
-
-        if project_id:
-            await _open_flow_gallery_for_project(page, project_id)
+            pass
 
     return success
 
@@ -3416,12 +3776,12 @@ async def main():
             if GOOGLE_FLOW_RANDOM_PROMPTS:
                 prompts = pick_random_prompts(prompts, GOOGLE_FLOW_RANDOM_PROMPTS_COUNT)
                 log(
-                    f"Đang chạy mode GOOGLE_FLOW API-only với {len(prompts)} prompt random "
+                    f"Đang chạy mode GOOGLE_FLOW {GOOGLE_FLOW_MEDIA_MODE.upper()} API-only với {len(prompts)} prompt random "
                     f"(target={GOOGLE_FLOW_RANDOM_PROMPTS_COUNT}).",
                     "INFO",
                 )
             else:
-                log(f"Đang chạy mode GOOGLE_FLOW API-only với {len(prompts)} prompt.", "INFO")
+                log(f"Đang chạy mode GOOGLE_FLOW {GOOGLE_FLOW_MEDIA_MODE.upper()} API-only với {len(prompts)} prompt.", "INFO")
 
             selected_prompts_path = save_selected_prompts_for_session(prompts)
             if selected_prompts_path:
@@ -3468,8 +3828,12 @@ async def main():
                 await run_manual_network_capture(page)
                 saved_total = 0
             else:
-                saved_total = await run_google_flow_auto_request_response(page, prompts)
-                log(f"Đã tải {saved_total} ảnh bằng request/response API", "OK")
+                if GOOGLE_FLOW_MEDIA_MODE == "video":
+                    saved_total = await run_google_flow_auto_video_request_response(page, prompts)
+                    log(f"Đã tải {saved_total} video bằng request/response API", "OK")
+                else:
+                    saved_total = await run_google_flow_auto_request_response(page, prompts)
+                    log(f"Đã tải {saved_total} ảnh bằng request/response API", "OK")
 
             # Lưu log debug dễ đọc + log JSON đầy đủ.
             await wait_pending_api_tasks(timeout_sec=3.0)
