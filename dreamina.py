@@ -39,6 +39,36 @@ DREAMINA_IMAGE = (
     "https://dreamina.capcut.com/ai-tool/generate"
     "?enter_from=ai_feature&ai_feature_name=image"
 )
+GOOGLE_FLOW_HOME = "https://labs.google/fx/vi/tools/flow"
+
+# Chọn nền tảng chạy:
+# - dreamina: chạy luồng tự động cũ (gửi prompt + tải ảnh)
+# - google_flow: chỉ bật chế độ bắt request/response để bạn thao tác tay
+TARGET_PLATFORM = os.environ.get("TARGET_PLATFORM", "dreamina").strip().lower()
+# Mode Google Flow:
+# - 1: chỉ bắt network thủ công (không tự gửi prompt)
+# - 0: tự gửi prompt + tải ảnh bằng request/response API
+GOOGLE_FLOW_MANUAL_CAPTURE = os.environ.get("GOOGLE_FLOW_MANUAL_CAPTURE", "0").strip() in {"1", "true", "yes"}
+# Nếu bật, mỗi lần chạy Google Flow sẽ random prompt từ prompts.txt.
+GOOGLE_FLOW_RANDOM_PROMPTS = os.environ.get("GOOGLE_FLOW_RANDOM_PROMPTS", "1").strip() in {"1", "true", "yes"}
+# Số prompt random mỗi lần chạy (mặc định 5 theo yêu cầu test nhanh).
+GOOGLE_FLOW_RANDOM_PROMPTS_COUNT = int(os.environ.get("GOOGLE_FLOW_RANDOM_PROMPTS_COUNT", "5"))
+# Mỗi lần chạy Google Flow sẽ ép tạo project mới để test tách biệt.
+GOOGLE_FLOW_FORCE_NEW_PROJECT = os.environ.get("GOOGLE_FLOW_FORCE_NEW_PROJECT", "1").strip() in {"1", "true", "yes"}
+# Tự động upscale ảnh đã tạo lên 2K bằng API (không bấm UI).
+GOOGLE_FLOW_AUTO_UPSCALE_2K = os.environ.get("GOOGLE_FLOW_AUTO_UPSCALE_2K", "1").strip() in {"1", "true", "yes"}
+# Dọn thư mục output trước khi chạy Google Flow hay không.
+# Mặc định tắt để giữ ảnh các lần chạy cũ cho bạn dễ đối chiếu.
+GOOGLE_FLOW_CLEAR_OUTPUT_BEFORE_RUN = os.environ.get("GOOGLE_FLOW_CLEAR_OUTPUT_BEFORE_RUN", "0").strip() in {"1", "true", "yes"}
+# Chờ thêm sau prompt cuối để Flow kịp trả kết quả API (giây)
+GOOGLE_FLOW_WAIT_AFTER_LAST_PROMPT_SEC = int(os.environ.get("GOOGLE_FLOW_WAIT_AFTER_LAST_PROMPT_SEC", "60"))
+# Poll map API scene->image trong mode Google Flow (giây)
+GOOGLE_FLOW_API_MAP_TIMEOUT_SEC = int(os.environ.get("GOOGLE_FLOW_API_MAP_TIMEOUT_SEC", "120"))
+# Nếu bật, script sẽ mở Flow và chờ bạn setup xong rồi Enter mới bắt đầu gửi prompt.
+# Mặc định tắt để lần sau chạy tự động luôn.
+GOOGLE_FLOW_WAIT_FOR_READY_ENTER = os.environ.get("GOOGLE_FLOW_WAIT_FOR_READY_ENTER", "0").strip() in {"1", "true", "yes"}
+# Giữ Chrome mở sau khi chạy xong để user kiểm tra trực quan.
+GOOGLE_FLOW_KEEP_BROWSER_OPEN = os.environ.get("GOOGLE_FLOW_KEEP_BROWSER_OPEN", "1").strip() in {"1", "true", "yes"}
 PROFILE_DIR    = os.path.expanduser("~/dreamina_playwright_profile")
 OUTPUT_DIR     = os.path.abspath("output_images")
 PROGRESS_FILE  = os.path.abspath("progress_dreamina.json")
@@ -135,6 +165,10 @@ _submit_to_scene: dict = {}  # submit_id -> scene_no
 _trusted_submit_ids: set = set()  # submit_id phát sinh trong chính lần chạy hiện tại
 _run_started_ts: float = 0.0  # mốc thời gian bắt đầu gửi prompt của lần chạy hiện tại
 _pending_api_tasks: list = []  # danh sách task async parse response API
+_upscale_events: list = []  # log riêng cho flow upscale 2K
+_scene_to_media_ids: dict = {}  # scene_no -> [media_id...]
+_last_flow_client_context: dict = {}  # clientContext gần nhất từ request generate
+_upscale_success_by_media: dict = {}  # media_id -> {"encoded_image": "...", "status": int, ...}
 
 
 def _init_debug_session():
@@ -146,7 +180,8 @@ def _init_debug_session():
     global _network_events, _network_req_start, _prompt_submission_trace, _download_hash_records
     global _trace_zip_path
     global _api_events, _api_req_meta, _scene_to_task_ids, _task_to_image_urls, _scene_to_image_urls
-    global _submit_to_scene, _trusted_submit_ids, _run_started_ts, _pending_api_tasks
+    global _submit_to_scene, _trusted_submit_ids, _run_started_ts, _pending_api_tasks, _upscale_events
+    global _scene_to_media_ids, _last_flow_client_context, _upscale_success_by_media
     Path(DEBUG_DIR).mkdir(parents=True, exist_ok=True)
 
     # ── Auto-cleanup: xóa sessions cũ nhất, giữ max N ──
@@ -174,6 +209,10 @@ def _init_debug_session():
     _trusted_submit_ids = set()
     _run_started_ts = 0.0
     _pending_api_tasks = []
+    _upscale_events = []
+    _scene_to_media_ids = {}
+    _last_flow_client_context = {}
+    _upscale_success_by_media = {}
     _trace_zip_path = os.path.join(_debug_session_dir, "playwright_trace.zip")
     log(f"Debug session: {_debug_session_dir}", "🗂️")
 
@@ -417,6 +456,66 @@ def log(msg, emoji=""):
     print(f"[{now}] [{level:<5}] {msg}")
 
 
+def is_google_flow_mode() -> bool:
+    """
+    Kiểm tra có đang chạy mode Google Flow hay không.
+    Dùng biến môi trường TARGET_PLATFORM=google_flow.
+    """
+    return TARGET_PLATFORM in {"google_flow", "flow", "labs_flow"}
+
+
+def get_target_home_url() -> str:
+    """
+    Trả URL trang đích theo mode hiện tại.
+    """
+    if is_google_flow_mode():
+        return GOOGLE_FLOW_HOME
+    return DREAMINA_HOME
+
+
+def load_prompts_from_file(path: str = PROMPTS_FILE) -> list[str]:
+    """
+    Đọc danh sách prompt từ file text.
+    Mỗi dòng là 1 prompt, bỏ dòng trống.
+    """
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return [ln.strip() for ln in f if ln.strip()]
+    except Exception:
+        return []
+
+
+def pick_random_prompts(prompts: list[str], count: int) -> list[str]:
+    """
+    Chọn ngẫu nhiên `count` prompt không trùng nhau.
+    Nếu danh sách đầu vào ít hơn `count` thì trả về toàn bộ.
+    """
+    if not prompts:
+        return []
+    n = max(1, int(count))
+    if len(prompts) <= n:
+        return prompts[:]
+    return random.sample(prompts, n)
+
+
+def save_selected_prompts_for_session(prompts: list[str], filename: str = "selected_prompts_google_flow.txt") -> str:
+    """
+    Lưu danh sách prompt đã chọn trong session hiện tại để debug đối chiếu.
+    """
+    if not _debug_session_dir:
+        return ""
+    path = os.path.join(_debug_session_dir, filename)
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            for i, p in enumerate(prompts, start=1):
+                f.write(f"{i:03d}. {p}\n")
+        return path
+    except Exception:
+        return ""
+
+
 def _looks_like_image_url(url: str) -> bool:
     """Heuristic nhẹ để nhận diện URL ảnh."""
     low = (url or "").lower()
@@ -432,9 +531,35 @@ def _looks_like_api_url(url: str) -> bool:
     low = (url or "").lower()
     keys = [
         "/api/", "generate", "task", "result", "record", "history", "aigc",
-        "submit", "create", "query",
+        "submit", "create", "query", "flowmedia", "upsample", "upscale",
     ]
     return any(k in low for k in keys)
+
+
+def _is_upscale_api_url(url: str) -> bool:
+    """Nhận diện endpoint upscale/upsample (2K) của Flow."""
+    low = (url or "").lower()
+    return any(k in low for k in [
+        "/upsampleimage",
+        "upsampleimage",
+        "upscale",
+        "upsample",
+    ])
+
+
+def _extract_media_id_from_upscale_post_data(post_data: str) -> str:
+    """
+    Tách mediaId từ payload upsampleImage.
+    Dùng để map chính xác response 2K về đúng ảnh nào.
+    """
+    if not post_data:
+        return ""
+    try:
+        body = json.loads(post_data)
+        media_id = str((body or {}).get("mediaId", "") or "")
+        return media_id
+    except Exception:
+        return ""
 
 
 def _extract_scene_numbers_from_text(text: str) -> list[int]:
@@ -459,6 +584,24 @@ def _extract_scene_numbers_from_text(text: str) -> list[int]:
         seen.add(x)
         uniq.append(x)
     return uniq
+
+
+def _extract_scene_number_from_any_text(text: str, fallback: int = 0) -> int:
+    """
+    Tách scene number từ text theo nhiều kiểu:
+    - CẢNH 012
+    - CANH 12
+    - SCENE 087
+    """
+    if not text:
+        return fallback
+    m = re.search(r"(?:cảnh|canh|scene)\s*0*(\d+)", text, flags=re.IGNORECASE)
+    if not m:
+        return fallback
+    try:
+        return int(m.group(1))
+    except Exception:
+        return fallback
 
 
 def _collect_urls_from_obj(obj, out: list):
@@ -707,7 +850,7 @@ def setup_image_network_debug(page):
 
         if request.resource_type not in {"fetch", "xhr"}:
             return
-        if not (_looks_like_api_url(url) or meta.get("scene_numbers")):
+        if not (_looks_like_api_url(url) or _is_upscale_api_url(url) or meta.get("scene_numbers")):
             return
 
         content_type = ""
@@ -738,6 +881,38 @@ def setup_image_network_debug(page):
         if body_json is not None:
             _collect_task_ids_from_obj(body_json, task_ids)
             _collect_urls_from_obj(body_json, image_urls)
+
+            # Parse riêng cho Flow generate: lấy mediaId để upscale 2K sau đó.
+            if "flowmedia:batchgenerateimages" in (url or "").lower():
+                try:
+                    media = (body_json or {}).get("media", []) or []
+                    scenes_local = meta.get("scene_numbers", []) or []
+                    for idx, item in enumerate(media):
+                        if not isinstance(item, dict):
+                            continue
+                        media_id = str(item.get("name", "") or "")
+                        if not media_id:
+                            continue
+
+                        scene_no = 0
+                        # Ưu tiên map từ request scene_numbers.
+                        if len(scenes_local) == 1:
+                            scene_no = scenes_local[0]
+                        elif idx < len(scenes_local):
+                            scene_no = scenes_local[idx]
+
+                        # Fallback: parse scene từ prompt trong response.
+                        if not scene_no:
+                            prompt_text = str(
+                                (((item.get("image", {}) or {}).get("generatedImage", {}) or {}).get("prompt", ""))
+                                or ""
+                            )
+                            scene_no = _extract_scene_number_from_any_text(prompt_text, 0)
+
+                        if scene_no:
+                            _append_unique_dict_list(_scene_to_media_ids, scene_no, [media_id])
+                except Exception:
+                    pass
 
             # Parse chuyên biệt cho get_history_by_ids (scene -> cover_url)
             if "/get_history_by_ids" in url:
@@ -774,19 +949,55 @@ def setup_image_network_debug(page):
         task_ids = list(dict.fromkeys(task_ids))
         image_urls = list(dict.fromkeys(image_urls))
 
+        is_upscale = _is_upscale_api_url(url)
+        request_post_data = (meta.get("post_data", "") or "")
+        upscale_media_id = _extract_media_id_from_upscale_post_data(request_post_data) if is_upscale else ""
+        encoded_image = ""
+        if is_upscale and isinstance(body_json, dict):
+            encoded_image = str((body_json or {}).get("encodedImage", "") or "")
         _api_events.append({
             "type": "api_response",
             "ts": ts,
             "url": url,
             "status": response.status,
             "resource_type": request.resource_type,
+            "is_upscale": is_upscale,
+            "upscale_media_id": upscale_media_id,
             "scene_numbers": meta.get("scene_numbers", []),
             "task_ids": task_ids,
             "image_urls_count": len(image_urls),
             "image_urls_sample": image_urls[:12],
-            "request_post_data_sample": (meta.get("post_data", "") or "")[:3000],
+            "request_post_data_sample": request_post_data[:3000],
             "response_body_sample": body_sample[:3000] if body_sample else "",
         })
+
+        # Nếu response upscale có encodedImage thì giữ lại trong RAM để lưu file 2K theo scene.
+        if is_upscale and upscale_media_id and encoded_image:
+            _upscale_success_by_media[upscale_media_id] = {
+                "encoded_image": encoded_image,
+                "status": int(response.status),
+                "url": url,
+                "ts": ts,
+                "media_id": upscale_media_id,
+                "size_base64": len(encoded_image),
+            }
+
+        # Log riêng cho upscale để phân tích logic 2K.
+        if is_upscale:
+            _upscale_events.append({
+                "type": "upscale_response",
+                "ts": ts,
+                "url": url,
+                "status": response.status,
+                "resource_type": request.resource_type,
+                "media_id": upscale_media_id,
+                "request_post_data_sample": request_post_data[:20000],
+                "response_body_sample": body_sample[:20000] if body_sample else "",
+                "has_encoded_image": bool(encoded_image),
+                "encoded_image_size": len(encoded_image) if encoded_image else 0,
+                "task_ids": task_ids,
+                "image_urls_sample": image_urls[:20],
+            })
 
         # Map scene -> task
         scenes = meta.get("scene_numbers", []) or []
@@ -849,19 +1060,21 @@ def setup_image_network_debug(page):
                 "url": request.url,
             })
         # Log request API để map prompt -> task
-        if request.resource_type in {"fetch", "xhr"} and _looks_like_api_url(request.url):
+        if request.resource_type in {"fetch", "xhr"} and (_looks_like_api_url(request.url) or _is_upscale_api_url(request.url)):
             post_data = ""
             try:
                 post_data = request.post_data or ""
             except Exception:
                 post_data = ""
             scenes = _extract_scene_numbers_from_text(post_data)
+            media_id = _extract_media_id_from_upscale_post_data(post_data) if _is_upscale_api_url(request.url) else ""
             _api_req_meta[req_id] = {
                 "ts": ts,
                 "url": request.url,
                 "method": request.method,
                 "post_data": post_data,
                 "scene_numbers": scenes,
+                "media_id": media_id,
             }
             _api_events.append({
                 "type": "api_request",
@@ -869,9 +1082,33 @@ def setup_image_network_debug(page):
                 "url": request.url,
                 "method": request.method,
                 "resource_type": request.resource_type,
+                "is_upscale": _is_upscale_api_url(request.url),
+                "upscale_media_id": media_id,
                 "scene_numbers": scenes,
                 "post_data_sample": post_data[:3000],
             })
+
+            # Lưu clientContext gần nhất từ request generate của Flow để gọi upsample API.
+            if "flowmedia:batchgenerateimages" in (request.url or "").lower() and post_data:
+                try:
+                    body_json = json.loads(post_data)
+                    cc = (body_json or {}).get("clientContext", {}) or {}
+                    if isinstance(cc, dict) and cc:
+                        _last_flow_client_context.clear()
+                        _last_flow_client_context.update(cc)
+                except Exception:
+                    pass
+
+            if _is_upscale_api_url(request.url):
+                _upscale_events.append({
+                    "type": "upscale_request",
+                    "ts": ts,
+                    "url": request.url,
+                    "method": request.method,
+                    "resource_type": request.resource_type,
+                    "media_id": media_id,
+                    "request_post_data_sample": post_data[:20000],
+                })
 
     def on_response(response):
         request = response.request
@@ -955,11 +1192,116 @@ def save_api_debug() -> str:
         "scene_to_task_ids": _scene_to_task_ids,
         "task_to_image_urls": _task_to_image_urls,
         "scene_to_image_urls": _scene_to_image_urls,
+        "scene_to_media_ids": _scene_to_media_ids,
+        "upscale_success_media_ids": sorted(list(_upscale_success_by_media.keys())),
+        "last_flow_client_context_exists": bool(_last_flow_client_context),
         "submit_to_scene": _submit_to_scene,
     }
     try:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
+        return path
+    except Exception:
+        return ""
+
+
+def save_upscale_debug() -> str:
+    """
+    Lưu log riêng cho luồng upscale 2K của Flow.
+    Dùng để soi:
+    - request gửi gì khi bấm upscale
+    - response trả gì, có URL ảnh 2K hay job id hay không
+    """
+    if not _debug_session_dir:
+        return ""
+    path = os.path.join(_debug_session_dir, "upscale_2k_debug.json")
+    payload = {
+        "generated_at": datetime.now().isoformat(),
+        "events_count": len(_upscale_events),
+        "events": _upscale_events,
+        "success_media_ids": sorted(list(_upscale_success_by_media.keys())),
+    }
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+        return path
+    except Exception:
+        return ""
+
+
+def save_request_response_timeline() -> str:
+    """
+    Lưu timeline request/response dạng text dễ đọc.
+    Mục tiêu: người không rành code vẫn thấy được:
+    - Request gửi đi URL nào, method gì.
+    - Response trả về status gì, có bao nhiêu URL ảnh.
+    """
+    if not _debug_session_dir:
+        return ""
+
+    path = os.path.join(_debug_session_dir, "request_response_timeline.txt")
+    rows = []
+
+    # ── 1) Timeline API request/response ──
+    for ev in _api_events:
+        ts = datetime.fromtimestamp(ev.get("ts", time.time())).strftime("%H:%M:%S")
+        ev_type = ev.get("type", "")
+        url = str(ev.get("url", ""))
+        if len(url) > 140:
+            url = url[:140] + "...(cut)"
+
+        if ev_type == "api_request":
+            prefix = "UPSCALE_REQUEST" if ev.get("is_upscale") else "API_REQUEST"
+            rows.append(
+                f"[{ts}] {prefix:<14} method={ev.get('method', '')} "
+                f"scene={ev.get('scene_numbers', [])} url={url}"
+            )
+        elif ev_type == "api_response":
+            prefix = "UPSCALE_RESPONSE" if ev.get("is_upscale") else "API_RESPONSE"
+            rows.append(
+                f"[{ts}] {prefix:<14} status={ev.get('status', '')} "
+                f"scene={ev.get('scene_numbers', [])} task_ids={len(ev.get('task_ids', []))} "
+                f"image_urls={ev.get('image_urls_count', 0)} url={url}"
+            )
+
+    # ── 2) Timeline ảnh (image request/response/fail) ──
+    for ev in _network_events:
+        ts = datetime.fromtimestamp(ev.get("ts", time.time())).strftime("%H:%M:%S")
+        ev_type = ev.get("type", "")
+        url = str(ev.get("url", ""))
+        if len(url) > 140:
+            url = url[:140] + "...(cut)"
+
+        if ev_type == "request":
+            rows.append(
+                f"[{ts}] IMG_REQUEST  method={ev.get('method', '')} "
+                f"rtype={ev.get('resource_type', '')} url={url}"
+            )
+        elif ev_type == "response":
+            rows.append(
+                f"[{ts}] IMG_RESPONSE status={ev.get('status', '')} "
+                f"rtype={ev.get('resource_type', '')} "
+                f"elapsed_ms={ev.get('elapsed_ms', '')} ct={ev.get('content_type', '')} url={url}"
+            )
+        elif ev_type == "request_failed":
+            rows.append(
+                f"[{ts}] IMG_FAILED   rtype={ev.get('resource_type', '')} "
+                f"error={ev.get('failure', '')} url={url}"
+            )
+
+    # Sắp xếp lại theo timestamp để dễ xem flow thật.
+    rows_sorted = sorted(rows)
+    lines = [
+        "=== REQUEST / RESPONSE TIMELINE ===",
+        f"platform={TARGET_PLATFORM}",
+        f"generated_at={datetime.now().isoformat()}",
+        "",
+    ]
+    lines.extend(rows_sorted)
+
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines) + "\n")
         return path
     except Exception:
         return ""
@@ -1014,6 +1356,49 @@ def get_scene_candidate_urls(scene_no: int, preferred_url: str = "") -> list[str
     return list(dict.fromkeys([u for u in urls if isinstance(u, str) and u.startswith("http")]))
 
 
+def apply_event_order_fallback_scene_map(prompts: list[str], scene_map: dict) -> dict:
+    """
+    Fallback cho trường hợp API không map được scene rõ ràng (ví dụ prompt không có 'CẢNH 001').
+    Chiến thuật:
+    - Lấy URL ảnh theo thứ tự xuất hiện trong api_response.
+    - Gán tuần tự cho các scene còn thiếu.
+    """
+    if not prompts:
+        return scene_map or {}
+
+    out = dict(scene_map or {})
+    prompt_scene_order = [extract_scene_number(p, i + 1) for i, p in enumerate(prompts)]
+    missing = [sc for sc in prompt_scene_order if not out.get(sc)]
+    if not missing:
+        return out
+
+    ordered_urls = []
+    for ev in _api_events:
+        if ev.get("type") != "api_response":
+            continue
+        sample = ev.get("image_urls_sample", []) or []
+        for u in sample:
+            if isinstance(u, str) and u.startswith("http"):
+                ordered_urls.append(u)
+
+    # Dedupe giữ thứ tự
+    ordered_urls = list(dict.fromkeys(ordered_urls))
+    if not ordered_urls:
+        return out
+
+    used = set(v for v in out.values() if isinstance(v, str))
+    cursor = 0
+    for sc in missing:
+        while cursor < len(ordered_urls) and ordered_urls[cursor] in used:
+            cursor += 1
+        if cursor >= len(ordered_urls):
+            break
+        out[sc] = ordered_urls[cursor]
+        used.add(ordered_urls[cursor])
+        cursor += 1
+    return out
+
+
 async def build_api_scene_map_with_retry(prompts: list[str],
                                          timeout_sec: int = API_MAP_POLL_TIMEOUT_SEC,
                                          interval_sec: int = API_MAP_POLL_INTERVAL_SEC) -> tuple[dict, list[int]]:
@@ -1055,6 +1440,21 @@ def notify(title, message):
                 pass
         elif os_name == "Linux":
             subprocess.run(["notify-send", "-t", "5000", title, message], check=False)
+    except Exception:
+        pass
+
+
+def close_old_google_flow_automation_session():
+    """
+    Trước mỗi lần chạy test mới, đóng phiên Chrome automation cũ (nếu có)
+    để tránh lỗi Playwright attach vào session cũ.
+    Chỉ kill process chứa profile automation, không đụng cache user khác.
+    """
+    try:
+        profile_token = os.path.basename(PROFILE_DIR)  # dreamina_playwright_profile
+        subprocess.run(["pkill", "-f", profile_token], check=False)
+        # Đợi ngắn để process cũ thoát hẳn trước khi launch phiên mới.
+        time.sleep(1.0)
     except Exception:
         pass
 
@@ -1536,11 +1936,53 @@ async def send_prompt(page) -> bool:
 
     await asyncio.sleep(0.08)
 
-    # ── Bước 2: Nhấn Enter để gửi ──
+    # ── Bước 2: Thử nhấn Enter để gửi ──
     await page.keyboard.press("Enter")
-    await asyncio.sleep(0.25)
-    log("  Đã nhấn Enter gửi prompt", "✅")
-    return True
+    await asyncio.sleep(0.5)
+    try:
+        if await is_generating(page):
+            log("  Đã nhấn Enter gửi prompt", "✅")
+            return True
+    except Exception:
+        pass
+
+    # ── Bước 3: Fallback click nút gửi (hữu ích cho Google Flow) ──
+    send_patterns = [
+        re.compile(r"arrow_forward\s*(tạo|generate|create)", re.IGNORECASE),
+        re.compile(r"\b(tạo|generate|create)\b", re.IGNORECASE),
+    ]
+    for pattern in send_patterns:
+        try:
+            btn = page.locator("button").filter(has_text=pattern).last
+            if await btn.count() > 0 and await btn.is_visible() and await btn.is_enabled():
+                await btn.click()
+                await asyncio.sleep(0.6)
+                log("  Đã click nút gửi prompt", "✅")
+                return True
+        except Exception:
+            pass
+
+    # Fallback aria-label
+    for sel in [
+        'button[aria-label*="Generate"]',
+        'button[aria-label*="generate"]',
+        'button[aria-label*="Create"]',
+        'button[aria-label*="create"]',
+        'button[aria-label*="Tạo"]',
+        'button[aria-label*="tạo"]',
+    ]:
+        try:
+            btn = page.locator(sel).first
+            if await btn.count() > 0 and await btn.is_visible() and await btn.is_enabled():
+                await btn.click()
+                await asyncio.sleep(0.6)
+                log("  Đã click nút gửi prompt (aria)", "✅")
+                return True
+        except Exception:
+            pass
+
+    log("  Không tìm thấy cách gửi prompt (Enter + button đều thất bại)", "WARN")
+    return False
 
 
 # ═══════════════════════════════════════════════
@@ -2332,12 +2774,754 @@ async def download_images(page, new_srcs: list, prompt_index: int, prompt_text: 
     return saved
 
 
+async def ensure_google_flow_editor(page, timeout_sec: int = 30) -> bool:
+    """
+    Đảm bảo đã vào màn editor của Google Flow (có ô nhập prompt).
+    Nếu đang ở dashboard, thử bấm "Dự án mới"/"New project"/"Tạo dự án".
+    """
+    selectors = ["div[contenteditable='true']", "div[role='textbox']", "textarea"]
+    start = time.time()
+
+    while time.time() - start < timeout_sec:
+        for sel in selectors:
+            try:
+                el = page.locator(sel).first
+                if await el.count() > 0 and await el.is_visible(timeout=300):
+                    return True
+            except Exception:
+                pass
+
+        if int(time.time() - start) % 3 == 0:
+            try:
+                patt = re.compile(r"(dự án mới|new project|tạo dự án|create project)", re.IGNORECASE)
+                btn = page.get_by_text(patt).first
+                if await btn.count() > 0 and await btn.is_visible():
+                    log("Đang click nút vào project mới của Google Flow...", "NAV")
+                    await btn.click()
+                    await asyncio.sleep(1.5)
+            except Exception:
+                pass
+
+        await asyncio.sleep(1.0)
+
+    return False
+
+
+async def open_google_flow_new_project(page, timeout_sec: int = 45) -> bool:
+    """
+    Ép tạo project mới trên Google Flow để không dùng lại project cũ.
+    Trả về True khi URL đã chuyển sang /project/... và có ô nhập prompt.
+    """
+    target_url = get_target_home_url()
+    try:
+        await page.goto(target_url, wait_until="domcontentloaded", timeout=60000)
+        await asyncio.sleep(1.5)
+    except Exception:
+        pass
+
+    # Nếu đã ở project URL, quay về dashboard trước khi tạo project mới.
+    try:
+        if "/project/" in (page.url or ""):
+            await page.goto(target_url, wait_until="domcontentloaded", timeout=30000)
+            await asyncio.sleep(1.2)
+    except Exception:
+        pass
+
+    start = time.time()
+    new_project_patterns = [
+        re.compile(r"dự án mới", re.IGNORECASE),
+        re.compile(r"new project", re.IGNORECASE),
+        re.compile(r"create project", re.IGNORECASE),
+        re.compile(r"tạo dự án", re.IGNORECASE),
+    ]
+
+    while time.time() - start < timeout_sec:
+        for patt in new_project_patterns:
+            try:
+                btn = page.get_by_text(patt).first
+                if await btn.count() > 0 and await btn.is_visible():
+                    log("Đang tạo project Flow mới...", "NAV")
+                    await btn.click()
+                    await asyncio.sleep(2.0)
+                    # Chờ URL project mới
+                    if "/project/" in (page.url or ""):
+                        ready = await ensure_google_flow_editor(page, timeout_sec=15)
+                        if ready:
+                            log(f"Đã vào project mới: {page.url}", "OK")
+                            return True
+            except Exception:
+                pass
+
+        # Fallback click theo icon/button có chữ add_2 + label tạo project
+        try:
+            btn = page.locator("button").filter(
+                has_text=re.compile(r"(add_2).*(dự án mới|new project|create project|tạo dự án)", re.IGNORECASE)
+            ).first
+            if await btn.count() > 0 and await btn.is_visible():
+                log("Đang tạo project Flow mới (fallback button)...", "NAV")
+                await btn.click()
+                await asyncio.sleep(2.0)
+                if "/project/" in (page.url or ""):
+                    ready = await ensure_google_flow_editor(page, timeout_sec=15)
+                    if ready:
+                        log(f"Đã vào project mới: {page.url}", "OK")
+                        return True
+        except Exception:
+            pass
+
+        await asyncio.sleep(1.0)
+
+    return False
+
+
+async def run_google_flow_auto_request_response(page, prompts: list[str]) -> int:
+    """
+    Auto mode cho Google Flow:
+    - Tự nhập prompt + gửi.
+    - Tải ảnh bằng URL bắt từ API response (KHÔNG tải theo DOM).
+    Trả về tổng số ảnh tải thành công.
+    """
+    global _run_started_ts
+    saved_total = 0
+
+    target_url = get_target_home_url()
+    log(f"Đang mở Google Flow: {target_url}", "WEB")
+    await page.goto(target_url, wait_until="domcontentloaded", timeout=60000)
+    await asyncio.sleep(2)
+
+    if GOOGLE_FLOW_FORCE_NEW_PROJECT:
+        created = await open_google_flow_new_project(page, timeout_sec=45)
+        if not created:
+            log("Không ép tạo được project mới, fallback dùng editor hiện tại.", "WARN")
+            editor_ready = await ensure_google_flow_editor(page, timeout_sec=35)
+        else:
+            editor_ready = True
+    else:
+        editor_ready = await ensure_google_flow_editor(page, timeout_sec=35)
+
+    if not editor_ready:
+        log("Không vào được editor Google Flow (chưa thấy ô nhập prompt).", "ERR")
+        return 0
+
+    # Giống Dreamina: cho user setup model/tỷ lệ/chất lượng trước khi gửi prompt.
+    if GOOGLE_FLOW_WAIT_FOR_READY_ENTER:
+        print("\n" + "=" * 60)
+        print("  GOOGLE FLOW READY CHECK")
+        print("  Bạn hãy setup model / ratio / style trên browser trước.")
+        print("=" * 60)
+        await asyncio.get_event_loop().run_in_executor(
+            None, input, "  Setup xong -> Nhấn Enter để BẮT ĐẦU gửi prompt: "
+        )
+
+    await debug_step(page, "google_flow_editor_ready", extra={"url": page.url, "prompts": len(prompts)})
+
+    # Snapshot baseline tương tự Dreamina để đối chiếu ảnh cũ/mới.
+    baseline_scroll_trace = await trace_scroll_behavior(page, "flow_before_send_prompts")
+    if baseline_scroll_trace:
+        log(f"Flow baseline scroll trace: {baseline_scroll_trace}", "DBG")
+    before_all = await capture_stable_baseline_srcs(page, max_rounds=4)
+    log(f"Flow baseline ổn định: {len(before_all)} ảnh cũ", "DBG")
+    await debug_step(page, "flow_before_send_prompts", extra={
+        "prompts_count": len(prompts),
+        "old_images": len(before_all),
+    })
+
+    _run_started_ts = time.time()
+
+    for i, prompt in enumerate(prompts):
+        scene_no = extract_scene_number(prompt, i + 1)
+        log(f"[FLOW {i+1}/{len(prompts)}] Gửi: {prompt[:70]}", "SEND")
+        try:
+            await type_prompt(page, prompt)
+            sent = await send_prompt(page)
+            await debug_step(
+                page,
+                f"flow_sent_prompt_{i+1:02d}",
+                job_id=f"canh_{scene_no:03d}",
+                extra={"sent_ok": sent, "prompt_preview": prompt[:90]},
+            )
+            await capture_prompt_submission_trace(page, i, prompt)
+        except Exception as e:
+            log(f"Lỗi gửi prompt #{i+1}: {e}", "WARN")
+        await asyncio.sleep(max(0.2, DELAY_SEC))
+
+    log(f"Đã gửi xong {len(prompts)} prompt, chờ {GOOGLE_FLOW_WAIT_AFTER_LAST_PROMPT_SEC}s...", "WAIT")
+    for remaining in range(GOOGLE_FLOW_WAIT_AFTER_LAST_PROMPT_SEC, 0, -1):
+        if remaining % 5 == 0:
+            log(f"  Còn {remaining}s...", "WAIT")
+        await asyncio.sleep(1)
+
+    # Debug sau chờ render + dump DOM chi tiết.
+    await debug_step(page, "flow_after_wait_render", extra={
+        "waited_sec": GOOGLE_FLOW_WAIT_AFTER_LAST_PROMPT_SEC,
+    })
+    after_render_dump = await dump_detailed_dom(page, "flow_after_wait_render")
+    if after_render_dump:
+        log(
+            "Flow DOM dump after_wait_render: "
+            + ", ".join(os.path.basename(p) for p in after_render_dump.values()),
+            "DBG",
+        )
+
+    # Snapshot gallery trước tải để phục vụ compare/report như Dreamina.
+    await scroll_to_load_all(page)
+    await asyncio.sleep(1.5)
+    before_download_scroll_trace = await trace_scroll_behavior(page, "flow_before_download")
+    if before_download_scroll_trace:
+        log(f"Flow before_download scroll trace: {before_download_scroll_trace}", "DBG")
+    gallery_entries = await get_current_image_entries(page)
+    all_new = _ordered_new_srcs(gallery_entries, before_all)
+    gallery_snapshot_path = save_gallery_snapshot(gallery_entries, all_new)
+    if gallery_snapshot_path:
+        log(f"Flow gallery snapshot: {gallery_snapshot_path}", "DBG")
+    virtualization_report = await diagnose_dom_virtualization(page, "flow_before_download")
+    if virtualization_report:
+        log(f"Flow virtualization report: {virtualization_report}", "DBG")
+    before_download_dump = await dump_detailed_dom(page, "flow_before_download", new_srcs=all_new)
+    if before_download_dump:
+        log(
+            "Flow DOM dump before_download: "
+            + ", ".join(os.path.basename(p) for p in before_download_dump.values()),
+            "DBG",
+        )
+    await debug_step(page, "flow_before_download", extra={
+        "new_images_found": len(all_new),
+        "gallery_entries": len(gallery_entries),
+        "expected": len(prompts),
+        "snapshot_file": os.path.basename(gallery_snapshot_path) if gallery_snapshot_path else "",
+        "virtualization": os.path.basename(virtualization_report) if virtualization_report else "",
+        "dom_dump_images": os.path.basename(before_download_dump.get("images_txt", "")) if before_download_dump else "",
+    })
+
+    await wait_pending_api_tasks(timeout_sec=3.0)
+    api_scene_map, _ = await build_api_scene_map_with_retry(
+        prompts,
+        timeout_sec=GOOGLE_FLOW_API_MAP_TIMEOUT_SEC,
+        interval_sec=2,
+    )
+    api_scene_map = apply_event_order_fallback_scene_map(prompts, api_scene_map)
+    prompt_scene_order = [extract_scene_number(p, i + 1) for i, p in enumerate(prompts)]
+    missing_scenes = [sc for sc in prompt_scene_order if not api_scene_map.get(sc)]
+
+    log(
+        f"Google Flow API map: {len(api_scene_map)}/{len(prompts)} cảnh"
+        + (f" | thiếu: {missing_scenes}" if missing_scenes else ""),
+        "DBG",
+    )
+
+    Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
+    saved_scenes = set()
+    for scene_no in prompt_scene_order:
+        candidate_urls = get_scene_candidate_urls(scene_no, api_scene_map.get(scene_no, ""))
+        if not candidate_urls:
+            log(f"  Thiếu URL API cho canh_{scene_no:03d}", "WARN")
+            continue
+
+        fname = f"canh_{scene_no:03d}.png"
+        filepath = os.path.join(OUTPUT_DIR, fname)
+        downloaded = False
+        for src in candidate_urls:
+            try:
+                resp = await page.context.request.get(src, timeout=30000)
+                if not resp.ok:
+                    continue
+                body = await resp.body()
+                if len(body) <= 5000:
+                    continue
+                with open(filepath, "wb") as f:
+                    f.write(body)
+                log(f"  {fname} ({len(body)//1024}KB) [flow-api-map]", "OK")
+                try:
+                    sha = _sha256_file(filepath)
+                except Exception:
+                    sha = ""
+                _download_hash_records.append({
+                    "filename": fname,
+                    "prompt_num": scene_no,
+                    "prompt_index": scene_no,
+                    "img_num": 1,
+                    "src": src,
+                    "method": "request.get_flow_api_map",
+                    "size_bytes": len(body),
+                    "sha256": sha,
+                })
+                saved_total += 1
+                saved_scenes.add(scene_no)
+                downloaded = True
+                break
+            except Exception:
+                continue
+        if not downloaded:
+            log(f"  Không tải được canh_{scene_no:03d} theo API", "WARN")
+
+    missing_after_download = [sc for sc in prompt_scene_order if sc not in saved_scenes]
+    if missing_after_download:
+        log(f"Flow cảnh chưa tải được: {missing_after_download}", "WARN")
+
+    # Tự động upscale 2K:
+    # - Script tự click UI để Flow tạo request hợp lệ.
+    # - File 2K vẫn lấy từ response API (encodedImage), không tải theo DOM.
+    if GOOGLE_FLOW_AUTO_UPSCALE_2K:
+        upscaled = await auto_upscale_2k_by_api(page, prompt_scene_order)
+        log(f"Đã upscale 2K thành công {upscaled}/{len(prompt_scene_order)} ảnh", "INFO")
+
+    return saved_total
+
+
+# ───────────────────────────────────────────────
+# MANUAL NETWORK CAPTURE (CHO SITE KHÁC DREAMINA)
+# ───────────────────────────────────────────────
+
+async def run_manual_network_capture(page):
+    """
+    Chế độ bắt mạng thủ công (dùng cho Google Flow hoặc khi cần soi API site khác).
+    Luồng:
+    1) Mở trang đích.
+    2) Người dùng tự thao tác generate ảnh trên browser.
+    3) Nhấn Enter trong terminal để kết thúc và lưu log request/response.
+    """
+    target_url = get_target_home_url()
+    log(f"Đang mở trang đích để bắt network: {target_url}", "🌐")
+    await page.goto(target_url, wait_until="domcontentloaded", timeout=60000)
+    await asyncio.sleep(2)
+
+    # Chụp trạng thái ban đầu để đối chiếu khi debug.
+    await debug_step(page, "manual_capture_started", extra={"url": page.url, "platform": TARGET_PLATFORM})
+
+    print("\n" + "=" * 60)
+    print("  CHẾ ĐỘ BẮT REQUEST/RESPONSE THỦ CÔNG")
+    print("  1) Dùng browser vừa mở để login (nếu cần).")
+    print("  2) Tự nhập prompt và bấm Generate trên trang.")
+    print("  3) Chờ ảnh xuất hiện / request chạy xong.")
+    print("  4) Quay lại terminal, nhấn Enter để lưu log.")
+    print("=" * 60)
+    await asyncio.get_event_loop().run_in_executor(
+        None, input, "  Hoàn tất thao tác trên web -> Nhấn Enter để lưu request/response: "
+    )
+
+    await debug_step(page, "manual_capture_finished", extra={"url": page.url, "platform": TARGET_PLATFORM})
+    await wait_pending_api_tasks(timeout_sec=5.0)
+
+
+def _extract_flow_project_id_from_url(url: str) -> str:
+    """Tách project_id từ URL Flow hiện tại để quay lại gallery khi cần."""
+    if not url:
+        return ""
+    m = re.search(r"/project/([0-9a-fA-F-]{8,})", url)
+    return str(m.group(1)) if m else ""
+
+
+async def _open_flow_gallery_for_project(page, project_id: str) -> bool:
+    """
+    Mở lại trang gallery của project hiện tại.
+    Hàm này giúp script không bị kẹt ở trang edit sau khi upscale từng ảnh.
+    """
+    if not project_id:
+        return False
+    gallery_url = f"{GOOGLE_FLOW_HOME}/project/{project_id}"
+    try:
+        await page.goto(gallery_url, wait_until="domcontentloaded", timeout=60000)
+        await asyncio.sleep(1.2)
+        return True
+    except Exception:
+        return False
+
+
+async def _open_flow_edit_for_media(page, media_id: str) -> bool:
+    """
+    Từ gallery, mở trang edit của đúng ảnh theo media_id.
+    Dùng selector src chứa `name=<media_id>` để click đúng tile.
+    """
+    if not media_id:
+        return False
+
+    # Đặt scroll về đầu danh sách trước mỗi lần tìm để tránh bỏ sót item nằm phía trên.
+    try:
+        await page.evaluate(
+            """
+            () => {
+                const scroller =
+                    document.querySelector('[data-virtuoso-scroller="true"]')
+                    || document.querySelector('[data-testid="virtuoso-scroller"]');
+                if (scroller) scroller.scrollTo({ top: 0, left: 0, behavior: "instant" });
+                else window.scrollTo(0, 0);
+            }
+            """
+        )
+        await asyncio.sleep(0.2)
+    except Exception:
+        pass
+
+    # Flow dùng virtualized list: ảnh ngoài viewport có thể chưa mount vào DOM.
+    # Vì vậy cần quét + scroll nhiều nhịp để tìm đúng media_id.
+    clicked = False
+    for _ in range(18):
+        try:
+            clicked = await page.evaluate(
+                """
+                (mediaId) => {
+                    const img = document.querySelector(`img[src*="name=${mediaId}"]`);
+                    if (!img) return false;
+                    img.scrollIntoView({ behavior: "instant", block: "center" });
+                    const a = img.closest('a');
+                    if (a) {
+                        a.click();
+                        return true;
+                    }
+                    img.click();
+                    return true;
+                }
+                """,
+                media_id,
+            )
+        except Exception:
+            clicked = False
+
+        if clicked:
+            break
+
+        # Scroll scroller của virtuoso để mount item tiếp theo.
+        try:
+            await page.evaluate(
+                """
+                () => {
+                    const scroller =
+                        document.querySelector('[data-virtuoso-scroller="true"]')
+                        || document.querySelector('[data-testid="virtuoso-scroller"]');
+                    if (scroller) {
+                        scroller.scrollBy({ top: 600, left: 0, behavior: "instant" });
+                    } else {
+                        window.scrollBy(0, 600);
+                    }
+                }
+                """
+            )
+        except Exception:
+            pass
+        await asyncio.sleep(0.25)
+
+    if not clicked:
+        return False
+
+    try:
+        await page.wait_for_url(re.compile(r"/edit/"), timeout=15000)
+    except Exception:
+        # Flow có thể chuyển trang chậm, chờ thêm rồi kiểm tra URL hiện tại.
+        await asyncio.sleep(2.0)
+    return "/edit/" in (page.url or "")
+
+
+async def _click_upscale_2k_in_edit_page(page) -> bool:
+    """
+    Click UI để kích hoạt request upsampleImage hợp lệ.
+    Chiến lược:
+    1) Tìm trực tiếp nút/menuitem có text 2K/Upscale.
+    2) Nếu chưa thấy, click các nút Download/More để mở menu rồi tìm lại.
+    """
+    direct_patterns = [
+        re.compile(r"\b2k\b", re.IGNORECASE),
+        re.compile(r"upscale", re.IGNORECASE),
+        re.compile(r"upsample", re.IGNORECASE),
+        re.compile(r"nâng", re.IGNORECASE),
+    ]
+
+    for patt in direct_patterns:
+        try:
+            btn = page.get_by_text(patt).first
+            if await btn.count() > 0 and await btn.is_visible():
+                await btn.click()
+                await asyncio.sleep(0.5)
+                return True
+        except Exception:
+            pass
+
+    # Mở menu rồi thử lại.
+    menu_open_patterns = [
+        re.compile(r"download", re.IGNORECASE),
+        re.compile(r"tải xuống", re.IGNORECASE),
+        re.compile(r"khác", re.IGNORECASE),
+        re.compile(r"more", re.IGNORECASE),
+        re.compile(r"more_vert", re.IGNORECASE),
+    ]
+    for patt in menu_open_patterns:
+        try:
+            btn = page.locator("button").filter(has_text=patt).first
+            if await btn.count() > 0 and await btn.is_visible():
+                await btn.click()
+                await asyncio.sleep(0.4)
+                break
+        except Exception:
+            pass
+
+    for patt in direct_patterns:
+        try:
+            btn = page.get_by_text(patt).first
+            if await btn.count() > 0 and await btn.is_visible():
+                await btn.click()
+                await asyncio.sleep(0.5)
+                return True
+        except Exception:
+            pass
+
+    return False
+
+
+async def _wait_upscale_result_for_media(media_id: str, prev_event_count: int, timeout_sec: int = 45) -> tuple[bool, str]:
+    """
+    Chờ request/response upsampleImage hoàn tất cho đúng media_id.
+    Trả về:
+    - (True, "ok") nếu có encodedImage.
+    - (False, "...") nếu timeout hoặc có response fail.
+    """
+    deadline = time.time() + max(1, timeout_sec)
+    last_status = ""
+
+    while time.time() < deadline:
+        if media_id in _upscale_success_by_media:
+            return True, "ok"
+
+        # Quét event mới để lấy status lỗi gần nhất theo media_id cho dễ debug.
+        new_events = _upscale_events[prev_event_count:]
+        for ev in new_events:
+            if str(ev.get("media_id", "")) != media_id:
+                continue
+            if ev.get("type") == "upscale_response":
+                status = ev.get("status", "")
+                last_status = f"status={status}"
+                if ev.get("has_encoded_image"):
+                    return True, "ok"
+
+        await asyncio.sleep(0.4)
+
+    return False, (last_status or "timeout")
+
+
+async def auto_upscale_2k_by_api(page, scene_order: list[int]) -> int:
+    """
+    Auto upscale 2K theo luồng chuẩn của Flow:
+    - Kích hoạt bằng click UI (để request hợp lệ, tránh 401).
+    - Bắt response `upsampleImage` và lấy `encodedImage`.
+    - Lưu file 2K theo đúng tên cảnh.
+    """
+    success = 0
+    if not scene_order:
+        return 0
+
+    project_id = _extract_flow_project_id_from_url(page.url) or str(_last_flow_client_context.get("projectId", "") or "")
+    if project_id:
+        await _open_flow_gallery_for_project(page, project_id)
+    else:
+        log("Không tìm được project_id để mở gallery upscale 2K.", "WARN")
+
+    for scene_no in scene_order:
+        media_ids = _scene_to_media_ids.get(scene_no, []) or []
+        if not media_ids:
+            log(f"Upscale 2K: thiếu mediaId cho canh_{scene_no:03d}", "WARN")
+            continue
+        media_id = str(media_ids[0])
+
+        if not await _open_flow_edit_for_media(page, media_id):
+            log(f"Upscale 2K: không mở được trang edit cho media {media_id[:8]}...", "WARN")
+            if project_id:
+                await _open_flow_gallery_for_project(page, project_id)
+            continue
+
+        await debug_step(
+            page,
+            f"flow_upscale_open_edit_scene_{scene_no:03d}",
+            job_id=f"canh_{scene_no:03d}",
+            extra={"media_id": media_id, "url": page.url},
+        )
+
+        prev_event_count = len(_upscale_events)
+        clicked = await _click_upscale_2k_in_edit_page(page)
+        if not clicked:
+            log(f"Upscale 2K: không click được nút 2K cho canh_{scene_no:03d}", "WARN")
+            if project_id:
+                await _open_flow_gallery_for_project(page, project_id)
+            continue
+
+        ok, reason = await _wait_upscale_result_for_media(media_id, prev_event_count, timeout_sec=50)
+        if not ok:
+            log(f"Upscale 2K fail canh_{scene_no:03d}: {reason}", "WARN")
+            if project_id:
+                await _open_flow_gallery_for_project(page, project_id)
+            continue
+
+        encoded = str((_upscale_success_by_media.get(media_id, {}) or {}).get("encoded_image", "") or "")
+        if not encoded:
+            log(f"Upscale 2K fail canh_{scene_no:03d}: thiếu encodedImage", "WARN")
+            if project_id:
+                await _open_flow_gallery_for_project(page, project_id)
+            continue
+
+        try:
+            raw = base64.b64decode(encoded)
+        except Exception:
+            raw = b""
+        if len(raw) <= 5000:
+            log(f"Upscale 2K fail canh_{scene_no:03d}: file quá nhỏ", "WARN")
+            if project_id:
+                await _open_flow_gallery_for_project(page, project_id)
+            continue
+
+        fname = f"canh_{scene_no:03d}_2k.jpg"
+        fpath = os.path.join(OUTPUT_DIR, fname)
+        with open(fpath, "wb") as f:
+            f.write(raw)
+        try:
+            sha = _sha256_file(fpath)
+        except Exception:
+            sha = ""
+        _download_hash_records.append({
+            "filename": fname,
+            "prompt_num": scene_no,
+            "prompt_index": scene_no,
+            "img_num": 1,
+            "src": "flow_ui_upsample_response",
+            "media_id": media_id,
+            "method": "request_response_upsample_2k_ui_trigger",
+            "size_bytes": len(raw),
+            "sha256": sha,
+        })
+        success += 1
+        log(f"  {fname} ({len(raw)//1024}KB) [upscale-2k-ui+response]", "OK")
+
+        if project_id:
+            await _open_flow_gallery_for_project(page, project_id)
+
+    return success
+
+
 # ═══════════════════════════════════════════════
 # MAIN
 # ═══════════════════════════════════════════════
 
 async def main():
     global _run_started_ts
+    # Mode Google Flow:
+    # - mặc định auto gửi prompt + tải ảnh qua request/response API.
+    # - có thể bật manual capture bằng GOOGLE_FLOW_MANUAL_CAPTURE=1.
+    if is_google_flow_mode():
+        _init_debug_session()
+        close_old_google_flow_automation_session()
+        if GOOGLE_FLOW_MANUAL_CAPTURE:
+            log("Đang chạy mode GOOGLE_FLOW (manual capture request/response).", "INFO")
+            prompts = []
+        else:
+            prompts = load_prompts_from_file(PROMPTS_FILE)
+            if not prompts:
+                log(f"Không có prompt trong {PROMPTS_FILE}.", "ERR")
+                return
+            if GOOGLE_FLOW_RANDOM_PROMPTS:
+                prompts = pick_random_prompts(prompts, GOOGLE_FLOW_RANDOM_PROMPTS_COUNT)
+                log(
+                    f"Đang chạy mode GOOGLE_FLOW API-only với {len(prompts)} prompt random "
+                    f"(target={GOOGLE_FLOW_RANDOM_PROMPTS_COUNT}).",
+                    "INFO",
+                )
+            else:
+                log(f"Đang chạy mode GOOGLE_FLOW API-only với {len(prompts)} prompt.", "INFO")
+
+            selected_prompts_path = save_selected_prompts_for_session(prompts)
+            if selected_prompts_path:
+                log(f"Selected prompts file: {selected_prompts_path}", "DBG")
+
+            # Theo yêu cầu debug: mặc định KHÔNG xóa output cũ, trừ khi bật cờ môi trường.
+            if GOOGLE_FLOW_CLEAR_OUTPUT_BEFORE_RUN:
+                reset_output_dir()
+            else:
+                Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
+                log("Giữ nguyên output_images cũ (GOOGLE_FLOW_CLEAR_OUTPUT_BEFORE_RUN=0).", "DBG")
+
+        trace_started = False
+        async with async_playwright() as p:
+            har_path = os.path.join(_debug_session_dir, "session_network.har")
+            browser = await p.chromium.launch_persistent_context(
+                user_data_dir=PROFILE_DIR,
+                headless=False,
+                channel="chrome",
+                args=[
+                    "--start-maximized",
+                    "--disable-blink-features=AutomationControlled",
+                    "--no-first-run",
+                    "--no-default-browser-check",
+                ],
+                ignore_default_args=["--enable-automation"],
+                accept_downloads=True,
+                record_har_path=har_path,
+                viewport={"width": VP_WIDTH, "height": VP_HEIGHT},
+            )
+
+            page = await browser.new_page()
+            setup_image_network_debug(page)
+            try:
+                await browser.tracing.start(screenshots=True, snapshots=True, sources=True)
+                trace_started = True
+                log(f"Playwright trace đang ghi: {_trace_zip_path}", "DBG")
+                log(f"HAR đang ghi: {har_path}", "DBG")
+            except Exception as e:
+                log(f"Không bật được Playwright tracing: {e}", "WARN")
+
+            # Chạy theo mode đã chọn.
+            if GOOGLE_FLOW_MANUAL_CAPTURE:
+                await run_manual_network_capture(page)
+                saved_total = 0
+            else:
+                saved_total = await run_google_flow_auto_request_response(page, prompts)
+                log(f"Đã tải {saved_total} ảnh bằng request/response API", "OK")
+
+            # Lưu log debug dễ đọc + log JSON đầy đủ.
+            await wait_pending_api_tasks(timeout_sec=3.0)
+            prompt_trace_path = save_prompt_submission_trace()
+            if prompt_trace_path:
+                log(f"Prompt trace: {prompt_trace_path}", "DBG")
+            network_debug_path = save_network_debug()
+            if network_debug_path:
+                log(f"Network image log: {network_debug_path}", "DBG")
+            api_debug_path = save_api_debug()
+            if api_debug_path:
+                log(f"Network API log: {api_debug_path}", "DBG")
+            timeline_path = save_request_response_timeline()
+            if timeline_path:
+                log(f"Request/Response timeline: {timeline_path}", "DBG")
+            upscale_debug_path = save_upscale_debug()
+            if upscale_debug_path:
+                log(f"Upscale 2K debug: {upscale_debug_path}", "DBG")
+            hash_report_path = save_download_hash_report()
+            if hash_report_path:
+                log(f"Download hash report: {hash_report_path}", "DBG")
+
+            try:
+                if trace_started:
+                    await browser.tracing.stop(path=_trace_zip_path)
+                    log(f"Trace zip: {_trace_zip_path}", "DBG")
+            except Exception as e:
+                log(f"Không ghi được trace zip: {e}", "WARN")
+
+            if os.path.exists(har_path):
+                log(f"HAR file: {har_path}", "DBG")
+
+            compare_path = compare_with_previous_session()
+            if compare_path:
+                log(f"Session compare: {compare_path}", "DBG")
+            else:
+                log("Chưa có session trước để so sánh", "DBG")
+
+            # Theo yêu cầu: giữ Chrome mở để user kiểm tra sau khi chạy xong.
+            if GOOGLE_FLOW_KEEP_BROWSER_OPEN:
+                log("Giữ Chrome mở để bạn kiểm tra. Đóng cửa sổ Chrome khi xem xong.", "INFO")
+                while True:
+                    try:
+                        if len(browser.pages) == 0:
+                            break
+                    except Exception:
+                        break
+                    await asyncio.sleep(2)
+
+            await browser.close()
+        return
+
     # Cho phép chọn nhanh chế độ test:
     # - y: tự sinh prompt khác nhau mỗi lần để debug
     # - n: dùng prompts.txt như cũ
@@ -2749,6 +3933,12 @@ async def main():
         api_debug_path = save_api_debug()
         if api_debug_path:
             log(f"Network API log: {api_debug_path}", "DBG")
+        timeline_path = save_request_response_timeline()
+        if timeline_path:
+            log(f"Request/Response timeline: {timeline_path}", "DBG")
+        upscale_debug_path = save_upscale_debug()
+        if upscale_debug_path:
+            log(f"Upscale 2K debug: {upscale_debug_path}", "DBG")
         hash_report_path = save_download_hash_report()
         if hash_report_path:
             log(f"Download hash report: {hash_report_path}", "DBG")
