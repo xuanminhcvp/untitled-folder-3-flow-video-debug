@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 """
 parallel_runner.py
 ──────────────────
@@ -17,6 +18,11 @@ Cách dùng:
   python3 parallel_runner.py --dry-run          → chỉ in config, không chạy
   python3 parallel_runner.py --scenario A B     → chỉ chạy kịch bản A và B
   python3 parallel_runner.py --video-only       → bỏ qua bước tạo ảnh (ảnh đã có sẵn)
+
+Giải quyết vấn đề state toàn cục:
+  - Mỗi video worker chạy trong subprocess riêng (multiprocessing)
+  - Tránh conflict biến global của dreamina.py giữa các worker
+  - Mỗi subprocess import dreamina.py riêng → state độc lập
 """
 
 import asyncio
@@ -25,17 +31,21 @@ import os
 import sys
 import time
 import argparse
+import subprocess
+import tempfile
 from datetime import datetime
 from pathlib import Path
 from playwright.async_api import async_playwright
 
 
 # ── Constants ─────────────────────────────────────────────────────────────────
-CONFIG_PATH      = os.path.join(os.path.dirname(__file__), "config", "video_workers.json")
+# Đường dẫn tương đối so với file này (để hoạt động trên cả máy khác)
+_SCRIPT_DIR      = os.path.dirname(os.path.abspath(__file__))
+CONFIG_PATH      = os.path.join(_SCRIPT_DIR, "config", "video_workers.json")
 GOOGLE_FLOW_HOME = "https://labs.google/fx/vi/tools/flow"
 VIEWPORT         = {"width": 1920, "height": 1080}
 
-# Stagger delay giữa các Chrome Video để tránh khởi động đồng loạt
+# Stagger delay giữa các Chrome Video để tránh khởi động đồng loạt (giây)
 WORKER_STAGGER_SEC = 5
 
 
@@ -43,7 +53,7 @@ WORKER_STAGGER_SEC = 5
 def log(msg: str, level: str = "INFO", worker_id: str = ""):
     """In log có timestamp, level và worker_id."""
     now = datetime.now().strftime("%H:%M:%S")
-    prefix = f"[{worker_id}]" if worker_id else "[MAIN] "
+    prefix = f"[{worker_id}]" if worker_id else "[MAIN]"
     print(f"[{now}] [{level:<5}] {prefix} {msg}")
 
 
@@ -62,14 +72,19 @@ def parse_proxy(proxy_str: str | None) -> dict | None:
     Chuyển proxy string sang dict Playwright.
     Input:  socks5://USER:PASS@IP:PORT
     Output: {"server": "socks5://IP:PORT", "username": "USER", "password": "PASS"}
+    Trả None nếu proxy_str rỗng hoặc không hợp lệ.
     """
     if not proxy_str:
         return None
     try:
         proto_rest = proxy_str.split("://", 1)
+        if len(proto_rest) < 2:
+            return None
         proto = proto_rest[0]
         rest = proto_rest[1]
         creds_host = rest.split("@", 1)
+        if len(creds_host) < 2:
+            return None
         creds = creds_host[0].split(":", 1)
         host_port = creds_host[1]
         return {
@@ -90,14 +105,14 @@ def expand_path(p: str) -> str:
 def load_scenario_prompts(scenario_dir: str) -> list[str]:
     """
     Đọc prompts.txt trong thư mục kịch bản.
-    Trả về danh sách prompt (mỗi dòng 1 prompt), bỏ dòng trống.
+    Trả về danh sách prompt (mỗi dòng 1 prompt), bỏ dòng trống và comment #.
     """
     prompts_path = os.path.join(scenario_dir, "prompts.txt")
     if not os.path.exists(prompts_path):
         log(f"Không tìm thấy: {prompts_path}", "WARN")
         return []
     with open(prompts_path, "r", encoding="utf-8") as f:
-        return [ln.strip() for ln in f if ln.strip()]
+        return [ln.strip() for ln in f if ln.strip() and not ln.strip().startswith("#")]
 
 
 # ── Browser launcher ────────────────────────────────────────────────────────
@@ -130,153 +145,209 @@ async def launch_browser(p, profile_dir: str, proxy_str: str | None, har_path: s
     return await p.chromium.launch_persistent_context(**kwargs)
 
 
-# ── Image step (per scenario) ────────────────────────────────────────────────
+# ── Image step cho 1 kịch bản ─────────────────────────────────────────────────
 async def run_image_step_for_scenario(
     p,
-    image_worker_config: dict,
+    browser_ctx,
     scenario_dir: str,
     scenario_name: str,
-    output_event: asyncio.Event,
 ):
     """
-    Chạy Chrome IMAGE để tạo ảnh reference cho 1 kịch bản.
-    Xong thì set output_event để Chrome Video tương ứng biết mà bắt đầu.
-    
-    Import hàm từ dreamina.py để tái dùng logic đã có sẵn.
-    """
-    # Import runtime để tránh circular import
-    import importlib.util
-    spec = importlib.util.spec_from_file_location(
-        "dreamina",
-        os.path.join(os.path.dirname(__file__), "dreamina.py")
-    )
-    dreamina = importlib.util.load_from_spec(spec)
-    spec.loader.exec_module(dreamina)
+    Dùng Chrome IMAGE (đã mở sẵn) để tạo ảnh reference cho 1 kịch bản.
 
-    profile_dir = expand_path(image_worker_config["profile_dir"])
-    proxy_str   = image_worker_config.get("proxy")
+    Thay vì import dreamina.py trực tiếp (sẽ gây conflict global state),
+    gọi dreamina.py qua subprocess với env vars đúng.
+    """
+    output_dir = os.path.join(scenario_dir, "output")
     prompts_path = os.path.join(scenario_dir, "prompts.txt")
-    output_dir   = os.path.join(scenario_dir, "output")
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-    log(f"[{scenario_name}] Bắt đầu tạo ảnh reference...", "STEP")
-
-    har_path = os.path.join(scenario_dir, "debug_image.har")
-
-    try:
-        browser = await launch_browser(p, profile_dir, proxy_str, har_path)
-        page    = await browser.new_page()
-
-        # Parse structured plan để lấy reference prompts
-        structured_plan = dreamina.parse_structured_story_input(prompts_path)
-        if not structured_plan.get("is_structured"):
-            log(f"[{scenario_name}] File prompts không ở dạng structured, bỏ qua bước ảnh.", "WARN")
-            output_event.set()
-            await browser.close()
-            return
-
-        ref_prompts    = structured_plan.get("reference_generation_prompts", [])
-        scene_to_label = structured_plan.get("reference_scene_to_label", {})
-
-        if ref_prompts:
-            log(f"[{scenario_name}] Tạo {len(ref_prompts)} ảnh reference...", "INFO")
-            # Override OUTPUT_DIR tạm thời cho kịch bản này
-            dreamina.OUTPUT_DIR = output_dir
-            saved = await dreamina.run_google_flow_auto_request_response(page, ref_prompts)
-            log(f"[{scenario_name}] Đã tải {saved} ảnh reference.", "OK")
-
-            # Đổi tên ảnh theo label (character1, image1...)
-            dreamina.rename_reference_scene_images(scene_to_label)
-        else:
-            log(f"[{scenario_name}] Không có reference prompt, bỏ qua.", "INFO")
-
-        await browser.close()
-
-    except Exception as e:
-        log(f"[{scenario_name}] Lỗi tạo ảnh reference: {e}", "ERR")
-    finally:
-        # Dù lỗi hay không cũng unlock Video worker để nó chạy
-        output_event.set()
-        log(f"[{scenario_name}] Ảnh reference xong → Chrome Video được unlock.", "OK")
-
-
-# ── Video step (per worker) ──────────────────────────────────────────────────
-async def run_video_worker(
-    p,
-    worker: dict,
-    ready_event: asyncio.Event,
-    worker_index: int,
-):
-    """
-    Chạy 1 Chrome Video worker cho 1 kịch bản.
-    Chờ ready_event (ảnh reference xong) rồi mới bắt đầu.
-    """
-    import importlib.util
-    spec = importlib.util.spec_from_file_location(
-        "dreamina",
-        os.path.join(os.path.dirname(__file__), "dreamina.py")
-    )
-    dreamina = importlib.util.load_from_spec(spec)
-    spec.loader.exec_module(dreamina)
-
-    worker_id    = worker["worker_id"]
-    profile_dir  = expand_path(worker["profile_dir"])
-    proxy_str    = worker.get("proxy")
-    scenario_dir = worker.get("scenario_dir", "")
-    output_dir   = os.path.join(scenario_dir, "output")
-    Path(output_dir).mkdir(parents=True, exist_ok=True)
-
-    # Stagger: worker N chờ thêm N*5 giây để không mở đồng loạt
-    stagger = worker_index * WORKER_STAGGER_SEC
-    if stagger > 0:
-        log(f"Stagger {stagger}s trước khi bắt đầu...", "INFO", worker_id)
-        await asyncio.sleep(stagger)
-
-    # Chờ ảnh reference của kịch bản này sẵn sàng
-    log(f"Chờ ảnh reference của kịch bản '{scenario_dir}' xong...", "WAIT", worker_id)
-    await ready_event.wait()
-    log(f"Ảnh reference đã sẵn sàng. Bắt đầu render video!", "OK", worker_id)
-
-    # Load prompts của kịch bản này
-    prompts_path = os.path.join(scenario_dir, "prompts.txt")
-    structured_plan = dreamina.parse_structured_story_input(prompts_path)
-    if structured_plan.get("is_structured"):
-        video_prompts = structured_plan.get("video_prompts", [])
-    else:
-        video_prompts = load_scenario_prompts(scenario_dir)
-
-    if not video_prompts:
-        log(f"Không có video prompt trong '{scenario_dir}', bỏ qua.", "WARN", worker_id)
+    # Kiểm tra prompts.txt có tồn tại không
+    if not os.path.exists(prompts_path):
+        log(f"Không tìm thấy {prompts_path}, bỏ qua.", "WARN", scenario_name)
         return
 
-    log(f"Sẽ render {len(video_prompts)} video cho kịch bản '{scenario_dir}'.", "INFO", worker_id)
+    # Kiểm tra prompts.txt có phải dạng structured không (nhanh, check text)
+    text = Path(prompts_path).read_text(encoding="utf-8")
+    if "FULL VIDEO PROMPTS" not in text or "CHARACTER REFERENCE IMAGE PROMPTS" not in text:
+        log(f"File prompts không ở dạng structured, bỏ qua bước ảnh.", "WARN", scenario_name)
+        return
 
-    har_path = os.path.join(scenario_dir, "debug_video.har")
+    log(f"Tạo ảnh reference cho '{scenario_dir}'...", "STEP", scenario_name)
 
+    # Tạo page mới trên Chrome IMAGE đang mở
+    page = await browser_ctx.new_page()
     try:
-        browser = await launch_browser(p, profile_dir, proxy_str, har_path)
-        page    = await browser.new_page()
+        # Import dreamina để dùng các hàm core
+        # LƯU Ý: import ở đây an toàn vì image step chạy tuần tự (không song song)
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "dreamina_img",
+            os.path.join(_SCRIPT_DIR, "dreamina.py")
+        )
+        dreamina = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(dreamina)
 
-        # Override các path toàn cục của dreamina cho worker này
-        dreamina.OUTPUT_DIR = output_dir
-        dreamina.GOOGLE_FLOW_VIDEO_REFERENCE_DIR = os.path.abspath(output_dir)
+        # Override OUTPUT_DIR cho kịch bản này
+        dreamina.OUTPUT_DIR = os.path.abspath(output_dir)
 
-        saved = await dreamina.run_google_flow_auto_video_request_response(page, video_prompts)
-        log(f"Hoàn thành! Đã tải {saved} video → {output_dir}", "DONE", worker_id)
+        # Parse structured để lấy reference prompts
+        structured_plan = dreamina.parse_structured_story_input(prompts_path)
+        if not structured_plan.get("is_structured"):
+            log(f"Parse structured thất bại, bỏ qua.", "WARN", scenario_name)
+            return
 
-        await browser.close()
+        ref_prompts = structured_plan.get("reference_generation_prompts", [])
+        scene_to_label = structured_plan.get("reference_scene_to_label", {})
+
+        if not ref_prompts:
+            log(f"Không có reference prompt, bỏ qua.", "INFO", scenario_name)
+            return
+
+        # Khởi tạo debug session cho bước image
+        dreamina._init_debug_session()
+
+        # Setup network debug cho page mới
+        dreamina.setup_image_network_debug(page)
+
+        log(f"Tạo {len(ref_prompts)} ảnh reference...", "INFO", scenario_name)
+        saved = await dreamina.run_google_flow_auto_request_response(page, ref_prompts)
+        log(f"Đã tải {saved} ảnh reference.", "OK", scenario_name)
+
+        # Đổi tên ảnh theo label (character1.png, image1.png...)
+        rename_report = dreamina.rename_reference_scene_images(scene_to_label)
+        renamed = len(rename_report.get("renamed", []))
+        missing = len(rename_report.get("missing", []))
+        log(f"Đổi tên: {renamed} OK, {missing} thiếu/lỗi", "INFO", scenario_name)
 
     except Exception as e:
-        log(f"Lỗi render video: {e}", "ERR", worker_id)
+        log(f"Lỗi tạo ảnh reference: {e}", "ERR", scenario_name)
+        import traceback
+        traceback.print_exc()
+    finally:
+        await page.close()
+
+
+# ── Video worker: chạy trong subprocess riêng ──────────────────────────────
+def _run_video_worker_subprocess(
+    worker_id: str,
+    profile_dir: str,
+    proxy_str: str | None,
+    scenario_dir: str,
+    output_dir: str,
+):
+    """
+    Hàm chạy TRONG subprocess riêng (không async).
+    Import dreamina.py mới hoàn toàn → state global sạch.
+    
+    Giải quyết: biến global trong dreamina.py (_scene_to_task_ids, OUTPUT_DIR...)
+    không bị conflict giữa các worker.
+    """
+    import asyncio
+
+    async def _worker_main():
+        # Import dreamina trong process riêng → state sạch hoàn toàn
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "dreamina",
+            os.path.join(_SCRIPT_DIR, "dreamina.py")
+        )
+        dreamina = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(dreamina)
+
+        # Override config cho worker này
+        dreamina.OUTPUT_DIR = os.path.abspath(output_dir)
+        dreamina.GOOGLE_FLOW_VIDEO_REFERENCE_DIR = os.path.abspath(output_dir)
+        dreamina.VP_WIDTH = 1920
+        dreamina.VP_HEIGHT = 1080
+
+        # Khởi tạo debug session riêng cho worker này
+        dreamina._init_debug_session()
+
+        # Parse prompt của kịch bản
+        prompts_path = os.path.join(scenario_dir, "prompts.txt")
+        structured_plan = dreamina.parse_structured_story_input(prompts_path)
+        if structured_plan.get("is_structured"):
+            video_prompts = structured_plan.get("video_prompts", [])
+        else:
+            # Fallback: đọc từng dòng
+            if os.path.exists(prompts_path):
+                with open(prompts_path, "r", encoding="utf-8") as f:
+                    video_prompts = [ln.strip() for ln in f if ln.strip() and not ln.strip().startswith("#")]
+            else:
+                video_prompts = []
+
+        if not video_prompts:
+            dreamina.log(f"[{worker_id}] Không có video prompt, bỏ qua.", "WARN")
+            return 0
+
+        dreamina.log(f"[{worker_id}] Sẽ render {len(video_prompts)} video...", "INFO")
+
+        # Mở Chrome riêng cho worker này
+        har_path = os.path.join(scenario_dir, f"debug_video_{worker_id}.har")
+
+        from playwright.async_api import async_playwright
+        async with async_playwright() as p:
+            # Build proxy kwargs
+            proxy_config = None
+            if proxy_str:
+                proxy_config = parse_proxy(proxy_str)
+
+            Path(profile_dir).mkdir(parents=True, exist_ok=True)
+            kwargs = {
+                "user_data_dir": profile_dir,
+                "headless": False,
+                "channel": "chrome",
+                "args": [
+                    "--start-maximized",
+                    "--disable-blink-features=AutomationControlled",
+                    "--no-first-run",
+                    "--no-default-browser-check",
+                ],
+                "ignore_default_args": ["--enable-automation"],
+                "accept_downloads": True,
+                "record_har_path": har_path,
+                "viewport": {"width": 1920, "height": 1080},
+            }
+            if proxy_config:
+                kwargs["proxy"] = proxy_config
+
+            browser = await p.chromium.launch_persistent_context(**kwargs)
+            page = await browser.new_page()
+
+            # Setup network debug
+            dreamina.setup_image_network_debug(page)
+
+            try:
+                saved = await dreamina.run_google_flow_auto_video_request_response(page, video_prompts)
+                dreamina.log(f"[{worker_id}] Hoàn thành! {saved} video → {output_dir}", "DONE")
+            except Exception as e:
+                dreamina.log(f"[{worker_id}] Lỗi render video: {e}", "ERR")
+                import traceback
+                traceback.print_exc()
+            finally:
+                # Giữ browser mở nếu cần (theo config dreamina)
+                if dreamina.GOOGLE_FLOW_KEEP_BROWSER_OPEN:
+                    dreamina.log(f"[{worker_id}] Giữ Chrome mở. Đóng thủ công khi xong.", "INFO")
+                    while True:
+                        try:
+                            if len(browser.pages) == 0:
+                                break
+                        except Exception:
+                            break
+                        await asyncio.sleep(2)
+                await browser.close()
+
+    asyncio.run(_worker_main())
 
 
 # ── Main orchestrator ─────────────────────────────────────────────────────────
 async def run_parallel(args):
     """
     Hàm điều phối chính:
-    - Chạy Chrome IMAGE tuần tự cho từng kịch bản
-    - Mỗi kịch bản xong ảnh → Chrome Video của nó bắt đầu (pipeline)
-    - Tất cả Chrome Video chạy song song với nhau
+    1. Mở Chrome IMAGE 1 lần, tạo ảnh tuần tự cho từng kịch bản
+    2. Mỗi kịch bản xong ảnh → spawn subprocess cho Chrome Video của nó
+    3. Tất cả subprocess Video chạy song song, state độc lập hoàn toàn
     """
     config        = load_config()
     image_worker  = config.get("image_worker", {})
@@ -295,57 +366,129 @@ async def run_parallel(args):
         log("Không có worker nào để chạy!", "ERR")
         return
 
-    # In tóm tắt
-    print("\n" + "="*60)
-    print("  PARALLEL RUNNER — Multi Kịch Bản")
-    print("="*60)
+    # In tóm tắt config
+    print("\n" + "="*65)
+    print("  ✦ PARALLEL RUNNER — Multi Kịch Bản Song Song ✦")
+    print("="*65)
     for w in video_workers:
-        proxy_server = parse_proxy(w.get("proxy") or "")
-        proxy_display = proxy_server["server"] if proxy_server else "Không proxy"
-        print(f"  [{w['worker_id']}] {w.get('scenario_dir','')} | {proxy_display}")
-    print("="*60)
+        proxy_cfg = parse_proxy(w.get("proxy"))
+        proxy_display = proxy_cfg["server"] if proxy_cfg else "Không proxy"
+        scenario = w.get("scenario_dir", "")
+        print(f"  [{w['worker_id']:<10}] {scenario:<25} | {proxy_display}")
+    print("="*65)
 
     if args.dry_run:
         log("Dry-run mode — không chạy thật. Thoát.", "INFO")
         return
 
-    # Tạo 1 asyncio.Event cho mỗi worker để đồng bộ ảnh xong → video bắt đầu
-    ready_events = [asyncio.Event() for _ in video_workers]
+    # ────────────────────────────────────────────────────────────────────────
+    # STEP 1: Tạo ảnh reference tuần tự bằng Chrome IMAGE
+    # (giữ Chrome IMAGE mở xuyên suốt, chỉ tạo page mới cho từng kịch bản)
+    # ────────────────────────────────────────────────────────────────────────
+    video_subprocesses = []
 
-    if args.video_only:
-        # Bỏ qua bước ảnh, set tất cả event ngay
-        log("--video-only: bỏ qua bước tạo ảnh reference.", "INFO")
-        for ev in ready_events:
-            ev.set()
+    if not args.video_only:
+        log("STEP 1: Tạo ảnh reference bằng Chrome IMAGE...", "STEP")
 
-    async with async_playwright() as p:
-        # ── Task image: tạo ảnh tuần tự, mỗi kịch bản xong → set event ───────
-        async def image_pipeline():
-            if args.video_only:
-                return
-            for i, (worker, ev) in enumerate(zip(video_workers, ready_events)):
+        image_profile_dir = expand_path(image_worker.get("profile_dir", "~/dreamina_playwright_profile_image"))
+        image_proxy       = image_worker.get("proxy")
+        har_img_path      = os.path.join(_SCRIPT_DIR, "debug_sessions", "parallel_image.har")
+        Path(os.path.dirname(har_img_path)).mkdir(parents=True, exist_ok=True)
+
+        async with async_playwright() as p:
+            browser_img = await launch_browser(p, image_profile_dir, image_proxy, har_img_path)
+
+            for i, worker in enumerate(video_workers):
                 scenario_dir  = worker.get("scenario_dir", "")
                 scenario_name = worker.get("worker_id", f"scenario_{i+1}")
-                log(f"[{i+1}/{len(video_workers)}] Tạo ảnh reference: {scenario_dir}", "STEP")
+
+                log(f"[{i+1}/{len(video_workers)}] Tạo ảnh cho: {scenario_dir}", "STEP")
                 await run_image_step_for_scenario(
-                    p, image_worker, scenario_dir, scenario_name, ev
+                    p, browser_img, scenario_dir, scenario_name
                 )
 
-        # ── Tasks video: mỗi worker chờ event rồi chạy song song ─────────────
-        video_tasks = [
-            run_video_worker(p, worker, ev, i)
-            for i, (worker, ev) in enumerate(zip(video_workers, ready_events))
-        ]
+                # Sau khi ảnh xong → spawn subprocess video cho kịch bản này
+                output_dir  = os.path.join(scenario_dir, "output")
+                profile_dir = expand_path(worker["profile_dir"])
+                proxy_str   = worker.get("proxy")
+                worker_id   = worker["worker_id"]
 
-        # Chạy image pipeline và tất cả video tasks cùng lúc (pipeline)
-        await asyncio.gather(
-            image_pipeline(),
-            *video_tasks,
-        )
+                # Stagger delay giữa các video worker
+                stagger = i * WORKER_STAGGER_SEC
+                if stagger > 0:
+                    log(f"Stagger {stagger}s trước khi spawn {worker_id}...", "INFO")
+                    await asyncio.sleep(stagger)
 
-    print("\n" + "="*60)
+                log(f"Spawn subprocess video: {worker_id}", "RUN")
+                proc = subprocess.Popen(
+                    [
+                        sys.executable,
+                        os.path.join(_SCRIPT_DIR, "parallel_runner.py"),
+                        "--_internal-video-worker",
+                        json.dumps({
+                            "worker_id":    worker_id,
+                            "profile_dir":  profile_dir,
+                            "proxy":        proxy_str,
+                            "scenario_dir": scenario_dir,
+                            "output_dir":   output_dir,
+                        }),
+                    ],
+                    cwd=_SCRIPT_DIR,
+                )
+                video_subprocesses.append((worker_id, proc))
+
+            # Chrome IMAGE đã xong việc, đóng lại
+            await browser_img.close()
+            log("Chrome IMAGE đã đóng.", "OK")
+
+    else:
+        # --video-only: bỏ qua bước ảnh, spawn tất cả video subprocess ngay
+        log("--video-only: bỏ qua bước ảnh, khởi động tất cả Chrome Video...", "INFO")
+        for i, worker in enumerate(video_workers):
+            scenario_dir = worker.get("scenario_dir", "")
+            output_dir   = os.path.join(scenario_dir, "output")
+            profile_dir  = expand_path(worker["profile_dir"])
+            proxy_str    = worker.get("proxy")
+            worker_id    = worker["worker_id"]
+
+            stagger = i * WORKER_STAGGER_SEC
+            if stagger > 0:
+                log(f"Stagger {stagger}s trước khi spawn {worker_id}...", "INFO")
+                await asyncio.sleep(stagger)
+
+            log(f"Spawn subprocess video: {worker_id}", "RUN")
+            proc = subprocess.Popen(
+                [
+                    sys.executable,
+                    os.path.join(_SCRIPT_DIR, "parallel_runner.py"),
+                    "--_internal-video-worker",
+                    json.dumps({
+                        "worker_id":    worker_id,
+                        "profile_dir":  profile_dir,
+                        "proxy":        proxy_str,
+                        "scenario_dir": scenario_dir,
+                        "output_dir":   output_dir,
+                    }),
+                ],
+                cwd=_SCRIPT_DIR,
+            )
+            video_subprocesses.append((worker_id, proc))
+
+    # ────────────────────────────────────────────────────────────────────────
+    # Chờ tất cả subprocess video hoàn tất
+    # ────────────────────────────────────────────────────────────────────────
+    if video_subprocesses:
+        log(f"Đang chờ {len(video_subprocesses)} video worker hoàn thành...", "WAIT")
+        for worker_id, proc in video_subprocesses:
+            returncode = proc.wait()
+            if returncode == 0:
+                log(f"Worker {worker_id} hoàn thành.", "OK")
+            else:
+                log(f"Worker {worker_id} kết thúc với lỗi (code={returncode}).", "ERR")
+
+    print("\n" + "="*65)
     log(f"TẤT CẢ {len(video_workers)} KỊCH BẢN HOÀN THÀNH!", "DONE")
-    print("="*60 + "\n")
+    print("="*65 + "\n")
 
 
 # ── CLI entry point ──────────────────────────────────────────────────────────
@@ -365,7 +508,27 @@ def main():
         "--video-only", action="store_true",
         help="Bỏ qua bước tạo ảnh reference (ảnh đã có sẵn trong output/)"
     )
+    # Tham số nội bộ: chạy 1 video worker trong subprocess
+    parser.add_argument(
+        "--_internal-video-worker", dest="internal_worker_json",
+        help=argparse.SUPPRESS,
+    )
     args = parser.parse_args()
+
+    # Nếu là subprocess video worker → chạy luồng riêng
+    if args.internal_worker_json:
+        worker_data = json.loads(args.internal_worker_json)
+        log(f"Subprocess video worker: {worker_data['worker_id']}", "RUN")
+        _run_video_worker_subprocess(
+            worker_id    = worker_data["worker_id"],
+            profile_dir  = worker_data["profile_dir"],
+            proxy_str    = worker_data.get("proxy"),
+            scenario_dir = worker_data["scenario_dir"],
+            output_dir   = worker_data["output_dir"],
+        )
+        return
+
+    # Luồng chính
     asyncio.run(run_parallel(args))
 
 
