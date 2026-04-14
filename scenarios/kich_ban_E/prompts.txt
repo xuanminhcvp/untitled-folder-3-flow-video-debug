@@ -1,0 +1,12 @@
+# ================================================================
+# FILE PROMPTS KỊCH BẢN — Định dạng STRUCTURED
+# ================================================================
+# Bạn cần điền nội dung prompt thật vào đây.
+# Xem file prompts.txt gốc ở thư mục project để lấy mẫu.
+#
+# Format bắt buộc:
+#   CHARACTER REFERENCE IMAGE PROMPTS (nhân vật, background)
+#   FULL VIDEO PROMPTS (từng cảnh video)
+# ================================================================
+
+# Dán nội dung từ AI scriptwriter vào đây...

@@ -1,0 +1,47 @@
+{
+  "_comment": "Config hệ thống multi kịch bản song song. Mỗi video_worker = 1 Chrome riêng với 1 kịch bản riêng.",
+
+  "image_worker": {
+    "_comment": "Chrome tạo ảnh reference — dùng cho TẤT CẢ kịch bản, tạo tuần tự từng kịch bản.",
+    "profile_dir": "~/dreamina_playwright_profile_image",
+    "proxy": null
+  },
+
+  "video_workers": [
+    {
+      "worker_id": "video_1",
+      "profile_dir": "~/dreamina_playwright_profile_video_1",
+      "proxy": "socks5://HPseFo:IpmDzM@118.70.187.141:55508",
+      "scenario_dir": "scenarios/kich_ban_A",
+      "_note": "IP: 118.70.187.141"
+    },
+    {
+      "worker_id": "video_2",
+      "profile_dir": "~/dreamina_playwright_profile_video_2",
+      "proxy": "socks5://cQPhPD:psxyrr@118.70.171.107:12055",
+      "scenario_dir": "scenarios/kich_ban_B",
+      "_note": "IP: 118.70.171.107"
+    },
+    {
+      "worker_id": "video_3",
+      "profile_dir": "~/dreamina_playwright_profile_video_3",
+      "proxy": "socks5://dyiuTU:jkkAOj@118.70.187.141:57444",
+      "scenario_dir": "scenarios/kich_ban_C",
+      "_note": "IP: 118.70.187.141 (cùng IP với worker_1, khác port)"
+    },
+    {
+      "worker_id": "video_4",
+      "profile_dir": "~/dreamina_playwright_profile_video_4",
+      "proxy": "socks5://zZdAHY:fDWwOC@113.160.166.150:55923",
+      "scenario_dir": "scenarios/kich_ban_D",
+      "_note": "IP: 113.160.166.150"
+    },
+    {
+      "worker_id": "video_5",
+      "profile_dir": "~/dreamina_playwright_profile_video_5",
+      "proxy": "socks5://BRBJmF:dBTPyg@14.241.72.152:19437",
+      "scenario_dir": "scenarios/kich_ban_E",
+      "_note": "IP: 14.241.72.152"
+    }
+  ]
+}
