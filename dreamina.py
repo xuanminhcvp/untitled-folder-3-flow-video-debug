@@ -28,7 +28,7 @@ import shutil
 from typing import Optional
 from pathlib import Path
 from datetime import datetime
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse, parse_qs, quote
 from playwright.async_api import async_playwright
 
 # ── Import service tham chiếu ảnh (reference image UI) ──
@@ -172,6 +172,24 @@ FLOW_VIDEO_UNUSUAL_COOLDOWN_SEC = int(os.environ.get("FLOW_VIDEO_UNUSUAL_COOLDOW
 # Delay ngẫu nhiên trước khi tải video READY để tránh pattern bot.
 FLOW_VIDEO_DOWNLOAD_DELAY_MIN_SEC = float(os.environ.get("FLOW_VIDEO_DOWNLOAD_DELAY_MIN_SEC", "3"))
 FLOW_VIDEO_DOWNLOAD_DELAY_MAX_SEC = float(os.environ.get("FLOW_VIDEO_DOWNLOAD_DELAY_MAX_SEC", "8"))
+# Số media tối đa mỗi cảnh được probe trong một vòng sweep (để tránh spam).
+FLOW_VIDEO_PROBE_PER_SCENE_PER_ROUND = int(
+    os.environ.get("FLOW_VIDEO_PROBE_PER_SCENE_PER_ROUND", "4")
+)
+# Với media chưa READY, giới hạn tần suất probe theo mediaId.
+FLOW_VIDEO_PENDING_PROBE_MIN_INTERVAL_SEC = float(
+    os.environ.get("FLOW_VIDEO_PENDING_PROBE_MIN_INTERVAL_SEC", "45")
+)
+# Chu kỳ poll projectInitialData để thu media mới ngay cả khi generate response thiếu map.
+FLOW_VIDEO_PROJECT_POLL_INTERVAL_SEC = float(
+    os.environ.get("FLOW_VIDEO_PROJECT_POLL_INTERVAL_SEC", "25")
+)
+# Ngưỡng kích thước tối thiểu để coi file video tải về là hợp lệ.
+FLOW_VIDEO_MIN_VALID_BYTES = int(os.environ.get("FLOW_VIDEO_MIN_VALID_BYTES", "500000"))
+# Số lần probe lỗi liên tiếp cho 1 media trước khi bỏ qua media đó trong phiên.
+FLOW_VIDEO_MEDIA_MAX_CONSECUTIVE_FAILS = int(
+    os.environ.get("FLOW_VIDEO_MEDIA_MAX_CONSECUTIVE_FAILS", "4")
+)
 # Poll map API scene->image trong mode Google Flow (giây)
 GOOGLE_FLOW_API_MAP_TIMEOUT_SEC = int(os.environ.get("GOOGLE_FLOW_API_MAP_TIMEOUT_SEC", "120"))
 # Nếu bật, script sẽ mở Flow và chờ bạn setup xong rồi Enter mới bắt đầu gửi prompt.
@@ -307,6 +325,12 @@ _scene_to_video_media_ids: dict = {}  # scene_no -> [video_media_id...]
 _scene_to_video_ready_media_ids: dict = {}  # scene_no -> [video_media_id đã READY]
 _scene_to_video_failed_media_ids: dict = {}  # scene_no -> [video_media_id đã FAILED]
 _video_media_status_by_id: dict = {}  # media_id -> status text gần nhất
+_video_sent_scene_history: list = []  # lịch sử scene đã gửi để fallback map khi response thiếu scene
+_video_scene_sent_ts: dict = {}  # scene_no -> timestamp gửi prompt video gần nhất
+_video_media_last_probe_ts: dict = {}  # media_id -> timestamp probe tải gần nhất
+_orphan_video_media_ts: dict = {}  # media_id -> first_seen_ts (chưa map scene)
+_video_media_fail_count: dict = {}  # media_id -> số lần probe lỗi liên tiếp
+_video_media_terminal_skip: set = set()  # media_id bị bỏ qua hẳn trong phiên
 _video_download_events: list = []  # log chi tiết từng attempt tải video
 _flow_ui_error_events: list = []  # log text lỗi UI (toast/card) trên Flow
 _last_flow_client_context: dict = {}  # clientContext gần nhất từ request generate
@@ -324,7 +348,10 @@ def _init_debug_session():
     global _api_events, _api_req_meta, _scene_to_task_ids, _task_to_image_urls, _scene_to_image_urls
     global _submit_to_scene, _trusted_submit_ids, _run_started_ts, _pending_api_tasks, _upscale_events
     global _scene_to_media_ids, _scene_to_video_media_ids, _scene_to_video_ready_media_ids
-    global _scene_to_video_failed_media_ids, _video_media_status_by_id
+    global _scene_to_video_failed_media_ids, _video_media_status_by_id, _video_sent_scene_history
+    global _video_scene_sent_ts
+    global _video_media_last_probe_ts, _orphan_video_media_ts
+    global _video_media_fail_count, _video_media_terminal_skip
     global _video_download_events, _flow_ui_error_events
     global _last_flow_client_context, _upscale_success_by_media
     Path(DEBUG_DIR).mkdir(parents=True, exist_ok=True)
@@ -360,6 +387,12 @@ def _init_debug_session():
     _scene_to_video_ready_media_ids = {}
     _scene_to_video_failed_media_ids = {}
     _video_media_status_by_id = {}
+    _video_sent_scene_history = []
+    _video_scene_sent_ts = {}
+    _video_media_last_probe_ts = {}
+    _orphan_video_media_ts = {}
+    _video_media_fail_count = {}
+    _video_media_terminal_skip = set()
     _video_download_events = []
     _flow_ui_error_events = []
     _last_flow_client_context = {}
@@ -856,6 +889,65 @@ def _is_upscale_api_url(url: str) -> bool:
     ])
 
 
+def _is_flow_video_generate_api_url(url: str) -> bool:
+    """
+    Nhận diện endpoint generate video của Flow (nhiều biến thể endpoint).
+    """
+    low = (url or "").lower()
+    return any(k in low for k in [
+        "video:batchasyncgeneratevideotext",
+        "video:batchasyncgeneratevideoreferenceimages",
+        "video:batchasyncgeneratevideo",
+        "/v1/video:",
+    ])
+
+
+def _looks_like_flow_video_api_url(url: str) -> bool:
+    """
+    Nhận diện endpoint API có khả năng chứa mapping video (scene/media/status).
+    Dùng cho debug network mapping: in log ngắn, dễ đọc.
+    """
+    low = (url or "").lower()
+    keys = [
+        "flow.projectinitialdata",
+        "video:",
+        "batchasyncgeneratevideo",
+        "batchgeneratevideo",
+        "media.getmediaurlredirect",
+        "project.searchuserprojects",
+        "projectcontents",
+    ]
+    return any(k in low for k in keys)
+
+
+def _collect_video_media_items_from_obj(obj, out: list, max_depth: int = 6):
+    """
+    Duyệt JSON để gom các object có thể là media video.
+    Dùng khi response đổi format và không còn nằm ở key `media`.
+    """
+    if max_depth < 0:
+        return
+    if isinstance(obj, dict):
+        name_val = obj.get("name")
+        name_ok = isinstance(name_val, str) and bool(name_val.strip())
+        name_like_media_id = bool(re.search(r"[0-9a-f]{8}-[0-9a-f]{4}-", str(name_val or ""), flags=re.IGNORECASE))
+        has_video_hint = (
+            isinstance(obj.get("video"), dict)
+            or isinstance(obj.get("mediaMetadata"), dict)
+            or isinstance(obj.get("mediaStatus"), dict)
+            or isinstance(obj.get("generatedVideo"), dict)
+        )
+        if name_ok and (name_like_media_id or has_video_hint):
+            out.append(obj)
+        for v in obj.values():
+            if isinstance(v, (dict, list)):
+                _collect_video_media_items_from_obj(v, out, max_depth=max_depth - 1)
+    elif isinstance(obj, list):
+        for v in obj:
+            if isinstance(v, (dict, list)):
+                _collect_video_media_items_from_obj(v, out, max_depth=max_depth - 1)
+
+
 def _extract_media_id_from_upscale_post_data(post_data: str) -> str:
     """
     Tách mediaId từ payload upsampleImage.
@@ -940,6 +1032,29 @@ def _collect_video_urls_from_obj(obj, out: list):
             return
         if any(x in low for x in [".mp4", ".webm", ".m3u8", "/video/"]):
             out.append(obj)
+
+
+def _collect_error_messages_from_obj(obj, out: list, max_depth: int = 6):
+    """
+    Duyệt JSON để gom thông điệp lỗi từ nhiều key thường gặp.
+    Dùng cho debug khi API trả 4xx/5xx hoặc blocked.
+    """
+    if max_depth < 0:
+        return
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            lk = str(k).lower()
+            if any(x in lk for x in ["error", "message", "reason", "detail", "statusmessage"]):
+                if isinstance(v, str):
+                    t = re.sub(r"\s+", " ", v).strip()
+                    if t:
+                        out.append(t)
+            if isinstance(v, (dict, list)):
+                _collect_error_messages_from_obj(v, out, max_depth=max_depth - 1)
+    elif isinstance(obj, list):
+        for v in obj:
+            if isinstance(v, (dict, list)):
+                _collect_error_messages_from_obj(v, out, max_depth=max_depth - 1)
 
 
 def _looks_like_flow_media_url(url: str) -> bool:
@@ -1056,6 +1171,155 @@ def _register_scene_video_media(scene_no: int, media_id: str, status: str = ""):
             _append_unique_dict_list(_scene_to_video_ready_media_ids, scene_no, [media_id])
         if _is_video_media_failed_status(normalized):
             _append_unique_dict_list(_scene_to_video_failed_media_ids, scene_no, [media_id])
+
+
+def _guess_scene_for_unmapped_video_media() -> int:
+    """
+    Fallback map scene khi response không trả prompt/scene.
+    Chiến thuật: ưu tiên scene gửi gần đây nhất còn ít/no media mapped.
+    """
+    if not _video_sent_scene_history:
+        return 0
+    for sc in reversed(_video_sent_scene_history):
+        ids = _scene_to_video_media_ids.get(sc, []) or []
+        if len(ids) == 0:
+            return sc
+    # Nếu tất cả scene đã có media, vẫn chọn scene gần nhất để tránh bỏ rơi media mới.
+    return int(_video_sent_scene_history[-1] or 0)
+
+
+def _extract_media_id_from_flow_redirect_url(url: str) -> str:
+    """
+    Tách media_id từ URL `media.getMediaUrlRedirect?name=<media_id>`.
+    """
+    try:
+        parsed = urlparse(str(url or ""))
+        qs = parse_qs(parsed.query or "")
+        mid = str((qs.get("name", [""])[0] or "")).strip()
+        return mid
+    except Exception:
+        return ""
+
+
+def _is_flow_thumbnail_redirect_url(url: str) -> bool:
+    """
+    Kiểm tra redirect có phải loại thumbnail hay không.
+    """
+    try:
+        parsed = urlparse(str(url or ""))
+        qs = parse_qs(parsed.query or "")
+        t = str((qs.get("mediaUrlType", [""])[0] or "")).upper()
+        return "THUMBNAIL" in t
+    except Exception:
+        return False
+
+
+def _has_scene_already_mapped_media(scene_no: int, media_id: str) -> bool:
+    """Kiểm tra media_id đã nằm trong scene hay chưa."""
+    ids = _scene_to_video_media_ids.get(scene_no, []) or []
+    return media_id in ids
+
+
+def _has_media_mapped_any_scene(media_id: str) -> bool:
+    """Kiểm tra media_id đã thuộc scene nào chưa."""
+    if not media_id:
+        return False
+    for ids in (_scene_to_video_media_ids or {}).values():
+        if media_id in (ids or []):
+            return True
+    return False
+
+
+def _register_orphan_video_media(media_id: str, status: str = "", ts: float = 0.0):
+    """
+    Đăng ký media chưa map scene vào orphan queue để probe/tải sau.
+    """
+    if not media_id:
+        return
+    if _has_media_mapped_any_scene(media_id):
+        _orphan_video_media_ts.pop(media_id, None)
+        return
+    if status:
+        _video_media_status_by_id[media_id] = _normalize_media_status_text(status)
+    if media_id not in _orphan_video_media_ts:
+        _orphan_video_media_ts[media_id] = float(ts or time.time())
+
+
+def _mark_video_media_probe_fail(media_id: str, reason: str = "") -> int:
+    """
+    Tăng bộ đếm lỗi probe cho media_id. Trả về fail_count mới.
+    Nếu vượt ngưỡng thì đánh dấu terminal skip.
+    """
+    if not media_id:
+        return 0
+    n = int(_video_media_fail_count.get(media_id, 0) or 0) + 1
+    _video_media_fail_count[media_id] = n
+    max_fails = max(1, FLOW_VIDEO_MEDIA_MAX_CONSECUTIVE_FAILS)
+    if n >= max_fails:
+        _video_media_terminal_skip.add(media_id)
+        log(
+            f"[FLOW-DL] media {media_id[:8]}... bị bỏ qua sau {n} lần lỗi liên tiếp ({reason}).",
+            "WARN",
+        )
+    return n
+
+
+def _mark_video_media_probe_success(media_id: str):
+    """Reset bộ đếm lỗi khi media tải thành công."""
+    if not media_id:
+        return
+    _video_media_fail_count.pop(media_id, None)
+    _video_media_terminal_skip.discard(media_id)
+
+
+def _guess_scene_for_redirect_discovered_media(ts: float) -> int:
+    """
+    Chọn scene nhận media_id mới bắt từ redirect request.
+    Quy tắc:
+    - ưu tiên scene gửi gần nhất (không ở tương lai so với ts),
+    - ưu tiên scene còn ít media mapped (<4),
+    - fallback scene mới nhất trong lịch sử gửi.
+    """
+    if not _video_sent_scene_history:
+        return 0
+
+    for sc in reversed(_video_sent_scene_history):
+        sent_ts = float(_video_scene_sent_ts.get(sc, 0.0) or 0.0)
+        if sent_ts > 0 and ts + 1.0 < sent_ts:
+            continue
+        # Media mới thường xuất hiện gần thời điểm gửi, giới hạn cửa sổ để giảm map nhầm dữ liệu cũ.
+        if sent_ts > 0 and (ts - sent_ts) > 8 * 60:
+            continue
+        ids = _scene_to_video_media_ids.get(sc, []) or []
+        if len(ids) < 4:
+            return sc
+    return int(_video_sent_scene_history[-1] or 0)
+
+
+def _register_video_media_from_redirect_request(url: str, ts: float):
+    """
+    Bắt media_id từ request redirect của Flow và map về scene đã gửi.
+    Mục tiêu: không phụ thuộc UI state/READY để có media_id tải.
+    """
+    low = str(url or "").lower()
+    if "media.getmediaurlredirect" not in low:
+        return
+    media_id = _extract_media_id_from_flow_redirect_url(url)
+    if not media_id:
+        return
+    # Tránh gom thumbnail/media cũ trước khi bắt đầu gửi cảnh ở phiên hiện tại.
+    if not _video_sent_scene_history:
+        return
+
+    # Nếu đã map scene thì bỏ qua.
+    if _has_media_mapped_any_scene(media_id):
+        return
+
+    # Redirect thumbnail/media có thể đến lệch thời điểm scene.
+    # Ưu tiên đưa vào orphan queue, sau đó scheduler sẽ gán về cảnh pending.
+    _register_orphan_video_media(media_id, status="", ts=ts)
+    source = "thumbnail" if _is_flow_thumbnail_redirect_url(url) else "media"
+    log(f"[FLOW-MAP] redirect->{source} discovered orphan media {media_id[:8]}...", "DBG")
 
 
 def _parse_epoch_like(value) -> float:
@@ -1299,13 +1563,17 @@ def setup_image_network_debug(page):
         image_urls = []
         video_urls = []
         video_media_updates = []
+        backend_error_messages = []
+        parser_hits = []
         if body_json is not None:
             _collect_task_ids_from_obj(body_json, task_ids)
             _collect_urls_from_obj(body_json, image_urls)
             _collect_video_urls_from_obj(body_json, video_urls)
+            _collect_error_messages_from_obj(body_json, backend_error_messages)
 
             # Parse riêng cho Flow generate: lấy mediaId để upscale 2K sau đó.
             if "flowmedia:batchgenerateimages" in (url or "").lower():
+                parser_hits.append("flowmedia:batchgenerateimages")
                 try:
                     media = (body_json or {}).get("media", []) or []
                     scenes_local = meta.get("scene_numbers", []) or []
@@ -1337,19 +1605,31 @@ def setup_image_network_debug(page):
                     pass
 
             # Parse riêng cho Flow generate VIDEO: scene -> video mediaId.
-            if "video:batchasyncgeneratevideotext" in (url or "").lower():
+            if _is_flow_video_generate_api_url(url):
+                parser_hits.append("flow_video_generate")
                 try:
                     media = (body_json or {}).get("media", []) or []
+                    # Format mới có thể không để media ở root.
+                    if not media:
+                        media = []
+                        _collect_video_media_items_from_obj(body_json, media)
+                        dedup_media = []
+                        seen_mid = set()
+                        for it in media:
+                            if not isinstance(it, dict):
+                                continue
+                            mid = str(it.get("name", "") or "")
+                            if not mid or mid in seen_mid:
+                                continue
+                            seen_mid.add(mid)
+                            dedup_media.append(it)
+                        media = dedup_media
                     scenes_local = meta.get("scene_numbers", []) or []
                     operations = (body_json or {}).get("operations", []) or []
                     default_status = ""
-                    for op in operations:
-                        if not isinstance(op, dict):
-                            continue
-                        op_status = _normalize_media_status_text(op.get("status", ""))
-                        if op_status:
-                            default_status = op_status
-                            break
+                    # Chỉ lấy default_status nếu response thật sự chỉ có 1 media và 1 operation đi chung
+                    if len(operations) == 1 and len(media) == 1 and isinstance(operations[0], dict):
+                        default_status = _normalize_media_status_text(operations[0].get("status", ""))
                     for idx, item in enumerate(media):
                         if not isinstance(item, dict):
                             continue
@@ -1371,6 +1651,17 @@ def setup_image_network_debug(page):
                                 media_meta = (item.get("mediaMetadata", {}) or {})
                                 prompt_text = str(media_meta.get("mediaTitle", "") or "")
                             scene_no = _extract_scene_number_from_any_text(prompt_text, 0)
+                        if not scene_no:
+                            # Thay vì gán mù, tìm xem ID này đã được map lúc PENDING (từ generate) hay chưa
+                            for s_no, media_dict in _video_media_state.items():
+                                if media_id in media_dict:
+                                    scene_no = s_no
+                                    break
+                            
+                            # Nếu VẪN không tìm thấy scene, bỏ qua (đây có thể là ảnh reference từ STEP 1)
+                            if not scene_no:
+                                _register_orphan_video_media(media_id, status="")
+                                continue
 
                         if scene_no:
                             status = _extract_video_media_status(item, default_status=default_status)
@@ -1389,6 +1680,7 @@ def setup_image_network_debug(page):
             #   2. data_json.projectContents.media[]  (format mới của Flow — chứa video thực tế)
             #   3. data_json.projectContents.workflows[].metadata.primaryMediaId  (mapping workflow -> media)
             if "flow.projectinitialdata" in (url or "").lower():
+                parser_hits.append("flow.projectinitialdata")
                 try:
                     data_json = ((((body_json or {}).get("result", {}) or {}).get("data", {}) or {}).get("json", {}) or {})
                     # Gom media từ cả root level VÀ projectContents.media[]
@@ -1433,14 +1725,20 @@ def setup_image_network_debug(page):
                         display_name = str(wf_meta.get("displayName", "") or "")
                         if primary_mid and display_name:
                             scene_no = _extract_scene_number_from_any_text(display_name, 0)
-                            if scene_no and primary_mid not in seen_ids:
-                                # Workflow chỉ có mapping, không có status chi tiết
+                            if scene_no:
+                                # Workflow thường là nguồn map scene chính xác nhất.
                                 _register_scene_video_media(scene_no, primary_mid, "")
+                                video_media_updates.append({
+                                    "scene": scene_no,
+                                    "media_id": primary_mid,
+                                    "status": "",
+                                })
                 except Exception:
                     pass
 
             # Parse chuyên biệt cho get_history_by_ids (scene -> cover_url)
             if "/get_history_by_ids" in url:
+                parser_hits.append("get_history_by_ids")
                 scene_cover_map, submit_scene_map = _extract_scene_cover_and_submit_map_from_history_json(
                     body_json,
                     trusted_submit_ids=_trusted_submit_ids,
@@ -1454,6 +1752,7 @@ def setup_image_network_debug(page):
 
             # Parse generate response để map submit_id -> scene nhanh hơn
             if "/aigc_draft/generate" in url:
+                parser_hits.append("aigc_draft/generate")
                 try:
                     aigc = ((body_json or {}).get("data") or {}).get("aigc_data") or {}
                     task_obj = aigc.get("task", {}) or {}
@@ -1496,9 +1795,36 @@ def setup_image_network_debug(page):
             "video_urls_sample": video_urls[:12],
             "video_media_updates_count": len(video_media_updates),
             "video_media_updates_sample": video_media_updates[:10],
+            "backend_error_messages": list(dict.fromkeys(backend_error_messages))[:10],
+            "parser_hits": parser_hits,
             "request_post_data_sample": request_post_data[:3000],
             "response_body_sample": body_sample[:3000] if body_sample else "",
         })
+
+        # DEBUG mapping: in log endpoint thật + parser có hit hay không.
+        # Mục tiêu: nếu UI có video mà không tải được, nhìn log sẽ biết parser miss ở đâu.
+        if _looks_like_flow_video_api_url(url) or video_media_updates:
+            endpoint = (url or "").split("/trpc/", 1)[-1] if "/trpc/" in (url or "") else (url or "")
+            if len(endpoint) > 120:
+                endpoint = endpoint[:120] + "...(cut)"
+            status_sample = []
+            for row in video_media_updates[:3]:
+                st = str(row.get("status", "") or "")
+                if st:
+                    status_sample.append(st)
+            err_sample = (list(dict.fromkeys(backend_error_messages))[:2] if backend_error_messages else [])
+            log(
+                "[FLOW-NET] "
+                f"status={response.status} "
+                f"endpoint={endpoint} "
+                f"scene={meta.get('scene_numbers', [])} "
+                f"video_updates={len(video_media_updates)} "
+                f"video_urls={len(video_urls)} "
+                f"status_sample={status_sample} "
+                f"errors={err_sample} "
+                f"parser_hits={parser_hits}",
+                "DBG",
+            )
 
         # Nếu response upscale có encodedImage thì giữ lại trong RAM để lưu file 2K theo scene.
         if is_upscale and upscale_media_id and encoded_image:
@@ -1639,6 +1965,8 @@ def setup_image_network_debug(page):
         req_id = id(request)
         ts = time.time()
         _network_req_start[req_id] = ts
+        # Bắt media_id từ redirect request để map scene dù generate response thiếu scene/media.
+        _register_video_media_from_redirect_request(request.url, ts)
         is_image_or_media = (
             request.resource_type == "image"
             or _looks_like_image_url(request.url)
@@ -2169,6 +2497,167 @@ def get_scene_candidate_video_media_ids(scene_no: int) -> list[str]:
 
     # Dedupe giữ nguyên thứ tự ưu tiên.
     return list(dict.fromkeys([mid for mid in ordered if isinstance(mid, str) and mid]))
+
+
+def _extract_video_media_from_project_initial_data_body(body_json) -> list[dict]:
+    """
+    Tách danh sách media video từ response flow.projectInitialData.
+    Mỗi phần tử: {media_id, status, scene_no}
+    """
+    out = []
+    if not isinstance(body_json, dict):
+        return out
+    data_json = ((((body_json or {}).get("result", {}) or {}).get("data", {}) or {}).get("json", {}) or {})
+    if not isinstance(data_json, dict):
+        return out
+
+    media_root = (data_json.get("media", []) or [])
+    project_contents = (data_json.get("projectContents", {}) or {})
+    media_pc = (project_contents.get("media", []) or [])
+    seen_ids = set()
+    for item in media_pc + media_root:
+        if not isinstance(item, dict):
+            continue
+        media_id = str(item.get("name", "") or "")
+        if not media_id or media_id in seen_ids:
+            continue
+        seen_ids.add(media_id)
+        video_obj = item.get("video", {}) or {}
+        generated_video = video_obj.get("generatedVideo", {}) or {}
+        prompt_text = str(generated_video.get("prompt", "") or "")
+        if not prompt_text:
+            prompt_text = str(((item.get("mediaMetadata", {}) or {}).get("mediaTitle", "")) or "")
+        scene_no = _extract_scene_number_from_any_text(prompt_text, 0)
+        status = _extract_video_media_status(item, default_status="")
+        out.append({"media_id": media_id, "status": status, "scene_no": scene_no})
+
+    workflows = (project_contents.get("workflows", []) or [])
+    for wf in workflows:
+        if not isinstance(wf, dict):
+            continue
+        wf_meta = (wf.get("metadata", {}) or {})
+        primary_mid = str(wf_meta.get("primaryMediaId", "") or "")
+        display_name = str(wf_meta.get("displayName", "") or "")
+        if not primary_mid:
+            continue
+        scene_no = _extract_scene_number_from_any_text(display_name, 0)
+        out.append({"media_id": primary_mid, "status": "", "scene_no": scene_no})
+
+    dedup = {}
+    for row in out:
+        mid = str(row.get("media_id", "") or "")
+        if not mid:
+            continue
+        cur = dedup.get(mid, {"media_id": mid, "status": "", "scene_no": 0})
+        sc = int(row.get("scene_no", 0) or 0)
+        st = str(row.get("status", "") or "")
+        if sc and not cur.get("scene_no"):
+            cur["scene_no"] = sc
+        if st and not cur.get("status"):
+            cur["status"] = st
+        dedup[mid] = cur
+    return list(dedup.values())
+
+
+async def _poll_flow_project_initial_data_for_video_media(page, project_id: str) -> dict:
+    """
+    Poll API flow.projectInitialData để lấy media mới.
+    Trả về summary để log debug.
+    """
+    result = {"ok": False, "status": 0, "mapped_scene": 0, "orphan_added": 0, "error": ""}
+    if not project_id:
+        return result
+    try:
+        origin = f"{urlparse(page.url).scheme}://{urlparse(page.url).netloc}" if page.url else "https://labs.google"
+        payload = {"json": {"projectId": project_id}}
+        input_q = quote(json.dumps(payload, separators=(",", ":"), ensure_ascii=False))
+        api_url = f"{origin}/fx/api/trpc/flow.projectInitialData?input={input_q}"
+        resp = await page.context.request.get(api_url, timeout=30000)
+        result["status"] = int(resp.status)
+        if not resp.ok:
+            return result
+        body_text = await resp.text()
+        body_json = json.loads(body_text) if body_text else {}
+        rows = _extract_video_media_from_project_initial_data_body(body_json)
+        for row in rows:
+            media_id = str(row.get("media_id", "") or "")
+            status = str(row.get("status", "") or "")
+            scene_no = int(row.get("scene_no", 0) or 0)
+            if not media_id:
+                continue
+            if scene_no:
+                before = _has_scene_already_mapped_media(scene_no, media_id)
+                _register_scene_video_media(scene_no, media_id, status)
+                _orphan_video_media_ts.pop(media_id, None)
+                if not before:
+                    result["mapped_scene"] += 1
+            else:
+                before = media_id in _orphan_video_media_ts
+                _register_orphan_video_media(media_id, status=status)
+                if not before:
+                    result["orphan_added"] += 1
+        result["ok"] = True
+        return result
+    except Exception as e:
+        result["error"] = str(e)
+        return result
+
+
+def _assign_orphan_media_to_pending_scenes(
+    sent_scene_order: list[int],
+    downloaded_scene_set: set[int],
+    failed_scene_set: set[int],
+) -> int:
+    """
+    Gán orphan media vào cảnh pending cũ nhất để đi nhánh tải hiện có.
+    """
+    if not _orphan_video_media_ts:
+        return 0
+    pending_scenes = [sc for sc in sent_scene_order if sc not in downloaded_scene_set and sc not in failed_scene_set]
+    if not pending_scenes:
+        return 0
+
+    assigned = 0
+    for media_id, _ts in sorted(_orphan_video_media_ts.items(), key=lambda kv: kv[1]):
+        target_scene = 0
+        for sc in pending_scenes:
+            ids = _scene_to_video_media_ids.get(sc, []) or []
+            if media_id in ids:
+                target_scene = 0
+                break
+            if len(ids) < 8:
+                target_scene = sc
+                break
+        if not target_scene:
+            continue
+        _register_scene_video_media(target_scene, media_id, _video_media_status_by_id.get(media_id, ""))
+        _orphan_video_media_ts.pop(media_id, None)
+        assigned += 1
+        log(f"[FLOW-MAP] orphan media {media_id[:8]}... -> canh_{target_scene:03d}", "DBG")
+    return assigned
+
+
+def _get_recent_backend_errors_for_scene(scene_no: int, limit: int = 2) -> list[str]:
+    """
+    Lấy vài lỗi backend gần nhất liên quan scene để log lúc timeout.
+    """
+    out = []
+    for ev in reversed(_api_events):
+        if ev.get("type") != "api_response":
+            continue
+        scenes = ev.get("scene_numbers", []) or []
+        if scene_no not in scenes:
+            continue
+        errs = ev.get("backend_error_messages", []) or []
+        for e in errs:
+            if not isinstance(e, str):
+                continue
+            t = e.strip()
+            if t and t not in out:
+                out.append(t)
+                if len(out) >= limit:
+                    return out
+    return out
 
 
 def _build_scene_video_output_path(scene_no: int, variant_index: int) -> str:
@@ -4279,6 +4768,9 @@ async def _send_one_flow_video_scene_prompt(
             extra={"sent_ok": sent, "prompt_preview": prompt[:90]},
         )
         await capture_prompt_submission_trace(page, prompt_index, prompt)
+        if sent:
+            _video_sent_scene_history.append(scene_no)
+            _video_scene_sent_ts[scene_no] = time.time()
     except Exception as e:
         log(f"Lỗi gửi prompt video #{prompt_index+1}: {e}", "WARN")
     return sent
@@ -4290,11 +4782,13 @@ async def _download_ready_videos_for_scene(
     downloaded_media_ids_global: set[str],
 ) -> tuple[str, int]:
     """
-    Tải video cho một cảnh khi đã READY.
+    Probe + tải video cho một cảnh bằng API-only (không phụ thuộc UI).
+    - Có mediaId là có thể probe redirect/download.
+    - READY được ưu tiên probe trước, nhưng PENDING cũng được probe theo nhịp giới hạn.
 
     Return:
     - ("downloaded", n): tải thành công n video
-    - ("not_ready", 0): chưa đủ READY
+    - ("not_ready", 0): chưa tải được ở vòng này
     - ("failed", 0): tất cả media của cảnh đã FAILED
     - ("cooldown", 0): gặp rate-limit rõ ràng, cần cooldown
     """
@@ -4304,58 +4798,97 @@ async def _download_ready_videos_for_scene(
         log(f"  canh_{scene_no:03d}: phát hiện rate-limit trước khi tải.", "WARN")
         return "cooldown", 0
     if _has_unusual_activity_ui_error(ui_errors):
-        # Theo yêu cầu: bỏ qua unusual activity, không cooldown.
-        log(f"  canh_{scene_no:03d}: có unusual activity nhưng vẫn tiếp tục.", "WARN")
+        log(f"  canh_{scene_no:03d}: phát hiện unusual activity trước khi tải.", "WARN")
+        return "cooldown", 0
+    has_audiovisual_ui_error = _has_audiovisual_load_ui_error(ui_errors)
 
     candidate_ids = get_scene_candidate_video_media_ids(scene_no)
     if not candidate_ids:
         return "not_ready", 0
 
     ready_ids = []
+    pending_ids = []
     for mid in candidate_ids:
         if mid in downloaded_media_ids_global:
+            continue
+        if mid in _video_media_terminal_skip:
             continue
         status = _video_media_status_by_id.get(mid, "")
         if _is_video_media_ready_status(status):
             ready_ids.append(mid)
+        elif not _is_video_media_failed_status(status):
+            pending_ids.append(mid)
 
-    # Nếu chưa có media READY thì chưa tải.
-    if not ready_ids:
-        if candidate_ids and all(_is_video_media_failed_status(_video_media_status_by_id.get(mid, "")) for mid in candidate_ids):
-            log(f"  canh_{scene_no:03d}: tất cả media đều FAILED.", "WARN")
-            return "failed", 0
+    if candidate_ids and all(_is_video_media_failed_status(_video_media_status_by_id.get(mid, "")) for mid in candidate_ids):
+        log(f"  canh_{scene_no:03d}: tất cả media đều FAILED.", "WARN")
+        return "failed", 0
+
+    # Bug fix: Chỉ duyệt tải những media đã READY, không trộn lẫn PENDING để gọi redirect sớm
+    probe_ids = ready_ids
+    if not probe_ids:
         return "not_ready", 0
+    probe_limit = max(1, FLOW_VIDEO_PROBE_PER_SCENE_PER_ROUND)
+    probe_ids = probe_ids[:probe_limit]
 
     # Không tải ngay lập tức sau vòng poll để giảm pattern bot.
     dl_delay = _pick_flow_video_download_delay_sec()
-    log(f"  canh_{scene_no:03d}: READY -> đợi {dl_delay:.1f}s rồi tải...", "WAIT")
+    ready_count = len(ready_ids)
+    pending_count = len(pending_ids)
+    log(
+        f"  canh_{scene_no:03d}: probe {len(probe_ids)} media (ready={ready_count}, pending={pending_count}) "
+        f"-> đợi {dl_delay:.1f}s rồi thử tải...",
+        "WAIT",
+    )
     await asyncio.sleep(dl_delay)
 
     downloaded_count = 0
-    for media_id in ready_ids:
+    for media_id in probe_ids:
         if media_id in downloaded_media_ids_global:
             continue
 
         media_status = _video_media_status_by_id.get(media_id, "")
+        is_ready_now = _is_video_media_ready_status(media_status)
+        now_ts = time.time()
+        if not is_ready_now:
+            last_probe_ts = float(_video_media_last_probe_ts.get(media_id, 0.0) or 0.0)
+            min_interval = max(5.0, FLOW_VIDEO_PENDING_PROBE_MIN_INTERVAL_SEC)
+            if last_probe_ts > 0 and (now_ts - last_probe_ts) < min_interval:
+                continue
+        _video_media_last_probe_ts[media_id] = now_ts
+
         redirect_url = f"https://labs.google/fx/api/trpc/media.getMediaUrlRedirect?name={media_id}"
         # Đặt tên file chắc chắn không trùng/đè.
         variant_index = _count_existing_scene_video_files(scene_no) + 1
         fpath = _build_scene_video_output_path(scene_no, variant_index)
 
         success = False
-        # READY rồi nên thử ít vòng ngắn để giảm spam request.
-        for attempt in range(3):
+        # READY: cho retry nhiều hơn. PENDING: chỉ probe nhẹ 1 vòng.
+        attempt_total = 3 if is_ready_now else 1
+        for attempt in range(attempt_total):
             try:
                 resp = await page.context.request.get(redirect_url, timeout=30000, max_redirects=0)
                 location = str((resp.headers or {}).get("location", "")).strip()
                 if resp.status in (301, 302, 307, 308) and location:
                     video_resp = await page.context.request.get(location, timeout=60000)
                     if not video_resp.ok:
+                        _mark_video_media_probe_fail(media_id, reason=f"gcs_not_ok_{int(video_resp.status)}")
                         await asyncio.sleep(1.2)
                         continue
                     body = await video_resp.body()
-                    if len(body) < 50000:
+                    if len(body) < max(50000, FLOW_VIDEO_MIN_VALID_BYTES):
                         # Có thể vẫn chưa fully ready ở storage.
+                        _video_download_events.append({
+                            "ts": time.time(),
+                            "scene_no": scene_no,
+                            "attempt": attempt + 1,
+                            "media_id": media_id,
+                            "media_status": media_status,
+                            "phase": "probe_small_body_scheduler",
+                            "redirect_status": int(resp.status),
+                            "gcs_status": int(video_resp.status),
+                            "body_size": len(body),
+                        })
+                        _mark_video_media_probe_fail(media_id, reason=f"small_body_{len(body)}")
                         await asyncio.sleep(1.2)
                         continue
                     with open(fpath, "wb") as f:
@@ -4389,15 +4922,29 @@ async def _download_ready_videos_for_scene(
                         "body_size": len(body),
                     })
                     downloaded_media_ids_global.add(media_id)
+                    _mark_video_media_probe_success(media_id)
                     downloaded_count += 1
                     log(f"  {os.path.basename(fpath)} ({len(body)//1024}KB) [flow-video-redirect]", "OK")
                     success = True
                     break
+                else:
+                    _video_download_events.append({
+                        "ts": time.time(),
+                        "scene_no": scene_no,
+                        "attempt": attempt + 1,
+                        "media_id": media_id,
+                        "media_status": media_status,
+                        "phase": "probe_redirect_not_ready_scheduler",
+                        "redirect_status": int(resp.status),
+                        "gcs_status": int(resp.status),
+                        "content_type": str((resp.headers or {}).get("content-type", "") or ""),
+                    })
+                    _mark_video_media_probe_fail(media_id, reason=f"redirect_status_{int(resp.status)}")
 
                 if resp.ok:
                     body = await resp.body()
                     ct = str((resp.headers or {}).get("content-type", "")).lower()
-                    if ("video" in ct or len(body) > 200000):
+                    if ("video" in ct and len(body) >= max(50000, FLOW_VIDEO_MIN_VALID_BYTES)):
                         with open(fpath, "wb") as f:
                             f.write(body)
                         try:
@@ -4429,10 +4976,24 @@ async def _download_ready_videos_for_scene(
                             "body_size": len(body),
                         })
                         downloaded_media_ids_global.add(media_id)
+                        _mark_video_media_probe_success(media_id)
                         downloaded_count += 1
                         log(f"  {os.path.basename(fpath)} ({len(body)//1024}KB) [flow-video-direct]", "OK")
                         success = True
                         break
+                    _video_download_events.append({
+                        "ts": time.time(),
+                        "scene_no": scene_no,
+                        "attempt": attempt + 1,
+                        "media_id": media_id,
+                        "media_status": media_status,
+                        "phase": "probe_direct_not_video_scheduler",
+                        "redirect_status": int(resp.status),
+                        "gcs_status": int(resp.status),
+                        "content_type": ct,
+                        "body_size": len(body),
+                    })
+                    _mark_video_media_probe_fail(media_id, reason=f"direct_not_video_or_small_{len(body)}")
             except Exception as e:
                 _video_download_events.append({
                     "ts": time.time(),
@@ -4443,16 +5004,25 @@ async def _download_ready_videos_for_scene(
                     "phase": "exception_scheduler",
                     "error": str(e),
                 })
+                _mark_video_media_probe_fail(media_id, reason="exception")
             await asyncio.sleep(1.2)
 
         if not success:
-            log(f"  canh_{scene_no:03d}: media {media_id[:8]}... READY nhưng chưa tải được, sẽ thử lại.", "WARN")
+            # Bug fix: Không dùng snapshot lỗi quá cũ, mà chụp bảng lỗi ngay sau khi bị rớt tải
+            fresh_errors = await capture_flow_ui_error_messages(page, f"after_probe_canh{scene_no:03d}")
+            if _has_audiovisual_load_ui_error(fresh_errors):
+                _mark_video_media_probe_fail(media_id, reason="ui_audiovisual_error")
+            log(
+                f"  canh_{scene_no:03d}: media {media_id[:8]}... ({media_status or 'UNKNOWN'}) "
+                f"chưa tải được, sẽ probe lại sau.",
+                "WARN",
+            )
 
         # Không tải dồn quá nhanh nhiều video liên tiếp.
         await asyncio.sleep(_flow_human_rng.uniform(1.0, 2.5))
 
     if downloaded_count > 0:
-        log(f"  canh_{scene_no:03d}: đã tải {downloaded_count} video READY.", "OK")
+        log(f"  canh_{scene_no:03d}: đã tải {downloaded_count} video.", "OK")
         return "downloaded", downloaded_count
     return "not_ready", 0
 
@@ -4462,8 +5032,8 @@ async def _run_google_flow_video_scheduler_no_reload(page, prompts: list[str]) -
     Scheduler video mới theo yêu cầu:
     - Không reload định kỳ.
     - Gửi cảnh mới theo nhịp random (60-90s; khi stall -> 90-150s).
-    - Chỉ tải khi READY.
-    - Mỗi vòng quét tải toàn bộ READY của tất cả cảnh đã gửi (không ép theo 1 cảnh).
+    - API-only: có mediaId là probe được, không phụ thuộc UI/READY cứng.
+    - Mỗi vòng quét probe/tải toàn bộ cảnh đã gửi (không ép theo 1 cảnh).
     - Không tải đồng thời với lúc gửi prompt (ưu tiên 1 tác vụ tại 1 thời điểm).
     - Khi thấy rate-limit rõ ràng -> cooldown 3 phút.
     - unusual activity chỉ log cảnh báo, không cooldown.
@@ -4485,12 +5055,36 @@ async def _run_google_flow_video_scheduler_no_reload(page, prompts: list[str]) -
     scene_deadline_ts: dict[int, float] = {}
 
     stall_rounds_without_ready = 0
+    unusual_activity_strike = 0
     round_index = 0
     next_send_ts = time.time()
+    project_id = _extract_flow_project_id_from_url(page.url)
+    last_project_poll_ts = 0.0
 
     while len(downloaded_scene_set | failed_scene_set) < total:
         round_index += 1
         await wait_pending_api_tasks(timeout_sec=2.5)
+
+        # Poll projectInitialData theo chu kỳ để thu media mới (API-only, không phụ thuộc UI).
+        now_poll = time.time()
+        if project_id and (now_poll - last_project_poll_ts) >= max(5.0, FLOW_VIDEO_PROJECT_POLL_INTERVAL_SEC):
+            poll_info = await _poll_flow_project_initial_data_for_video_media(page, project_id)
+            last_project_poll_ts = now_poll
+            log(
+                f"[FLOW-POLL] projectInitialData status={poll_info.get('status')} "
+                f"mapped_scene={poll_info.get('mapped_scene')} orphan_added={poll_info.get('orphan_added')} "
+                f"error={poll_info.get('error', '')}",
+                "DBG",
+            )
+
+        # Gán orphan media vào cảnh pending để đi nhánh probe/tải hiện có.
+        orphan_assigned = _assign_orphan_media_to_pending_scenes(
+            sent_scene_order=sent_scene_order,
+            downloaded_scene_set=downloaded_scene_set,
+            failed_scene_set=failed_scene_set,
+        )
+        if orphan_assigned > 0:
+            log(f"[FLOW-MAP] đã gán {orphan_assigned} orphan media vào cảnh pending.", "INFO")
 
         # Quét cảnh báo UI mỗi vòng scheduler.
         ui_messages = await capture_flow_ui_error_messages(page, f"scheduler_round_{round_index}")
@@ -4502,8 +5096,21 @@ async def _run_google_flow_video_scheduler_no_reload(page, prompts: list[str]) -
             next_send_ts = max(next_send_ts, time.time() + _pick_flow_video_send_interval_sec(stall_rounds_without_ready))
             continue
         if _has_unusual_activity_ui_error(ui_messages):
-            # Theo yêu cầu: bỏ qua unusual activity.
-            log("Phát hiện unusual activity nhưng vẫn tiếp tục (không cooldown).", "WARN")
+            unusual_activity_strike += 1
+            if unusual_activity_strike > 2:
+                log(f"Phát hiện unusual activity {unusual_activity_strike} lần liên tiếp không có video. TẮT WORKER DO BỊ CHẶN.", "ERROR")
+                return -1
+
+            cool = max(180, FLOW_VIDEO_UNUSUAL_COOLDOWN_SEC)
+            log(f"Phát hiện unusual activity (lần {unusual_activity_strike}/2). Cooldown {cool}s và F5 refresh.", "WARN")
+            await asyncio.sleep(cool)
+            try:
+                await page.reload(wait_until="domcontentloaded")
+                await asyncio.sleep(5)
+            except Exception as e:
+                log(f"Lỗi khi reload page sau unusual activity: {e}", "WARN")
+            next_send_ts = max(next_send_ts, time.time() + _pick_flow_video_send_interval_sec(stall_rounds_without_ready))
+            continue
 
         now_ts = time.time()
         # Mark timeout cho cảnh đã gửi nhưng quá deadline vẫn chưa tải được.
@@ -4512,16 +5119,24 @@ async def _run_google_flow_video_scheduler_no_reload(page, prompts: list[str]) -
                 continue
             deadline = scene_deadline_ts.get(sc, 0)
             if deadline > 0 and now_ts >= deadline:
+                candidate_ids = get_scene_candidate_video_media_ids(sc)
+                status_preview = []
+                for mid in candidate_ids[:5]:
+                    status_preview.append(f"{mid[:8]}...:{_video_media_status_by_id.get(mid, 'UNKNOWN')}")
+                recent_backend_errors = _get_recent_backend_errors_for_scene(sc, limit=2)
                 log(
-                    f"  canh_{sc:03d}: quá timeout {GOOGLE_FLOW_VIDEO_WAIT_AFTER_LAST_PROMPT_SEC}s, đánh dấu fail.",
+                    f"  canh_{sc:03d}: quá timeout {GOOGLE_FLOW_VIDEO_WAIT_AFTER_LAST_PROMPT_SEC}s, đánh dấu fail. "
+                    f"media={len(candidate_ids)} status={status_preview} backend_errors={recent_backend_errors}",
                     "WARN",
                 )
                 failed_scene_set.add(sc)
 
         # Ưu tiên tải trước khi gửi để tránh trùng lúc tải + gửi.
-        # Global READY sweep: quét tất cả cảnh đã gửi, cảnh nào có media READY chưa tải thì đưa vào danh sách.
-        ready_scenes_to_download: list[int] = []
+        # Global probe/download sweep: cảnh có mediaId chưa tải sẽ được probe theo nhịp.
+        scenes_to_probe_download: list[int] = []
         for sc in sent_scene_order:
+            if sc in downloaded_scene_set:
+                continue
             if sc in failed_scene_set:
                 continue
             ids = get_scene_candidate_video_media_ids(sc)
@@ -4532,20 +5147,22 @@ async def _run_google_flow_video_scheduler_no_reload(page, prompts: list[str]) -
                 failed_scene_set.add(sc)
                 log(f"  canh_{sc:03d}: toàn bộ media FAILED (API status).", "WARN")
                 continue
-            has_ready_undownloaded = any(
-                _is_video_media_ready_status(_video_media_status_by_id.get(mid, "")) and mid not in downloaded_media_ids_global
+            has_probe_candidate = any(
+                (mid not in downloaded_media_ids_global)
+                and (mid not in _video_media_terminal_skip)
+                and (not _is_video_media_failed_status(_video_media_status_by_id.get(mid, "")))
                 for mid in ids
             )
-            if has_ready_undownloaded:
-                ready_scenes_to_download.append(sc)
+            if has_probe_candidate:
+                scenes_to_probe_download.append(sc)
 
-        if ready_scenes_to_download:
+        if scenes_to_probe_download:
             stall_rounds_without_ready = 0
             log(
-                f"Global READY sweep: {len(ready_scenes_to_download)} cảnh đang có media READY.",
+                f"Global probe sweep: {len(scenes_to_probe_download)} cảnh có media chưa tải.",
                 "INFO",
             )
-            for sc in ready_scenes_to_download:
+            for sc in scenes_to_probe_download:
                 status, downloaded_count = await _download_ready_videos_for_scene(
                     page,
                     sc,
@@ -4561,17 +5178,33 @@ async def _run_google_flow_video_scheduler_no_reload(page, prompts: list[str]) -
                     failed_scene_set.add(sc)
                 elif downloaded_count > 0:
                     saved_total += downloaded_count
-                    downloaded_scene_set.add(sc)
-                    log(
-                        f"[FLOW-VIDEO] === Cập nhật cảnh {sc:03d} "
-                        f"({saved_total} video đã tải) ===",
-                        "STEP",
-                    )
+                    unusual_activity_strike = 0  # Reset cờ chặn vì đã tải được thành công
+                    # Logic mới: Chỉ đánh dấu cảnh là HOÀN TẤT nếu không còn media nào đang PENDING/mới.
+                    candidate_ids_check = get_scene_candidate_video_media_ids(sc)
+                    pending_candidates = [
+                        mid for mid in candidate_ids_check
+                        if mid not in downloaded_media_ids_global
+                        and mid not in _video_media_terminal_skip
+                        and not _is_video_media_failed_status(_video_media_status_by_id.get(mid, ""))
+                    ]
+                    if not pending_candidates:
+                        downloaded_scene_set.add(sc)
+                        log(
+                            f"[FLOW-VIDEO] === Chốt sổ cảnh {sc:03d} "
+                            f"(đã tải trọn bộ, tổng saved {saved_total}) ===",
+                            "STEP",
+                        )
+                    else:
+                        log(
+                            f"[FLOW-VIDEO] Cập nhật cảnh {sc:03d} "
+                            f"(tải {downloaded_count} video, còn lại {len(pending_candidates)} đang chờ)",
+                            "STEP",
+                        )
                 # Delay nhẹ giữa các cảnh để tránh tải dồn quá nhanh.
                 await asyncio.sleep(_flow_human_rng.uniform(1.0, 2.0))
             continue
 
-        # Không có cảnh READY trong vòng này.
+        # Không có cảnh nào để probe/tải trong vòng này.
         has_pending_sent = any(sc not in downloaded_scene_set and sc not in failed_scene_set for sc in sent_scene_set)
         if has_pending_sent:
             stall_rounds_without_ready += 1

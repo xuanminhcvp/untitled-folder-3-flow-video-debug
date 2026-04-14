@@ -102,8 +102,11 @@ def parse_proxy(proxy_str: str | None) -> dict | None:
 
 
 def expand_path(p: str) -> str:
-    """Mở rộng ~ thành đường dẫn thật của user."""
-    return os.path.expanduser(p)
+    """Mở rộng ~ thành đường dẫn thật của user. Dùng đường dẫn tương đối theo project root nếu cần."""
+    p_expanded = os.path.expanduser(p)
+    if not os.path.isabs(p_expanded):
+        p_expanded = os.path.join(_SCRIPT_DIR, p_expanded)
+    return p_expanded
 
 
 def load_scenario_prompts(scenario_dir: str) -> list[str]:
@@ -133,17 +136,17 @@ def build_worker_env(worker_id: str, worker_index: int) -> dict:
     env["FLOW_HUMANIZE_ENABLED"] = env.get("FLOW_HUMANIZE_ENABLED", "1")
     env["FLOW_HUMANIZE_SEED"] = env.get("FLOW_HUMANIZE_SEED", f"{worker_id}_seed_{worker_index}")
 
-    # Dao động nhẹ quanh nhịp hiện tại (không tăng thời gian quá nhiều).
-    env.setdefault("FLOW_SEND_JITTER_MIN", "0.85")
-    env.setdefault("FLOW_SEND_JITTER_MAX", "1.35")
-    env.setdefault("FLOW_SOFT_PAUSE_PROB", "0.12")
-    env.setdefault("FLOW_SOFT_PAUSE_MIN_SEC", "1.2")
-    env.setdefault("FLOW_SOFT_PAUSE_MAX_SEC", "3.2")
+    # Dao động quanh nhịp hiện tại, kéo giãn thêm để bot "thở" nhiều hơn tránh bão rate limit.
+    env.setdefault("FLOW_SEND_JITTER_MIN", "1.15")
+    env.setdefault("FLOW_SEND_JITTER_MAX", "1.75")
+    env.setdefault("FLOW_SOFT_PAUSE_PROB", "0.20")
+    env.setdefault("FLOW_SOFT_PAUSE_MIN_SEC", "2.5")
+    env.setdefault("FLOW_SOFT_PAUSE_MAX_SEC", "5.0")
 
     # Video: thời gian "suy nghĩ" trước khi gửi và poll lệch nhẹ quanh 10s.
-    env.setdefault("FLOW_VIDEO_PRE_SEND_BASE_SEC", "0.8")
+    env.setdefault("FLOW_VIDEO_PRE_SEND_BASE_SEC", "1.2")
     env.setdefault("FLOW_VIDEO_POLL_BASE_SEC", "10.0")
-    env.setdefault("FLOW_VIDEO_POLL_JITTER_SEC", "1.2")
+    env.setdefault("FLOW_VIDEO_POLL_JITTER_SEC", "2.0")
     return env
 
 
