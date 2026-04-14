@@ -159,6 +159,19 @@ FLOW_VIDEO_PRE_SEND_BASE_SEC = float(os.environ.get("FLOW_VIDEO_PRE_SEND_BASE_SE
 # Poll interval trạng thái video (giây) — cho lệch nhẹ thay vì cố định 10s.
 FLOW_VIDEO_POLL_BASE_SEC = float(os.environ.get("FLOW_VIDEO_POLL_BASE_SEC", "10.0"))
 FLOW_VIDEO_POLL_JITTER_SEC = float(os.environ.get("FLOW_VIDEO_POLL_JITTER_SEC", "1.2"))
+# ── Scheduler mới cho video (không reload định kỳ) ────────────────────────────
+# Nhịp gửi cảnh mới mặc định: random 60-90s.
+FLOW_VIDEO_SEND_INTERVAL_FAST_MIN_SEC = float(os.environ.get("FLOW_VIDEO_SEND_INTERVAL_FAST_MIN_SEC", "60"))
+FLOW_VIDEO_SEND_INTERVAL_FAST_MAX_SEC = float(os.environ.get("FLOW_VIDEO_SEND_INTERVAL_FAST_MAX_SEC", "90"))
+# Nếu 2-3 vòng liền không có cảnh READY, tăng nhịp gửi lên 90-150s.
+FLOW_VIDEO_SEND_INTERVAL_SLOW_MIN_SEC = float(os.environ.get("FLOW_VIDEO_SEND_INTERVAL_SLOW_MIN_SEC", "90"))
+FLOW_VIDEO_SEND_INTERVAL_SLOW_MAX_SEC = float(os.environ.get("FLOW_VIDEO_SEND_INTERVAL_SLOW_MAX_SEC", "150"))
+FLOW_VIDEO_READY_STALL_ROUNDS_FOR_SLOW = int(os.environ.get("FLOW_VIDEO_READY_STALL_ROUNDS_FOR_SLOW", "2"))
+# Khi phát hiện rate-limit trên UI -> cooldown 3 phút.
+FLOW_VIDEO_UNUSUAL_COOLDOWN_SEC = int(os.environ.get("FLOW_VIDEO_UNUSUAL_COOLDOWN_SEC", "180"))
+# Delay ngẫu nhiên trước khi tải video READY để tránh pattern bot.
+FLOW_VIDEO_DOWNLOAD_DELAY_MIN_SEC = float(os.environ.get("FLOW_VIDEO_DOWNLOAD_DELAY_MIN_SEC", "3"))
+FLOW_VIDEO_DOWNLOAD_DELAY_MAX_SEC = float(os.environ.get("FLOW_VIDEO_DOWNLOAD_DELAY_MAX_SEC", "8"))
 # Poll map API scene->image trong mode Google Flow (giây)
 GOOGLE_FLOW_API_MAP_TIMEOUT_SEC = int(os.environ.get("GOOGLE_FLOW_API_MAP_TIMEOUT_SEC", "120"))
 # Nếu bật, script sẽ mở Flow và chờ bạn setup xong rồi Enter mới bắt đầu gửi prompt.
@@ -2265,6 +2278,22 @@ def _has_rate_limit_ui_error(messages: list[str]) -> bool:
     return False
 
 
+def _has_unusual_activity_ui_error(messages: list[str]) -> bool:
+    """
+    Nhận diện thông báo bất thường/chống bot từ UI.
+    Dùng để kích hoạt cooldown thay vì tiếp tục gửi dồn.
+    """
+    for msg in messages or []:
+        low = str(msg).lower()
+        if "unusual activity" in low:
+            return True
+        if "chúng tôi nhận thấy hoạt động bất thường" in low:
+            return True
+        if "we noticed some unusual activity" in low:
+            return True
+    return False
+
+
 def _has_audiovisual_load_ui_error(messages: list[str]) -> bool:
     """
     Nhận diện lỗi UI: 'Đã xảy ra lỗi khi tải nội dung nghe nhìn của bạn.'
@@ -2892,53 +2921,11 @@ async def send_prompt(page) -> bool:
 
     await asyncio.sleep(0.08)
 
-    # ── Bước 2: Thử nhấn Enter để gửi ──
+    # ── Bước 2: Chỉ nhấn Enter để gửi (theo yêu cầu) ──
     await page.keyboard.press("Enter")
     await asyncio.sleep(0.5)
-    try:
-        if await is_generating(page):
-            log("  Đã nhấn Enter gửi prompt", "✅")
-            return True
-    except Exception:
-        pass
-
-    # ── Bước 3: Fallback click nút gửi (hữu ích cho Google Flow) ──
-    send_patterns = [
-        re.compile(r"arrow_forward\s*(tạo|generate|create)", re.IGNORECASE),
-        re.compile(r"\b(tạo|generate|create)\b", re.IGNORECASE),
-    ]
-    for pattern in send_patterns:
-        try:
-            btn = page.locator("button").filter(has_text=pattern).last
-            if await btn.count() > 0 and await btn.is_visible() and await btn.is_enabled():
-                await btn.click()
-                await asyncio.sleep(0.6)
-                log("  Đã click nút gửi prompt", "✅")
-                return True
-        except Exception:
-            pass
-
-    # Fallback aria-label
-    for sel in [
-        'button[aria-label*="Generate"]',
-        'button[aria-label*="generate"]',
-        'button[aria-label*="Create"]',
-        'button[aria-label*="create"]',
-        'button[aria-label*="Tạo"]',
-        'button[aria-label*="tạo"]',
-    ]:
-        try:
-            btn = page.locator(sel).first
-            if await btn.count() > 0 and await btn.is_visible() and await btn.is_enabled():
-                await btn.click()
-                await asyncio.sleep(0.6)
-                log("  Đã click nút gửi prompt (aria)", "✅")
-                return True
-        except Exception:
-            pass
-
-    log("  Không tìm thấy cách gửi prompt (Enter + button đều thất bại)", "WARN")
-    return False
+    log("  Đã nhấn Enter gửi prompt", "✅")
+    return True
 
 
 # ═══════════════════════════════════════════════
@@ -3875,6 +3862,37 @@ def _flow_human_video_poll_interval() -> float:
     return _flow_human_rng.uniform(low, high)
 
 
+def _pick_flow_video_send_interval_sec(stall_rounds_without_ready: int) -> float:
+    """
+    Chọn khoảng chờ trước khi gửi cảnh video tiếp theo.
+
+    Luật:
+    - Bình thường: 60-90s.
+    - Nếu nhiều vòng liền không có cảnh READY: tăng lên 90-150s.
+    """
+    use_slow = stall_rounds_without_ready >= max(1, FLOW_VIDEO_READY_STALL_ROUNDS_FOR_SLOW)
+    if use_slow:
+        low = min(FLOW_VIDEO_SEND_INTERVAL_SLOW_MIN_SEC, FLOW_VIDEO_SEND_INTERVAL_SLOW_MAX_SEC)
+        high = max(FLOW_VIDEO_SEND_INTERVAL_SLOW_MIN_SEC, FLOW_VIDEO_SEND_INTERVAL_SLOW_MAX_SEC)
+    else:
+        low = min(FLOW_VIDEO_SEND_INTERVAL_FAST_MIN_SEC, FLOW_VIDEO_SEND_INTERVAL_FAST_MAX_SEC)
+        high = max(FLOW_VIDEO_SEND_INTERVAL_FAST_MIN_SEC, FLOW_VIDEO_SEND_INTERVAL_FAST_MAX_SEC)
+    low = max(5.0, low)
+    high = max(low, high)
+    return _flow_human_rng.uniform(low, high)
+
+
+def _pick_flow_video_download_delay_sec() -> float:
+    """
+    Delay ngẫu nhiên nhẹ trước lúc tải video READY để giảm pattern bot.
+    """
+    low = min(FLOW_VIDEO_DOWNLOAD_DELAY_MIN_SEC, FLOW_VIDEO_DOWNLOAD_DELAY_MAX_SEC)
+    high = max(FLOW_VIDEO_DOWNLOAD_DELAY_MIN_SEC, FLOW_VIDEO_DOWNLOAD_DELAY_MAX_SEC)
+    low = max(0.5, low)
+    high = max(low, high)
+    return _flow_human_rng.uniform(low, high)
+
+
 async def run_google_flow_auto_request_response(page, prompts: list[str]) -> int:
     """
     Auto mode cho Google Flow:
@@ -4166,6 +4184,443 @@ def _find_reference_path_by_token_local(reference_dir: str, token: str) -> str:
     return ""
 
 
+def _count_existing_scene_video_files(scene_no: int) -> int:
+    """
+    Đếm số file video đã có của 1 cảnh để đặt tên file mới không bị đè/trùng.
+    """
+    patt = os.path.join(OUTPUT_DIR, f"canh_{scene_no:03d}*.mp4")
+    return len(glob.glob(patt))
+
+
+async def _send_one_flow_video_scene_prompt(
+    page,
+    prompt: str,
+    scene_no: int,
+    prompt_index: int,
+    total_prompts: int,
+) -> bool:
+    """
+    Gửi một prompt video cho một cảnh:
+    - Attach reference theo token trong prompt.
+    - Chỉ gửi 1 lần, không reload.
+    """
+    if GOOGLE_FLOW_VIDEO_USE_REFERENCE_IMAGES:
+        # Xóa reference cũ để tránh trộn sai cảnh.
+        clear_info = await clear_reference_attachments_in_composer(
+            page,
+            focus_prompt_cb=lambda: find_and_focus_prompt(page),
+            max_rounds=2,
+        )
+        if clear_info.get("before", 0) > 0 and not clear_info.get("cleared"):
+            log(
+                f"  Cảnh báo: chưa xóa sạch reference cũ (before={clear_info.get('before')}, "
+                f"after={clear_info.get('after')})",
+                "WARN",
+            )
+
+        # Attach token reference theo prompt.
+        ref_tokens = _extract_reference_tokens_from_video_prompt(prompt)
+        if ref_tokens:
+            log(f"  cảnh_{scene_no:03d}: tokens reference: {ref_tokens}", "DBG")
+            attach_ok_all = True
+            for token in ref_tokens:
+                token_lower = token.lower()
+                token_path = _find_reference_path_by_token_local(GOOGLE_FLOW_VIDEO_REFERENCE_DIR, token)
+                token_ok = False
+                ref_dbg = {}
+                if GOOGLE_FLOW_VIDEO_REFERENCE_MODE == "library_search":
+                    token_ok, ref_dbg = await attach_reference_from_library_by_name(
+                        page,
+                        search_name=token_lower,
+                        vp_height=VP_HEIGHT,
+                    )
+                elif token_path:
+                    token_ok, ref_dbg = await upload_reference_image_for_video(
+                        page,
+                        image_path=token_path,
+                        allow_direct_file_input=GOOGLE_FLOW_VIDEO_ALLOW_DIRECT_FILE_INPUT,
+                        verify_fn=verify_reference_image_attached,
+                        log_cb=log,
+                    )
+                else:
+                    ref_dbg = {"error": "reference_file_not_found_for_token", "token": token}
+                log(
+                    f"  cảnh_{scene_no:03d}: token={token_lower} -> "
+                    f"{'attached ✅' if token_ok else 'FAIL ❌'} | {ref_dbg.get('error', '')}",
+                    "OK" if token_ok else "WARN",
+                )
+                attach_ok_all = attach_ok_all and token_ok
+
+            # Nếu bật strict reference thì bỏ cảnh khi attach fail.
+            if not attach_ok_all and GOOGLE_FLOW_VIDEO_REQUIRE_REFERENCE_UPLOAD:
+                log(f"  cảnh_{scene_no:03d}: Bỏ qua vì attach reference thất bại.", "WARN")
+                return False
+        else:
+            log(f"  cảnh_{scene_no:03d}: Không tìm được token reference trong prompt.", "DBG")
+
+    # Delay ngắn trước khi gửi để thao tác đỡ cứng.
+    await asyncio.sleep(_flow_human_delay_after_send(FLOW_VIDEO_PRE_SEND_BASE_SEC))
+
+    log(f"[FLOW-VIDEO {prompt_index+1}/{total_prompts}] Gửi prompt: {prompt[:70]}", "SEND")
+    sent = False
+    try:
+        try:
+            await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            await asyncio.sleep(0.5)
+        except Exception:
+            pass
+
+        await type_prompt(page, prompt)
+        sent = await send_video_prompt(page)
+        await debug_step(
+            page,
+            f"flow_video_sent_prompt_{prompt_index+1:02d}",
+            job_id=f"canh_{scene_no:03d}",
+            extra={"sent_ok": sent, "prompt_preview": prompt[:90]},
+        )
+        await capture_prompt_submission_trace(page, prompt_index, prompt)
+    except Exception as e:
+        log(f"Lỗi gửi prompt video #{prompt_index+1}: {e}", "WARN")
+    return sent
+
+
+async def _download_ready_videos_for_scene(
+    page,
+    scene_no: int,
+    downloaded_media_ids_global: set[str],
+) -> tuple[str, int]:
+    """
+    Tải video cho một cảnh khi đã READY.
+
+    Return:
+    - ("downloaded", n): tải thành công n video
+    - ("not_ready", 0): chưa đủ READY
+    - ("failed", 0): tất cả media của cảnh đã FAILED
+    - ("cooldown", 0): gặp rate-limit rõ ràng, cần cooldown
+    """
+    await wait_pending_api_tasks(timeout_sec=3.0)
+    ui_errors = await capture_flow_ui_error_messages(page, f"before_download_canh{scene_no:03d}")
+    if _has_rate_limit_ui_error(ui_errors):
+        log(f"  canh_{scene_no:03d}: phát hiện rate-limit trước khi tải.", "WARN")
+        return "cooldown", 0
+    if _has_unusual_activity_ui_error(ui_errors):
+        # Theo yêu cầu: bỏ qua unusual activity, không cooldown.
+        log(f"  canh_{scene_no:03d}: có unusual activity nhưng vẫn tiếp tục.", "WARN")
+
+    candidate_ids = get_scene_candidate_video_media_ids(scene_no)
+    if not candidate_ids:
+        return "not_ready", 0
+
+    ready_ids = []
+    for mid in candidate_ids:
+        if mid in downloaded_media_ids_global:
+            continue
+        status = _video_media_status_by_id.get(mid, "")
+        if _is_video_media_ready_status(status):
+            ready_ids.append(mid)
+
+    # Nếu chưa có media READY thì chưa tải.
+    if not ready_ids:
+        if candidate_ids and all(_is_video_media_failed_status(_video_media_status_by_id.get(mid, "")) for mid in candidate_ids):
+            log(f"  canh_{scene_no:03d}: tất cả media đều FAILED.", "WARN")
+            return "failed", 0
+        return "not_ready", 0
+
+    # Không tải ngay lập tức sau vòng poll để giảm pattern bot.
+    dl_delay = _pick_flow_video_download_delay_sec()
+    log(f"  canh_{scene_no:03d}: READY -> đợi {dl_delay:.1f}s rồi tải...", "WAIT")
+    await asyncio.sleep(dl_delay)
+
+    downloaded_count = 0
+    for media_id in ready_ids:
+        if media_id in downloaded_media_ids_global:
+            continue
+
+        media_status = _video_media_status_by_id.get(media_id, "")
+        redirect_url = f"https://labs.google/fx/api/trpc/media.getMediaUrlRedirect?name={media_id}"
+        # Đặt tên file chắc chắn không trùng/đè.
+        variant_index = _count_existing_scene_video_files(scene_no) + 1
+        fpath = _build_scene_video_output_path(scene_no, variant_index)
+
+        success = False
+        # READY rồi nên thử ít vòng ngắn để giảm spam request.
+        for attempt in range(3):
+            try:
+                resp = await page.context.request.get(redirect_url, timeout=30000, max_redirects=0)
+                location = str((resp.headers or {}).get("location", "")).strip()
+                if resp.status in (301, 302, 307, 308) and location:
+                    video_resp = await page.context.request.get(location, timeout=60000)
+                    if not video_resp.ok:
+                        await asyncio.sleep(1.2)
+                        continue
+                    body = await video_resp.body()
+                    if len(body) < 50000:
+                        # Có thể vẫn chưa fully ready ở storage.
+                        await asyncio.sleep(1.2)
+                        continue
+                    with open(fpath, "wb") as f:
+                        f.write(body)
+                    try:
+                        sha = _sha256_file(fpath)
+                    except Exception:
+                        sha = ""
+                    _download_hash_records.append({
+                        "filename": os.path.basename(fpath),
+                        "prompt_num": scene_no,
+                        "prompt_index": scene_no,
+                        "img_num": variant_index,
+                        "src": location,
+                        "media_id": media_id,
+                        "media_status": media_status,
+                        "method": "request.get_flow_video_307_redirect",
+                        "size_bytes": len(body),
+                        "sha256": sha,
+                    })
+                    _video_download_events.append({
+                        "ts": time.time(),
+                        "scene_no": scene_no,
+                        "attempt": attempt + 1,
+                        "media_id": media_id,
+                        "media_status": media_status,
+                        "phase": "download_ok_redirect_scheduler",
+                        "redirect_status": int(resp.status),
+                        "gcs_status": int(video_resp.status),
+                        "content_type": str((video_resp.headers or {}).get("content-type", "") or ""),
+                        "body_size": len(body),
+                    })
+                    downloaded_media_ids_global.add(media_id)
+                    downloaded_count += 1
+                    log(f"  {os.path.basename(fpath)} ({len(body)//1024}KB) [flow-video-redirect]", "OK")
+                    success = True
+                    break
+
+                if resp.ok:
+                    body = await resp.body()
+                    ct = str((resp.headers or {}).get("content-type", "")).lower()
+                    if ("video" in ct or len(body) > 200000):
+                        with open(fpath, "wb") as f:
+                            f.write(body)
+                        try:
+                            sha = _sha256_file(fpath)
+                        except Exception:
+                            sha = ""
+                        _download_hash_records.append({
+                            "filename": os.path.basename(fpath),
+                            "prompt_num": scene_no,
+                            "prompt_index": scene_no,
+                            "img_num": variant_index,
+                            "src": redirect_url,
+                            "media_id": media_id,
+                            "media_status": media_status,
+                            "method": "request.get_flow_video_direct_scheduler",
+                            "size_bytes": len(body),
+                            "sha256": sha,
+                        })
+                        _video_download_events.append({
+                            "ts": time.time(),
+                            "scene_no": scene_no,
+                            "attempt": attempt + 1,
+                            "media_id": media_id,
+                            "media_status": media_status,
+                            "phase": "download_ok_direct_scheduler",
+                            "redirect_status": int(resp.status),
+                            "gcs_status": int(resp.status),
+                            "content_type": ct,
+                            "body_size": len(body),
+                        })
+                        downloaded_media_ids_global.add(media_id)
+                        downloaded_count += 1
+                        log(f"  {os.path.basename(fpath)} ({len(body)//1024}KB) [flow-video-direct]", "OK")
+                        success = True
+                        break
+            except Exception as e:
+                _video_download_events.append({
+                    "ts": time.time(),
+                    "scene_no": scene_no,
+                    "attempt": attempt + 1,
+                    "media_id": media_id,
+                    "media_status": media_status,
+                    "phase": "exception_scheduler",
+                    "error": str(e),
+                })
+            await asyncio.sleep(1.2)
+
+        if not success:
+            log(f"  canh_{scene_no:03d}: media {media_id[:8]}... READY nhưng chưa tải được, sẽ thử lại.", "WARN")
+
+        # Không tải dồn quá nhanh nhiều video liên tiếp.
+        await asyncio.sleep(_flow_human_rng.uniform(1.0, 2.5))
+
+    if downloaded_count > 0:
+        log(f"  canh_{scene_no:03d}: đã tải {downloaded_count} video READY.", "OK")
+        return "downloaded", downloaded_count
+    return "not_ready", 0
+
+
+async def _run_google_flow_video_scheduler_no_reload(page, prompts: list[str]) -> int:
+    """
+    Scheduler video mới theo yêu cầu:
+    - Không reload định kỳ.
+    - Gửi cảnh mới theo nhịp random (60-90s; khi stall -> 90-150s).
+    - Chỉ tải khi READY.
+    - Mỗi vòng quét tải toàn bộ READY của tất cả cảnh đã gửi (không ép theo 1 cảnh).
+    - Không tải đồng thời với lúc gửi prompt (ưu tiên 1 tác vụ tại 1 thời điểm).
+    - Khi thấy rate-limit rõ ràng -> cooldown 3 phút.
+    - unusual activity chỉ log cảnh báo, không cooldown.
+    """
+    Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
+
+    scene_items: list[tuple[int, str]] = []
+    for i, prompt in enumerate(prompts):
+        scene_items.append((extract_scene_number(prompt, i + 1), prompt))
+
+    total = len(scene_items)
+    saved_total = 0
+    next_send_index = 0
+    sent_scene_order: list[int] = []
+    sent_scene_set: set[int] = set()
+    downloaded_scene_set: set[int] = set()
+    failed_scene_set: set[int] = set()
+    downloaded_media_ids_global: set[str] = set()
+    scene_deadline_ts: dict[int, float] = {}
+
+    stall_rounds_without_ready = 0
+    round_index = 0
+    next_send_ts = time.time()
+
+    while len(downloaded_scene_set | failed_scene_set) < total:
+        round_index += 1
+        await wait_pending_api_tasks(timeout_sec=2.5)
+
+        # Quét cảnh báo UI mỗi vòng scheduler.
+        ui_messages = await capture_flow_ui_error_messages(page, f"scheduler_round_{round_index}")
+        if _has_rate_limit_ui_error(ui_messages):
+            cool = max(30, FLOW_VIDEO_UNUSUAL_COOLDOWN_SEC)
+            log(f"Phát hiện rate-limit. Cooldown {cool}s trước khi tiếp tục.", "WARN")
+            await asyncio.sleep(cool)
+            # Sau cooldown, dời nhịp gửi tiếp theo để tránh burst.
+            next_send_ts = max(next_send_ts, time.time() + _pick_flow_video_send_interval_sec(stall_rounds_without_ready))
+            continue
+        if _has_unusual_activity_ui_error(ui_messages):
+            # Theo yêu cầu: bỏ qua unusual activity.
+            log("Phát hiện unusual activity nhưng vẫn tiếp tục (không cooldown).", "WARN")
+
+        now_ts = time.time()
+        # Mark timeout cho cảnh đã gửi nhưng quá deadline vẫn chưa tải được.
+        for sc in list(sent_scene_set):
+            if sc in downloaded_scene_set or sc in failed_scene_set:
+                continue
+            deadline = scene_deadline_ts.get(sc, 0)
+            if deadline > 0 and now_ts >= deadline:
+                log(
+                    f"  canh_{sc:03d}: quá timeout {GOOGLE_FLOW_VIDEO_WAIT_AFTER_LAST_PROMPT_SEC}s, đánh dấu fail.",
+                    "WARN",
+                )
+                failed_scene_set.add(sc)
+
+        # Ưu tiên tải trước khi gửi để tránh trùng lúc tải + gửi.
+        # Global READY sweep: quét tất cả cảnh đã gửi, cảnh nào có media READY chưa tải thì đưa vào danh sách.
+        ready_scenes_to_download: list[int] = []
+        for sc in sent_scene_order:
+            if sc in failed_scene_set:
+                continue
+            ids = get_scene_candidate_video_media_ids(sc)
+            if not ids:
+                continue
+            # Nếu toàn bộ media FAILED thì chốt fail sớm.
+            if all(_is_video_media_failed_status(_video_media_status_by_id.get(mid, "")) for mid in ids):
+                failed_scene_set.add(sc)
+                log(f"  canh_{sc:03d}: toàn bộ media FAILED (API status).", "WARN")
+                continue
+            has_ready_undownloaded = any(
+                _is_video_media_ready_status(_video_media_status_by_id.get(mid, "")) and mid not in downloaded_media_ids_global
+                for mid in ids
+            )
+            if has_ready_undownloaded:
+                ready_scenes_to_download.append(sc)
+
+        if ready_scenes_to_download:
+            stall_rounds_without_ready = 0
+            log(
+                f"Global READY sweep: {len(ready_scenes_to_download)} cảnh đang có media READY.",
+                "INFO",
+            )
+            for sc in ready_scenes_to_download:
+                status, downloaded_count = await _download_ready_videos_for_scene(
+                    page,
+                    sc,
+                    downloaded_media_ids_global,
+                )
+                if status == "cooldown":
+                    cool = max(30, FLOW_VIDEO_UNUSUAL_COOLDOWN_SEC)
+                    log(f"  canh_{sc:03d}: cooldown {cool}s do unusual/rate-limit.", "WARN")
+                    await asyncio.sleep(cool)
+                    # Cooldown xong thì dừng vòng sweep hiện tại để tránh burst tiếp.
+                    break
+                if status == "failed":
+                    failed_scene_set.add(sc)
+                elif downloaded_count > 0:
+                    saved_total += downloaded_count
+                    downloaded_scene_set.add(sc)
+                    log(
+                        f"[FLOW-VIDEO] === Cập nhật cảnh {sc:03d} "
+                        f"({saved_total} video đã tải) ===",
+                        "STEP",
+                    )
+                # Delay nhẹ giữa các cảnh để tránh tải dồn quá nhanh.
+                await asyncio.sleep(_flow_human_rng.uniform(1.0, 2.0))
+            continue
+
+        # Không có cảnh READY trong vòng này.
+        has_pending_sent = any(sc not in downloaded_scene_set and sc not in failed_scene_set for sc in sent_scene_set)
+        if has_pending_sent:
+            stall_rounds_without_ready += 1
+        else:
+            stall_rounds_without_ready = 0
+
+        # Đến nhịp thì gửi cảnh tiếp theo.
+        if next_send_index < total and now_ts >= next_send_ts:
+            scene_no, prompt = scene_items[next_send_index]
+            log(f"[FLOW-VIDEO {next_send_index+1}/{total}] === Bắt đầu cảnh {scene_no:03d} ===", "STEP")
+            sent_ok = await _send_one_flow_video_scene_prompt(
+                page=page,
+                prompt=prompt,
+                scene_no=scene_no,
+                prompt_index=next_send_index,
+                total_prompts=total,
+            )
+            if sent_ok:
+                sent_scene_set.add(scene_no)
+                sent_scene_order.append(scene_no)
+                scene_deadline_ts[scene_no] = time.time() + max(60, GOOGLE_FLOW_VIDEO_WAIT_AFTER_LAST_PROMPT_SEC)
+            else:
+                failed_scene_set.add(scene_no)
+                log(f"  canh_{scene_no:03d}: gửi thất bại, đánh dấu fail.", "WARN")
+
+            next_send_index += 1
+            next_interval = _pick_flow_video_send_interval_sec(stall_rounds_without_ready)
+            next_send_ts = time.time() + next_interval
+            log(
+                f"  Cảnh tiếp theo sẽ gửi sau ~{next_interval:.1f}s "
+                f"(stall_rounds={stall_rounds_without_ready}).",
+                "INFO",
+            )
+            await asyncio.sleep(_flow_human_rng.uniform(0.8, 1.8))
+            continue
+
+        # Nếu đã gửi hết và không còn cảnh pending thì kết thúc.
+        has_pending_after = any(sc not in downloaded_scene_set and sc not in failed_scene_set for sc in sent_scene_set)
+        if next_send_index >= total and not has_pending_after:
+            break
+
+        await asyncio.sleep(_flow_human_video_poll_interval())
+
+    if failed_scene_set:
+        failed_sorted = sorted(list(failed_scene_set))
+        log(f"Các cảnh không tải được video: {failed_sorted}", "WARN")
+    return saved_total
+
+
 async def run_google_flow_auto_video_request_response(page, prompts: list[str]) -> int:
     """
     Auto mode cho Google Flow VIDEO:
@@ -4221,6 +4676,14 @@ async def run_google_flow_auto_video_request_response(page, prompts: list[str]) 
             )
         else:
             log(f"Không tìm thấy ảnh reference trong: {GOOGLE_FLOW_VIDEO_REFERENCE_DIR}", "WARN")
+
+    # ── Scheduler mới (không reload định kỳ) ──────────────────────────────────
+    # Theo yêu cầu hiện tại:
+    # - Gửi cảnh theo nhịp 60-90s (stall -> 90-150s)
+    # - Chỉ tải khi READY
+    # - Cooldown khi unusual activity
+    # - Không tải trùng thời điểm gửi prompt
+    return await _run_google_flow_video_scheduler_no_reload(page, prompts)
 
     # ── GỬI TỪNG PROMPT 1, CHỜ RENDER XONG RỒI MỚI GỬI TIẾP ──────────────────
     # Lý do: gửi nhiều prompt cùng lúc làm Flow bị scroll quá mức,
