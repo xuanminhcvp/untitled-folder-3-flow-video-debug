@@ -1,12 +1,820 @@
-# ================================================================
-# FILE PROMPTS KỊCH BẢN — Định dạng STRUCTURED
-# ================================================================
-# Bạn cần điền nội dung prompt thật vào đây.
-# Xem file prompts.txt gốc ở thư mục project để lấy mẫu.
-#
-# Format bắt buộc:
-#   CHARACTER REFERENCE IMAGE PROMPTS (nhân vật, background)
-#   FULL VIDEO PROMPTS (từng cảnh video)
-# ================================================================
+==================================================
+CHARACTER REFERENCE IMAGE PROMPTS
+==================================================
 
-# Dán nội dung từ AI scriptwriter vào đây...
+character1 = A Black woman in her late forties, elegant and self-possessed, deep rich brown skin, slim powerful build, sharp cheekbones, intelligent dark eyes, natural short textured hair styled neatly, no visible tattoos, no flashy accessories. Wearing a simple fitted camel trench coat over a white blouse, dark tailored trousers, and low black heels. Carrying a structured leather handbag and a slim document folder. Upright poised posture, expression baseline: calm, unreadable, disciplined, quietly formidable. Ultra-realistic cinematic portrait, realistic skin texture, soft afternoon light that preserves deep skin richness, neutral background.
+
+character2 = A White male luxury car showroom sales manager in his early forties, athletic build, sculpted haircut, light tan complexion, clean-shaven with a polished corporate look, pale blue eyes with a habitual dismissive squint. Wearing a fitted dark charcoal suit, crisp white shirt, black tie, showroom name badge, tablet in hand, expensive watch visible at cuff. Forward-leaning territorial posture. Expression baseline: smug, condescending, sales-trained charm covering hostility. Ultra-realistic cinematic portrait, polished indoor showroom lighting, neutral background.
+
+character3 = A Latina woman in her early fifties, tall commanding build, sleek dark hair pulled into a low bun, medium olive skin, sharp dark eyes, composed executive face, immaculate posture. Wearing a deep navy tailored pantsuit, silk blouse, subtle luxury jewelry, and a manufacturer executive access badge clipped inside her blazer. Expression baseline: cold authority, executive control, zero tolerance. Ultra-realistic cinematic portrait, soft showroom lighting, neutral background.
+
+
+==================================================
+LOCATION / BACKGROUND REFERENCE IMAGE PROMPTS
+==================================================
+
+image1 = A luxury car showroom in a major American city, late afternoon sunlight streaming through floor-to-ceiling glass walls onto polished white tile floors. Several high-end vehicles displayed under soft spotlights, including a metallic black flagship sedan on a rotating platform near the center. Minimalist modern furniture, glossy reception desk, branded wall panels, espresso bar in the background, subtle reflections everywhere. Ultra-realistic cinematic style, premium indoor lighting, elegant upscale atmosphere, shallow depth of field.
+
+
+==================================================
+REFERENCE COUNT CHECK
+==================================================
+
+character1 = protagonist (Naomi Reed)
+character2 = antagonist (Tyler Grant)
+character3 = authority arrival (Sofia Alvarez)
+image1 = luxury showroom interior
+
+Total references: 4 (3 characters + 1 background)
+Limit: 10
+Status: PASS
+
+
+==================================================
+GLOBAL CHARACTER AND BACKGROUND MAPPING
+==================================================
+
+Character Mapping:
+character1 = protagonist — Black woman, late forties, luxury auto group owner, dressed simply and elegantly
+character2 = antagonist — White male showroom sales manager, early forties, full business attire
+character3 = regional president — Latina woman, early fifties, executive suit
+
+Background Mapping:
+image1 = luxury car showroom, late afternoon, glass walls, polished tile, flagship sedan display
+
+These mappings are fixed for the entire project and must not be reassigned.
+
+
+==================================================
+SRT VIDEO UNIT SPLITS — TWO-PASS DURATION CHECK
+==================================================
+
+Video 1:  Lines 1–4   | 00:00:00.033 – 00:00:07.700 | 7.67s | PASS
+Video 2:  Lines 5–8   | 00:00:07.700 – 00:00:15.000 | 7.30s | PASS
+Video 3:  Lines 9–11  | 00:00:15.033 – 00:00:19.666 | 4.63s | PASS
+Video 4:  Lines 12–14 | 00:00:19.666 – 00:00:24.933 | 5.27s | PASS
+Video 5:  Lines 15–18 | 00:00:24.933 – 00:00:31.833 | 6.90s | PASS
+Video 6:  Lines 19–21 | 00:00:31.833 – 00:00:38.066 | 6.23s | PASS
+Video 7:  Lines 22–24 | 00:00:38.066 – 00:00:44.966 | 6.90s | PASS
+Video 8:  Lines 25–27 | 00:00:44.966 – 00:00:50.166 | 5.20s | PASS
+Video 9:  Lines 28–31 | 00:00:50.166 – 00:00:58.133 | 7.97s | PASS
+Video 10: Lines 32–34 | 00:00:58.133 – 00:01:04.200 | 6.07s | PASS
+Video 11: Lines 35–38 | 00:01:04.200 – 00:01:10.833 | 6.63s | PASS
+Video 12: Lines 39–41 | 00:01:10.833 – 00:01:17.000 | 6.17s | PASS
+Video 13: Lines 42–46 | 00:01:17.000 – 00:01:24.666 | 7.67s | PASS
+Video 14: Lines 47–48 | 00:01:24.666 – 00:01:30.000 | 5.33s | PASS
+Video 15: Lines 49–52 | 00:01:30.000 – 00:01:36.300 | 6.30s | PASS
+Video 16: Lines 53–57 | 00:01:36.300 – 00:01:43.666 | 7.37s | PASS
+Video 17: Lines 58–61 | 00:01:43.666 – 00:01:51.200 | 7.53s | PASS
+Video 18: Lines 62–66 | 00:01:51.200 – 00:01:59.100 | 7.90s | PASS
+Video 19: Lines 67–69 | 00:01:59.100 – 00:02:05.900 | 6.80s | PASS
+Video 20: Lines 70–72 | 00:02:05.900 – 00:02:12.433 | 6.53s | PASS
+Video 21: Lines 73–75 | 00:02:12.433 – 00:02:18.966 | 6.53s | PASS
+Video 22: Lines 76–78 | 00:02:18.966 – 00:02:23.900 | 4.93s | PASS
+Video 23: Lines 79–82 | 00:02:23.900 – 00:02:31.133 | 7.23s | PASS
+Video 24: Lines 83–85 | 00:02:31.133 – 00:02:39.033 | 7.90s | PASS
+Video 25: Lines 86–89 | 00:02:39.033 – 00:02:45.333 | 6.30s | PASS
+
+All 25 units: PASS (every unit ≤ 8 seconds)
+
+
+==================================================
+FULL VIDEO PROMPTS
+==================================================
+
+
+--- Video 1 (SRT Lines 1–4 | 00:00 – 00:08 | 3 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-3s: wide shot of image1, aggressive handheld, fast push-in toward the flagship sedan on the rotating platform. character1 walks slowly toward the vehicle, studying the body lines and front grille with quiet focus. character2 intercepts from frame right, stepping into her path with a polished sales smile that never reaches his eyes.
+
+character2 – smooth, dismissive:
+"Ma'am, that model starts well above most budgets."
+
+Audio: soft showroom music in the distance, heel clicks on polished tile, low HVAC hum, rotating platform motor barely audible.
+
+Transition: smash cut.
+
+3s-5s: medium shot, slight low angle on character1. character1 stops, one hand resting lightly on her document folder, expression calm and unreadable. character2 holds his tablet against his chest, blocking access to the car.
+
+character1 – calm, measured:
+"I'm here to look at this one."
+
+Audio: soft fabric movement, distant espresso machine hiss, footsteps echoing in the large showroom, quiet premium ambience.
+
+Transition: hard cut.
+
+5s-8s: tight medium close-up on character2 leaning subtly into character1's space. He glances at her simple coat, then at her bag, lips curling into polished contempt.
+
+character2 – patronizing, condescending:
+"I think you'd be more comfortable in the pre-owned section."
+
+Audio: tablet edge tapping lightly against suit sleeve, showroom air hum, faint murmured sales conversations in the background.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, tense classist atmosphere, keep character and background consistent.
+
+
+--- Video 2 (SRT Lines 5–8 | 00:08 – 00:15 | 3 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-2s: medium close-up on character2, slight handheld. character2 gestures casually toward the far side of the showroom, where less expensive vehicles sit under dimmer lighting.
+
+character2 – smug, practiced:
+"Those are more... realistic."
+
+Audio: quiet shoe pivot on tile, distant coffee cups clinking, low soundtrack from showroom speakers.
+
+Transition: quick cut.
+
+2s-4s: medium shot on character1, static frame. character1 keeps her posture straight, voice even, eyes locked on the flagship sedan instead of on him.
+
+character1 – restrained, clear:
+"I asked about this one."
+
+Audio: measured breath, leather bag strap shifting softly, polished indoor room tone.
+
+Transition: smash cut.
+
+4s-7s: close-up on character2, quick push-in. His smile tightens into something colder. He lowers his voice, making the insult sound like advice.
+
+character2 – false-friendly, insulting:
+"These clients expect a certain profile."
+
+Audio: soft consonants, showroom reverb, distant key fob chirp, silence underneath the words.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, exclusion atmosphere, keep character and background consistent.
+
+
+--- Video 3 (SRT Lines 9–11 | 00:15 – 00:20 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-3s: medium shot. character2 circles slightly in front of the flagship sedan, body language territorial, one open hand extended as a barrier.
+
+character2 – cool, controlling:
+"This isn't something we let people sit in casually."
+
+Audio: light footsteps on tile, rotating display motor, low HVAC whisper, distant showroom murmur.
+
+Transition: quick cut.
+
+3s-5s: medium close-up on character1, static frame. character1 turns her eyes to him fully now, chin level, expression firm.
+
+character1 – steady, controlled:
+"People?"
+
+Audio: one soft heel shift, indoor silence deepening, faint espresso grinder in the background.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, tension rising, keep character and background consistent.
+
+
+--- Video 4 (SRT Lines 12–14 | 00:20 – 00:25 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-2s: close-up on character2, amused smirk spreading. He pretends not to notice the implication in his own words.
+
+character2 – mocking, defensive:
+"You know what I mean."
+
+Audio: short breath through nose, suit jacket crease, low showroom hum.
+
+Transition: hard cut.
+
+2s-5s: medium shot. character2 steps closer to the sedan and lays one palm on the hood possessively, as if guarding it from contamination. character1 remains motionless, watching him.
+
+character2 – sneering, polished:
+"This car is reserved for serious buyers."
+
+Audio: palm brushing polished paint, tile echo, faint speaker music, distant phone ringing at reception.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, hostile gatekeeping atmosphere, keep character and background consistent.
+
+
+--- Video 5 (SRT Lines 15–18 | 00:25 – 00:32 | 3 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-2s: medium shot on character1, soft handheld. character1 opens her document folder halfway, remaining composed.
+
+character1 – measured, practical:
+"I can wire the full amount today."
+
+Audio: folder edge opening, crisp paper movement, distant coffee machine hiss, quiet tile reflections.
+
+Transition: quick cut.
+
+2s-5s: tight close-up on character2, aggressive push-in. He lets out a short laugh, dismissive and disbelieving.
+
+character2 – mocking, superior:
+"Let's not do theater."
+
+Audio: sharp laugh, tablet shifting in hand, low showroom echo, subtle ambient music flattening.
+
+Transition: smash cut.
+
+5s-7s: medium shot from slightly below. character2 gestures toward the reception desk with two fingers, as if redirecting a nuisance.
+
+character2 – demeaning, final:
+"If you want brochures, front desk can print them."
+
+Audio: finger flick through air, receptionist keyboard clacking far off, air conditioning hush.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, humiliating atmosphere, keep character and background consistent.
+
+
+--- Video 6 (SRT Lines 19–21 | 00:32 – 00:38 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-3s: medium shot, fast handheld. character2 abruptly reaches out and closes character1's document folder with his palm before she can fully present the contents. The movement is quick, disrespectful, practiced.
+
+No dialogue.
+
+Audio: sharp folder snap shut, paper edges shifting, fabric brush, distant showroom chatter pausing for a beat.
+
+Transition: smash cut.
+
+3s-6s: low angle near the sedan platform. character2 lowers his hand and squares himself between character1 and the vehicle again. character1 looks down at the closed folder, then back at him, expression cooling further.
+
+No dialogue.
+
+Audio: tile footstep repositioning, rotating platform motor, HVAC whisper, faint glass clink from espresso bar.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, public disrespect atmosphere, keep character and background consistent.
+
+
+--- Video 7 (SRT Lines 22–24 | 00:38 – 00:45 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-4s: extreme close-up on character1's hand smoothing the bent edge of the document folder, fingers deliberate, movements controlled, not rushed.
+
+No dialogue.
+
+Audio: paper edge rubbing softly, shallow ambient room tone, distant footsteps across tile, subtle speaker music.
+
+Transition: hard cut.
+
+4s-7s: medium close-up on character1's face. Her disappointment is visible now, not anger but exact judgment. She lifts her eyes to character2.
+
+character1 – quiet, precise:
+"You should have read what was in it."
+
+Audio: calm voice, faint showroom echo, espresso steam burst in the distance, silence beneath.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, controlled authority atmosphere, keep character and background consistent.
+
+
+--- Video 8 (SRT Lines 25–27 | 00:45 – 00:50 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-3s: medium shot from slightly above. character2 gives a small dismissive smile and glances toward a younger salesperson nearby, enjoying the audience.
+
+character2 – smug, public:
+"I save everyone's time."
+
+Audio: light shoe shift, distant key rack clink, showroom music, soft indoor air.
+
+Transition: hard cut.
+
+3s-5s: close-up on character1. Her face becomes stiller, eyes more focused, voice not yet spoken.
+
+No dialogue.
+
+Audio: controlled inhale, leather handbag settling, ambient showroom hush.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, poised silence atmosphere, keep character and background consistent.
+
+
+--- Video 9 (SRT Lines 28–31 | 00:50 – 00:58 | 3 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-3s: close-up on character1 beside the flagship sedan's front quarter panel. She speaks softly, each word deliberate.
+
+character1 – calm, absolute:
+"This is your last chance to correct yourself."
+
+Audio: quiet voice against the polished indoor air, low hum of display lights, distant showroom footsteps.
+
+Transition: quick cut.
+
+3s-5s: medium shot from character1's perspective. character2 folds his arms, tablet tucked under one elbow, amused by the audacity.
+
+No dialogue.
+
+Audio: suit fabric tightening, shoe sole shifting on tile, faint ambient music.
+
+Transition: hard cut.
+
+5s-8s: medium close-up on character2. He tilts his head and speaks with bored contempt.
+
+character2 – dismissive, cold:
+"Or what? You'll leave a bad review?"
+
+Audio: clipped words, subtle reverb, distant keyboard tapping at reception, silence after.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, unchecked arrogance atmosphere, keep character and background consistent.
+
+
+--- Video 10 (SRT Lines 32–34 | 00:58 – 01:04 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-3s: wide establishing shot of the full scene on image1. character1 stands near the rotating display with her folder and handbag. character2 holds the center of the floor like a man policing who belongs in luxury and who does not. Other staff hover at a distance, pretending not to watch.
+
+No dialogue.
+
+Audio: wide showroom ambience, light speaker music, tile footsteps, coffee cups at the espresso bar.
+
+Transition: hard cut.
+
+3s-6s: slow push-in on character2's face. Flat certainty. Polished sales arrogance. Zero fear of consequence.
+
+No dialogue.
+
+Audio: HVAC hum, muted showroom track, faint tablet notification vibration, silence in the space between breaths.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, oppressive casual prejudice atmosphere, keep character and background consistent.
+
+
+--- Video 11 (SRT Lines 35–38 | 01:04 – 01:11 | 3 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-2s: medium shot on image1. character2 steps close enough to lower his voice, smiling for optics while speaking with private contempt.
+
+No dialogue.
+
+Audio: leather shoe glide on tile, soft speaker music, nearby staff going quiet.
+
+Transition: hard cut.
+
+2s-5s: close-up from character1's eye level. character2's polished tone barely hides the insult.
+
+character2 – private cruelty, polished:
+"People like you always want the photo, never the payment plan."
+
+Audio: close breath, fabric whisper, espresso machine hiss far behind, hush in the showroom.
+
+Transition: quick cut.
+
+5s-7s: extreme close-up on character2's mouth and eyes. He adds the final cut with practiced superiority.
+
+character2 – superior, final:
+"Luxury isn't aspiration. It's access."
+
+Audio: soft syllables, tile room tone, faint key fob beep, tense silence.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, intimate contempt atmosphere, keep character and background consistent.
+
+
+--- Video 12 (SRT Lines 39–41 | 01:11 – 01:17 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-3s: close-up on character2 from slightly above. He straightens and gestures toward the glass exit with open-palmed dismissal.
+
+character2 – venomous, clipped:
+"Door's right there."
+
+Audio: hand moving through air, low indoor hum, distant conversation from reception, showroom stillness.
+
+Transition: smash cut.
+
+3s-6s: wide shot from behind a row of vehicles, partially framed through side mirrors and polished bodywork reflections. The full confrontation visible between reflections. A salesperson in the background discreetly raises a phone and records.
+
+No dialogue.
+
+Audio: muffled showroom ambience, faint phone tap, low nervous exhale from the hidden witness, subtle speaker music.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, witnessing atmosphere, keep character and background consistent.
+
+
+--- Video 13 (SRT Lines 42–46 | 01:17 – 01:25 | 3 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-3s: medium shot on image1. character2 notices the discreet insignia embossed on character1's document folder. His eyes narrow, not with recognition yet, but with suspicion.
+
+No dialogue.
+
+Audio: folder shifting softly, platform motor rotation, distant glass cup set on saucer.
+
+Transition: hard cut.
+
+3s-5s: medium close-up on character2, turning back toward character1. He points at the folder.
+
+character2 – demanding, invasive:
+"Let me see that."
+
+Audio: finger jab, tablet brushing suit sleeve, quiet showroom reverb, low ambient track.
+
+Transition: quick cut.
+
+5s-8s: close-up on character1. She lifts the folder slightly but keeps it in her own hand, expression sharpened now into unmistakable authority.
+
+character1 – firm, controlled:
+"No. Not after this."
+
+Audio: calm precise voice, leather folder edge, ambient room tone, silence stretching after the refusal.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, rising tension atmosphere, keep character and background consistent.
+
+
+--- Video 14 (SRT Lines 47–48 | 01:25 – 01:30 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-3s: medium shot on character2 standing with one hand on his hip and the other holding the tablet. He laughs softly, amused by what he thinks is bluff.
+
+character2 – mocking, amused:
+"Then we're done here."
+
+Audio: short laugh, shoe reposition on tile, faint music track continuing overhead.
+
+Transition: quick cut.
+
+3s-5s: medium close-up on character2 leaning slightly forward, eyes hardening.
+
+character2 – derisive, contemptuous:
+"You were never buying this car."
+
+Audio: hard consonants, air conditioning hush, distant reception phone.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, contemptuous atmosphere, keep character and background consistent.
+
+
+--- Video 15 (SRT Lines 49–52 | 01:30 – 01:36 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-3s: ground-level close-up on character1. She slowly closes the folder, squares it against her side, and looks directly at character2 with a new, unmistakable level of authority.
+
+No dialogue.
+
+Audio: folder closing cleanly, heel settling on tile, distant showroom ambience flattening.
+
+Transition: hard cut.
+
+3s-6s: same eye-level angle on character1. Her voice is clear, exact, recorded in everyone's memory.
+
+character1 – ice-cold, deliberate:
+"Tyler Grant. Sales manager. Keep repeating that line in your head."
+
+Audio: measured voice, subtle tile echo, a faint dropped spoon at the espresso bar far away, silence under the words.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, power-shift atmosphere, keep character and background consistent.
+
+
+--- Video 16 (SRT Lines 53–57 | 01:36 – 01:44 | 3 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-2s: close-up on character1, eyes locked on character2. She states the next line like a fact already decided.
+
+character1 – certain, unwavering:
+"In sixty seconds, this floor changes owners."
+
+Audio: calm voice, HVAC hush, distant city traffic muffled through glass walls, silence around the words.
+
+Transition: quick cut.
+
+2s-5s: medium shot on character2. For the first time, a flicker of irritation turns into uncertainty. He glances toward the showroom entrance.
+
+character2 – irritated, defensive:
+"What is that supposed to mean?"
+
+Audio: strained voice, tablet shifting in hand, shoe sole squeaking slightly on tile.
+
+Transition: hard cut.
+
+5s-7s: close-up on character1. A faint knowing stillness settles across her face.
+
+character1 – calm, final:
+"It means the meeting ran early."
+
+Audio: quiet controlled voice, distant engine hum outside growing slightly louder, showroom air tightening.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, pressure-building atmosphere, keep character and background consistent.
+
+
+--- Video 17 (SRT Lines 58–61 | 01:44 – 01:51 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-4s: wide shot toward the glass showroom entrance. Three black executive vehicles glide into view outside the glass facade in tight formation. Their reflections stretch across the polished floor. character2 turns sharply. character1 does not move.
+
+No dialogue.
+
+Audio: low engine rumble approaching through glass, tire crunch outside, speaker music seeming suddenly distant, showroom staff going quiet.
+
+Transition: hard cut.
+
+4s-8s: medium-wide shot. The glass doors open and executives, legal staff, and manufacturer representatives step inside in coordinated motion, carrying tablets and portfolios. character2 stiffens. character1 stands beside the flagship sedan, still composed.
+
+No dialogue.
+
+Audio: doors opening, heels and dress shoes on tile, portfolio clasps, low executive voices, HVAC hum.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, power-arrival atmosphere, keep character and background consistent.
+
+
+--- Video 18 (SRT Lines 62–66 | 01:51 – 01:59 | 2 shots) ---
+
+Reference guide:
+character2 = antagonist, White male showroom sales manager in full business attire
+character3 = regional president, Latina woman in executive suit
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-4s: medium-wide shot on image1. Executives and legal staff fan out in a quiet deliberate arc around character2, not touching him, just removing every exit of confidence. character2 looks left, then right. The showroom floor is no longer his.
+
+No dialogue.
+
+Audio: measured footsteps on polished tile, portfolio leather creaks, headset clicks, character2's breathing quickening.
+
+Transition: hard cut.
+
+4s-8s: medium shot. character3 emerges from the center of the group, walking forward with executive calm and total authority. Her badge glints under showroom lights. Her expression is carved stone.
+
+No dialogue.
+
+Audio: steady heels on tile, showroom HVAC, faint engine hum fading outside, complete staff silence.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, executive authority atmosphere, keep character and background consistent.
+
+
+--- Video 19 (SRT Lines 67–69 | 01:59 – 02:06 | 3 shots) ---
+
+Reference guide:
+character2 = antagonist, White male showroom sales manager in full business attire
+character3 = regional president, Latina woman in executive suit
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-3s: medium shot on character3. She stops a few feet from character2 and speaks with polished, devastating precision.
+
+character3 – commanding, zero tolerance:
+"Step away from Ms. Reed. Now."
+
+Audio: clear executive voice across tile and glass, subtle room echo, total silence from staff.
+
+Transition: hard cut.
+
+3s-5s: medium close-up on character2. His sales instinct tries one last defensive pivot.
+
+character2 – defensive, aggressive:
+"I'm protecting inventory."
+
+Audio: tight voice, tablet pressed against suit, swallow, shallow breath.
+
+Transition: quick cut.
+
+5s-7s: close-up on character3. Her face does not move.
+
+character3 – cold authority, measured:
+"My name is Sofia Alvarez. Regional President, Veyron North America."
+
+Audio: crisp executive tone, portfolio edge shifting, low room tone, silence holding.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, confrontation atmosphere, keep character and background consistent.
+
+
+--- Video 20 (SRT Lines 70–72 | 02:06 – 02:12 | 2 shots) ---
+
+Reference guide:
+character2 = antagonist, White male showroom sales manager in full business attire
+character3 = regional president, Latina woman in executive suit
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-4s: medium shot on character3, steady locked frame. She delivers each word like a formal ruling.
+
+character3 – authoritative, devastating:
+"The acquisition closed at three o'clock. Ms. Reed now controls this showroom, this inventory, and your employment file."
+
+Audio: voice carrying through the glass-lit showroom, no one else speaking, HVAC whisper, absolute stillness.
+
+Transition: smash cut.
+
+4s-7s: tight close-up on character3, slight push-in. The last line lands like a verdict.
+
+character3 – final, crushing:
+"She is your owner."
+
+Audio: two words landing cleanly into silence, faint tablet notification somewhere in the distance, then nothing.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, identity-reveal devastation atmosphere, keep character and background consistent.
+
+
+--- Video 21 (SRT Lines 73–75 | 02:12 – 02:19 | 3 shots) ---
+
+Reference guide:
+character2 = antagonist, White male showroom sales manager in full business attire
+character3 = regional president, Latina woman in executive suit
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-2s: close-up on character3, steady frame. She adds one final sentence with chilling clarity.
+
+character3 – ice-cold, definitive:
+"And you denied her access to her own floor."
+
+Audio: voice in the polished quiet, distant HVAC current, staff holding breath.
+
+Transition: smash cut.
+
+2s-5s: close-up on character2's face. The color drains. His jaw goes slack. He glances at character1, at the executives, at the phone still recording in the background.
+
+No dialogue.
+
+Audio: involuntary inhale, suit fabric tightening with breath, faint ambient speaker track, silence pressing in.
+
+Transition: hard cut.
+
+5s-7s: medium shot on character2 from slightly below. He stands in the center of the executive arc, suddenly small under the showroom lights.
+
+No dialogue.
+
+Audio: shoe scrape on tile, distant espresso cup placed on saucer, low room hum, stillness.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, devastating realization atmosphere, keep character and background consistent.
+
+
+--- Video 22 (SRT Lines 76–78 | 02:19 – 02:24 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-3s: ground-level shot rising. character1 walks slowly past character2 and toward the flagship sedan. No one blocks her now. Staff instinctively step aside. She places her fingertips lightly on the driver's door handle.
+
+No dialogue.
+
+Audio: heels on tile, fabric movement, soft intake of breath from nearby staff, display platform motor.
+
+Transition: hard cut.
+
+3s-5s: medium close-up on character1 beside the flagship sedan. She turns just enough to look back at character2. Her face is calm, not triumphant.
+
+No dialogue.
+
+Audio: hand resting on polished metal, low room hum, character2's ragged breathing faint behind her.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, reclaimed power atmosphere, keep character and background consistent.
+
+
+--- Video 23 (SRT Lines 79–82 | 02:24 – 02:31 | 3 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-3s: medium close-up on character1, standing beside the car under soft spotlights. She speaks with quiet devastating clarity.
+
+character1 – calm, devastating:
+"If you had known who I was, you would have offered me the key."
+
+Audio: precise voice against polished showroom acoustics, faint music overhead, total staff silence.
+
+Transition: hard cut.
+
+3s-5s: medium shot on character2, reaction. His hands tremble slightly. His mouth moves, but no defense comes out.
+
+No dialogue.
+
+Audio: shaky exhale, tablet edge rattling faintly, HVAC hum, silence.
+
+Transition: quick cut.
+
+5s-7s: close-up on character1. Her eyes narrow slightly. She delivers the final line like a boardroom verdict.
+
+character1 – absolute, final:
+"That is not bad sales, Mr. Grant. That's bias with a commission plan."
+
+Audio: voice landing into total quiet, distant car door thump outside through glass, nothing after but air.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, verdict atmosphere, keep character and background consistent.
+
+
+--- Video 24 (SRT Lines 83–85 | 02:31 – 02:39 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-4s: slow-motion medium shot on image1. character1 opens the driver's door and slides into the flagship sedan with calm ownership. Behind her, character2 stands motionless inside the executive semicircle, stripped of certainty, watched by legal staff.
+
+No dialogue.
+
+Audio: soft luxury door handle click, door opening on damped hinges, tile footsteps in the distance, low showroom hum.
+
+Transition: hard cut.
+
+4s-8s: medium close-up through the driver's window on character1 seated behind the wheel. Her expression is composed, analytical, already thinking beyond him. What she does next does not just end one career. It changes the entire dealership group.
+
+No dialogue.
+
+Audio: soft leather seat settling, fingertip brushing steering wheel, muted showroom ambience through glass, low HVAC current.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, resolute aftermath atmosphere, keep character and background consistent.
+
+
+--- Video 25 (SRT Lines 86–89 | 00:02:39 – 00:02:45 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black woman, late forties, luxury auto group owner in simple elegant clothes
+character2 = antagonist, White male showroom sales manager in full business attire
+image1 = luxury car showroom interior, late afternoon light, flagship sedan on display
+
+0s-3s: wide overhead shot of the full showroom. The flagship sedan under lights. The arc of executives. character2 isolated on the polished floor. character1 seated inside the car she was told she did not belong near. The power structure of the room has completely reversed.
+
+No dialogue.
+
+Audio: wide indoor showroom ambience, low HVAC, distant speaker music, the hush of many people saying nothing.
+
+Transition: smash cut.
+
+3s-6s: extreme close-up on character1's eyes reflected in the rearview mirror. Sharp. Focused. Absolutely settled. Part two is coming.
+
+No dialogue.
+
+Audio: a single low heartbeat-like thud in ambience, then soft room tone, then silence.
+
+No music beyond faint ambient showroom track. Only human voices, room tone, subtle luxury showroom ambience, soft ASMR details. Warm late afternoon light through glass, ultra-realistic cinematic style, cliffhanger atmosphere, keep character and background consistent.
+
+
+==================================================
+FINAL QUALITY CHECK
+==================================================
+
+1. No full-word all-caps used: PASS
+2. Every final shot ends at 8 seconds or earlier: PASS (all 25 verified)
+3. Every video prompt uses exactly 1 background and 2 characters: PASS
+4. Transitions follow scene logic: PASS
+5. Audio present in every shot: PASS
+6. Continuity preserved: PASS
+7. Character names replaced with labels: PASS (dialogue preserves spoken names only)
+8. Background references written as image labels: PASS
+9. Every video unit from validated split: PASS (two-pass check above)
+10. character1, character2, character3 fixed across project: PASS
+11. image1 fixed across project: PASS
+12. No video exceeds 8 seconds: PASS
+13. Total references: 4 (under limit of 10): PASS
+
+All checks: PASS

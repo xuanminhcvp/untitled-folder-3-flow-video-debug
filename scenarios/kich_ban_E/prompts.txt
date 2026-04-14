@@ -1,12 +1,820 @@
-# ================================================================
-# FILE PROMPTS KỊCH BẢN — Định dạng STRUCTURED
-# ================================================================
-# Bạn cần điền nội dung prompt thật vào đây.
-# Xem file prompts.txt gốc ở thư mục project để lấy mẫu.
-#
-# Format bắt buộc:
-#   CHARACTER REFERENCE IMAGE PROMPTS (nhân vật, background)
-#   FULL VIDEO PROMPTS (từng cảnh video)
-# ================================================================
+==================================================
+CHARACTER REFERENCE IMAGE PROMPTS
+==================================================
 
-# Dán nội dung từ AI scriptwriter vào đây...
+character1 = A Black man in his early fifties, tall composed build, deep rich brown skin, clean-shaven, sharp intelligent eyes, close-cropped black hair with light silver at the temples, understated elegance in every movement. Wearing a simple dark charcoal overcoat over a black turtleneck, tailored trousers, polished black shoes, and carrying a slim leather weekender bag plus a room folio envelope. No flashy jewelry, no visible status symbols. Expression baseline: calm, unreadable, disciplined, quietly formidable. Ultra-realistic cinematic portrait, realistic skin texture, warm luxury interior lighting that preserves dark skin richness, neutral background.
+
+character2 = A White male casino hotel floor manager in his mid-forties, broad athletic build, slicked-back dark blond hair, trimmed beard, pale skin with a slight flush, narrow blue eyes with a habitual skeptical squint, polished smile that turns cold instantly. Wearing a fitted black hospitality suit, white dress shirt, black tie, casino hotel name badge, earpiece, and a tablet in hand. Dominant forward-leaning posture, used to controlling access and reading status at a glance. Expression baseline: polished, dismissive, territorial, subtly hostile. Ultra-realistic cinematic portrait, premium casino lobby lighting, neutral background.
+
+character3 = An Asian woman in her late forties, elegant commanding build, light warm skin tone, sleek dark hair pulled into a low knot, sharp steady eyes, immaculate executive posture. Wearing a deep burgundy tailored pantsuit, silk ivory blouse, discreet luxury watch, and a senior executive casino resort badge clipped inside her blazer. Expression baseline: cold authority, precise control, zero tolerance. Ultra-realistic cinematic portrait, warm upscale interior lighting, neutral background.
+
+
+==================================================
+LOCATION / BACKGROUND REFERENCE IMAGE PROMPTS
+==================================================
+
+image1 = A grand luxury casino hotel VIP check-in area inside a high-end resort, evening lighting with gold and amber tones reflecting off polished marble floors and mirrored columns. Velvet rope lines, a private reception desk with backlit onyx, crystal chandeliers overhead, gaming floor lights glowing in the distance, elegant lounge seating, uniformed staff, and wealthy guests moving through the space. Ultra-realistic cinematic style, premium ambient lighting, glossy reflections, upscale atmosphere, shallow depth of field.
+
+
+==================================================
+REFERENCE COUNT CHECK
+==================================================
+
+character1 = protagonist (Marcus Ellison)
+character2 = antagonist (Derek Shaw)
+character3 = authority arrival (Vivian Chen)
+image1 = casino hotel VIP check-in area
+
+Total references: 4 (3 characters + 1 background)
+Limit: 10
+Status: PASS
+
+
+==================================================
+GLOBAL CHARACTER AND BACKGROUND MAPPING
+==================================================
+
+Character Mapping:
+character1 = protagonist — Black man, early fifties, casino resort majority owner, dressed simply and elegantly
+character2 = antagonist — White male casino hotel floor manager, mid-forties, full hospitality suit
+character3 = chief operating officer — Asian woman, late forties, executive casino resort suit
+
+Background Mapping:
+image1 = grand casino hotel VIP check-in area, evening, marble floors, chandeliers, gaming floor glow
+
+These mappings are fixed for the entire project and must not be reassigned.
+
+
+==================================================
+SRT VIDEO UNIT SPLITS — TWO-PASS DURATION CHECK
+==================================================
+
+Video 1:  Lines 1–4   | 00:00:00.033 – 00:00:07.700 | 7.67s | PASS
+Video 2:  Lines 5–8   | 00:00:07.700 – 00:00:15.000 | 7.30s | PASS
+Video 3:  Lines 9–11  | 00:00:15.033 – 00:00:19.666 | 4.63s | PASS
+Video 4:  Lines 12–14 | 00:00:19.666 – 00:00:24.933 | 5.27s | PASS
+Video 5:  Lines 15–18 | 00:00:24.933 – 00:00:31.833 | 6.90s | PASS
+Video 6:  Lines 19–21 | 00:00:31.833 – 00:00:38.066 | 6.23s | PASS
+Video 7:  Lines 22–24 | 00:00:38.066 – 00:00:44.966 | 6.90s | PASS
+Video 8:  Lines 25–27 | 00:00:44.966 – 00:00:50.166 | 5.20s | PASS
+Video 9:  Lines 28–31 | 00:00:50.166 – 00:00:58.133 | 7.97s | PASS
+Video 10: Lines 32–34 | 00:00:58.133 – 00:01:04.200 | 6.07s | PASS
+Video 11: Lines 35–38 | 00:01:04.200 – 00:01:10.833 | 6.63s | PASS
+Video 12: Lines 39–41 | 00:01:10.833 – 00:01:17.000 | 6.17s | PASS
+Video 13: Lines 42–46 | 00:01:17.000 – 00:01:24.666 | 7.67s | PASS
+Video 14: Lines 47–48 | 00:01:24.666 – 00:01:30.000 | 5.33s | PASS
+Video 15: Lines 49–52 | 00:01:30.000 – 00:01:36.300 | 6.30s | PASS
+Video 16: Lines 53–57 | 00:01:36.300 – 00:01:43.666 | 7.37s | PASS
+Video 17: Lines 58–61 | 00:01:43.666 – 00:01:51.200 | 7.53s | PASS
+Video 18: Lines 62–66 | 00:01:51.200 – 00:01:59.100 | 7.90s | PASS
+Video 19: Lines 67–69 | 00:01:59.100 – 00:02:05.900 | 6.80s | PASS
+Video 20: Lines 70–72 | 00:02:05.900 – 00:02:12.433 | 6.53s | PASS
+Video 21: Lines 73–75 | 00:02:12.433 – 00:02:18.966 | 6.53s | PASS
+Video 22: Lines 76–78 | 00:02:18.966 – 00:02:23.900 | 4.93s | PASS
+Video 23: Lines 79–82 | 00:02:23.900 – 00:02:31.133 | 7.23s | PASS
+Video 24: Lines 83–85 | 00:02:31.133 – 00:02:39.033 | 7.90s | PASS
+Video 25: Lines 86–89 | 00:02:39.033 – 00:02:45.333 | 6.30s | PASS
+
+All 25 units: PASS (every unit ≤ 8 seconds)
+
+
+==================================================
+FULL VIDEO PROMPTS
+==================================================
+
+
+--- Video 1 (SRT Lines 1–4 | 00:00 – 00:08 | 3 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-3s: wide shot of image1, aggressive handheld, fast push-in toward the velvet-rope VIP check-in desk. character1 walks toward the private reception counter carrying a slim leather weekender bag and room folio envelope. character2 steps out from beside the desk and blocks his path with one hand raised, posture immediately territorial.
+
+character2 – polished, blocking:
+"VIP registration is for invited guests only, sir."
+
+Audio: distant slot machine chime bleed from the gaming floor, soft heel clicks on marble, low chandelier room tone, tablet notification chirp.
+
+Transition: smash cut.
+
+3s-5s: medium shot, slight low angle on character1. character1 pauses, one hand still on the weekender bag handle, expression calm and unreadable. character2 angles his body to seal off the private counter.
+
+character1 – calm, measured:
+"I am checking in."
+
+Audio: soft fabric movement, low casino ambience, crystal glass clink from lounge seating, muted HVAC hum.
+
+Transition: hard cut.
+
+5s-8s: tight medium close-up on character2 leaning subtly into character1's space. He glances at character1's plain overcoat and understated luggage, lips tightening into polite contempt.
+
+character2 – smooth, condescending:
+"Main hotel reception is around the corner."
+
+Audio: tablet edge brushing suit sleeve, distant roulette wheel spin sound, marble room echo, tense luxury silence.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, tense exclusion atmosphere, keep character and background consistent.
+
+
+--- Video 2 (SRT Lines 5–8 | 00:08 – 00:15 | 3 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-2s: medium close-up on character2, slight handheld. character2 gestures casually toward the crowded main lobby beyond the mirrored columns.
+
+character2 – smug, practiced:
+"Regular guests use the public desk."
+
+Audio: luggage wheels across distant stone, muffled casino music, low crowd murmur from the main floor.
+
+Transition: quick cut.
+
+2s-4s: medium shot on character1, static frame. character1 remains perfectly still, posture upright, gaze steady on character2.
+
+character1 – restrained, clear:
+"I am not a regular guest."
+
+Audio: measured breath, ambient gaming floor hum, soft jacket movement.
+
+Transition: smash cut.
+
+4s-7s: close-up on character2, quick push-in. His service smile hardens into something colder and more openly dismissive.
+
+character2 – false-friendly, insulting:
+"Our private floor usually attracts a different level of clientele."
+
+Audio: clipped consonants, crystal glass setting on table, distant slot jingle, silence underneath.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, humiliating atmosphere, keep character and background consistent.
+
+
+--- Video 3 (SRT Lines 9–11 | 00:15 – 00:20 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-3s: medium shot. character2 taps his tablet without asking for identification, posture casual and final, as though the decision was made on sight alone.
+
+character2 – cool, controlling:
+"No reservation under that profile. That's what I expected."
+
+Audio: tablet tap, distant gaming floor laughter muffled by glass, low room tone, soft HVAC current.
+
+Transition: quick cut.
+
+3s-5s: medium close-up on character1, static frame. character1 lifts his gaze directly to character2, voice level and exact.
+
+character1 – steady, controlled:
+"You never asked my name."
+
+Audio: quiet inhale, marble echo, faint card shuffle sound from casino pit in the distance, stillness.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, tension rising, keep character and background consistent.
+
+
+--- Video 4 (SRT Lines 12–14 | 00:20 – 00:25 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-2s: close-up on character2, amused smirk spreading. He knows exactly what he is implying and enjoys it.
+
+character2 – mocking, dismissive:
+"I don't need to."
+
+Audio: short exhale through nose, tie knot shifting, distant chip stack click, ambient lobby hush.
+
+Transition: hard cut.
+
+2s-5s: medium shot. character2 lowers his voice so nearby guests still hear enough, chin tilted with practiced superiority.
+
+character2 – sneering, polished:
+"I can usually tell who belongs at this desk."
+
+Audio: soft room echo, slot machine pulse in the distance, crystal chandelier hum, silence tightening beneath the words.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, hostile gatekeeping atmosphere, keep character and background consistent.
+
+
+--- Video 5 (SRT Lines 15–18 | 00:25 – 00:32 | 3 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-2s: medium shot on character1, soft handheld. character1 lifts the room folio envelope slightly, offering the chance to verify him properly.
+
+character1 – measured, practical:
+"You can read this now."
+
+Audio: paper envelope edge, leather bag handle shift, ambient casino floor murmur, soft shoe movement on marble.
+
+Transition: quick cut.
+
+2s-5s: tight close-up on character2, aggressive push-in. character2 raises a flat hand and refuses to even look.
+
+character2 – curt, demeaning:
+"Put that away."
+
+Audio: sharp hand movement through air, suit sleeve crease, distant roulette ball clatter, low room tone.
+
+Transition: smash cut.
+
+5s-7s: medium shot from slightly below. character2 points toward the main lobby with two fingers, making the rejection public.
+
+character2 – final, territorial:
+"You're holding up premium arrivals."
+
+Audio: finger flick, faint elevator ding from the main hotel wing, ambient casino hush, pressure in the air.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, humiliating public atmosphere, keep character and background consistent.
+
+
+--- Video 6 (SRT Lines 19–21 | 00:32 – 00:38 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-3s: medium shot, fast handheld. character2 reaches forward without permission and presses character1's envelope shut against his chest before it can be opened. The move is quick, disrespectful, practiced.
+
+No dialogue.
+
+Audio: paper envelope crumple slightly, fabric brush, shallow intake of breath from a nearby concierge, low gaming floor throb.
+
+Transition: smash cut.
+
+3s-6s: low angle near the velvet rope line. character2 plants himself squarely in front of the VIP counter again. character1 lowers the envelope slowly, expression cooling into judgment.
+
+No dialogue.
+
+Audio: shoe reposition on polished marble, faint slot chime bleed, HVAC whisper, crystal glass clink in lounge distance.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, public disrespect atmosphere, keep character and background consistent.
+
+
+--- Video 7 (SRT Lines 22–24 | 00:38 – 00:45 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-4s: extreme close-up on character1's hand smoothing the bent corner of the room folio envelope, movements slow, deliberate, completely controlled.
+
+No dialogue.
+
+Audio: fingertips on paper, distant chip stack clicks, soft marble room tone, quiet ventilation.
+
+Transition: hard cut.
+
+4s-7s: medium close-up on character1's face. Disappointment is visible now, not anger but exact judgment.
+
+character1 – quiet, precise:
+"You should have looked."
+
+Audio: calm voice, low casino ambience, subtle echo under chandeliers, silence beneath the words.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, controlled authority atmosphere, keep character and background consistent.
+
+
+--- Video 8 (SRT Lines 25–27 | 00:45 – 00:50 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-3s: medium shot from slightly above. character2 gives a small dismissive smile and glances toward a couple of wealthy guests nearby, enjoying the performance.
+
+character2 – smug, public:
+"I read people for a living."
+
+Audio: low scoff, distant slot machines, murmur from nearby guests, polished room tone.
+
+Transition: hard cut.
+
+3s-5s: close-up on character1. His face becomes stiller, eyes more focused, posture unbroken.
+
+No dialogue.
+
+Audio: controlled inhale, leather weekender bag settling against leg, ambient casino hush.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, poised silence atmosphere, keep character and background consistent.
+
+
+--- Video 9 (SRT Lines 28–31 | 00:50 – 00:58 | 3 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-3s: close-up on character1 beside the velvet rope line. He speaks softly, every word deliberate.
+
+character1 – calm, absolute:
+"This is your last chance to correct this."
+
+Audio: quiet voice against ambient casino air, distant roulette ball spin, muted guest chatter, stillness under the words.
+
+Transition: quick cut.
+
+3s-5s: medium shot from character1's perspective. character2 folds one arm over the tablet and tilts his head, amused.
+
+No dialogue.
+
+Audio: suit fabric shifting, marble shoe scrape, low gaming floor pulse, silence after.
+
+Transition: hard cut.
+
+5s-8s: medium close-up on character2. He answers with bored contempt.
+
+character2 – dismissive, cold:
+"Or what? You'll complain to guest services?"
+
+Audio: clipped words, elevator chime far away, low chandelier ambience, silence after.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, unchecked arrogance atmosphere, keep character and background consistent.
+
+
+--- Video 10 (SRT Lines 32–34 | 00:58 – 01:04 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-3s: wide establishing shot of the full scene on image1. character1 stands at the velvet-rope VIP desk with his bag and envelope. character2 occupies the center of the check-in lane like a man deciding who qualifies for luxury and who does not. Nearby staff pretend not to watch.
+
+No dialogue.
+
+Audio: wide casino lobby ambience, slot machine bleed, distant lounge glasses, quiet marble footfalls.
+
+Transition: hard cut.
+
+3s-6s: slow push-in on character2's face. Flat certainty. Hospitality-trained superiority. No fear of consequence.
+
+No dialogue.
+
+Audio: HVAC hum, tablet vibration, muffled gaming floor music, silence between breaths.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, oppressive casual prejudice atmosphere, keep character and background consistent.
+
+
+--- Video 11 (SRT Lines 35–38 | 01:04 – 01:11 | 3 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-2s: medium shot on image1. character2 steps close enough to lower his voice, smiling for appearances while speaking with private contempt.
+
+No dialogue.
+
+Audio: shoe glide on marble, distant gaming floor murmur, nearby concierge going quiet.
+
+Transition: hard cut.
+
+2s-5s: close-up from character1's eye level. character2's tone is polished, but the insult underneath is naked.
+
+character2 – private cruelty, polished:
+"People like you always mistake confidence for clearance."
+
+Audio: close breath, soft room echo, chip stack click in the far distance, hush in the air.
+
+Transition: quick cut.
+
+5s-7s: extreme close-up on character2's mouth and eyes. He adds the final cut with practiced superiority.
+
+character2 – superior, final:
+"Luxury isn't attitude. It's verification."
+
+Audio: soft syllables, ambient casino air, distant table game shuffle, tense silence.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, intimate contempt atmosphere, keep character and background consistent.
+
+
+--- Video 12 (SRT Lines 39–41 | 01:11 – 01:17 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-3s: close-up on character2 from slightly above. He straightens and gestures toward the main hotel lobby outside the private zone.
+
+character2 – venomous, clipped:
+"Standard check-in is that way."
+
+Audio: dismissive hand flick, distant slot pulse, low room echo, hush under chandeliers.
+
+Transition: smash cut.
+
+3s-6s: wide shot from across the lobby, framed through mirrored columns and reflective glass. The full confrontation visible at the VIP desk. A concierge in the background discreetly raises a phone and starts recording.
+
+No dialogue.
+
+Audio: muffled casino lobby ambience through reflections, faint phone tap, nervous breath from unseen witness, luggage wheels gliding far off.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, witnessing atmosphere, keep character and background consistent.
+
+
+--- Video 13 (SRT Lines 42–46 | 01:17 – 01:25 | 3 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-3s: medium shot on image1. character2 notices the embossed resort seal on character1's folio envelope but reads it only as something borrowed or incidental. His eyes narrow with suspicion, not recognition.
+
+No dialogue.
+
+Audio: paper edge shifting softly, ambient gaming floor murmur, crystal glass set on lacquer table, low room tone.
+
+Transition: hard cut.
+
+3s-5s: medium close-up on character2, turning back toward character1. He points at the envelope.
+
+character2 – demanding, invasive:
+"Let me see that."
+
+Audio: finger jab, tablet brushing jacket sleeve, marble echo, distant roulette spin.
+
+Transition: quick cut.
+
+5s-8s: close-up on character1. He lifts the envelope slightly but does not hand it over. His expression sharpens into unmistakable authority.
+
+character1 – firm, controlled:
+"No. Not after this."
+
+Audio: calm precise voice, paper edge, ambient casino hush, silence stretching after the refusal.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, rising tension atmosphere, keep character and background consistent.
+
+
+--- Video 14 (SRT Lines 47–48 | 01:25 – 01:30 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-3s: medium shot on character2 standing with one hand on the tablet and the other resting near the velvet rope stanchion. He laughs softly, convinced this is a bluff.
+
+character2 – mocking, amused:
+"Then we're done here."
+
+Audio: short laugh, distant slot machine trill, soft room tone, marble reflections.
+
+Transition: quick cut.
+
+3s-5s: medium close-up on character2 leaning slightly forward, eyes hardening.
+
+character2 – derisive, contemptuous:
+"You were never getting this suite."
+
+Audio: hard consonants, low lobby hum, faint elevator ding from the tower wing.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, contemptuous atmosphere, keep character and background consistent.
+
+
+--- Video 15 (SRT Lines 49–52 | 01:30 – 01:36 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-3s: ground-level close-up on character1. He slowly closes the folio envelope fully, lifts the weekender bag upright, and looks directly at character2 with unmistakable authority.
+
+No dialogue.
+
+Audio: paper closing cleanly, leather handle tightening, ambient casino sound flattening.
+
+Transition: hard cut.
+
+3s-6s: same eye-level angle on character1. His voice is calm, exact, unforgettable.
+
+character1 – ice-cold, deliberate:
+"Derek Shaw. Floor manager. Remember how certain you were."
+
+Audio: measured voice, marble echo, distant table game shuffle, silence beneath.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, power-shift atmosphere, keep character and background consistent.
+
+
+--- Video 16 (SRT Lines 53–57 | 01:36 – 01:44 | 3 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-2s: close-up on character1, eyes locked on character2. He states the next line like a fact already decided.
+
+character1 – certain, unwavering:
+"In one minute, this desk answers to me."
+
+Audio: calm voice, HVAC hush, distant slot machine pulse, silence around the words.
+
+Transition: quick cut.
+
+2s-5s: medium shot on character2. For the first time, irritation turns into uncertainty. He glances toward the private elevator corridor.
+
+character2 – irritated, defensive:
+"What is that supposed to mean?"
+
+Audio: strained voice, tablet shifting in hand, shoe sole squeaking softly on marble.
+
+Transition: hard cut.
+
+5s-7s: close-up on character1. A faint knowing stillness settles across his face.
+
+character1 – calm, final:
+"It means the acquisition call ended early."
+
+Audio: quiet controlled voice, distant executive footsteps approaching, air tightening beneath the chandeliers.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, pressure-building atmosphere, keep character and background consistent.
+
+
+--- Video 17 (SRT Lines 58–61 | 01:44 – 01:51 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-4s: wide shot toward the private elevator corridor beyond image1. A coordinated line of casino resort executives, legal staff, and private security appears from the mirrored hallway, moving quickly but without panic. Their reflections stretch across the marble floor toward the VIP desk. character2 turns sharply. character1 does not move.
+
+No dialogue.
+
+Audio: measured executive footsteps, soft radio clicks from private security, distant gaming floor ambience dimming under tension, elevator door hush.
+
+Transition: hard cut.
+
+4s-8s: medium-wide shot. Executives, legal staff, and senior operations personnel arrive at the VIP desk in precise formation, tablets and portfolios in hand. character2 stiffens. character1 remains beside the velvet rope line, completely composed.
+
+No dialogue.
+
+Audio: heels and dress shoes on marble, portfolio clasps, earpiece clicks, lobby air hum, casino noise falling back.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, power-arrival atmosphere, keep character and background consistent.
+
+
+--- Video 18 (SRT Lines 62–66 | 01:51 – 01:59 | 2 shots) ---
+
+Reference guide:
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+character3 = chief operating officer, Asian woman in executive suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-4s: medium-wide shot on image1. Executives and private security fan out in a quiet deliberate arc around character2, not touching him, simply removing every exit of confidence. character2 looks left, then right. The desk he controlled is no longer his.
+
+No dialogue.
+
+Audio: measured footsteps on marble, portfolio leather creaks, discreet earpiece clicks, character2's breathing quickening.
+
+Transition: hard cut.
+
+4s-8s: medium shot. character3 emerges from the center of the group, walking forward with executive calm and total authority. Her senior resort badge glints under the chandelier light. Her expression is carved stone.
+
+No dialogue.
+
+Audio: steady heels on marble, low HVAC current, distant slot chime bleed, complete staff silence.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, executive authority atmosphere, keep character and background consistent.
+
+
+--- Video 19 (SRT Lines 67–69 | 01:59 – 02:06 | 3 shots) ---
+
+Reference guide:
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+character3 = chief operating officer, Asian woman in executive suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-3s: medium shot on character3. She stops a few feet from character2 and speaks with polished, devastating precision.
+
+character3 – commanding, zero tolerance:
+"Step away from Mr. Ellison. Now."
+
+Audio: clear executive voice across marble and mirrored columns, subtle room echo, total silence from staff.
+
+Transition: hard cut.
+
+3s-5s: medium close-up on character2. His hospitality reflex tries one last defensive answer.
+
+character2 – defensive, aggressive:
+"I'm enforcing VIP policy."
+
+Audio: tight voice, tablet pressed against chest, dry swallow, shallow breath.
+
+Transition: quick cut.
+
+5s-7s: close-up on character3. Her face does not move.
+
+character3 – cold authority, measured:
+"My name is Vivian Chen. Chief Operating Officer, Ellison Crown Resorts."
+
+Audio: crisp executive tone, portfolio edge shifting, low lobby ambience, silence holding.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, confrontation atmosphere, keep character and background consistent.
+
+
+--- Video 20 (SRT Lines 70–72 | 02:06 – 02:12 | 2 shots) ---
+
+Reference guide:
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+character3 = chief operating officer, Asian woman in executive suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-4s: medium shot on character3, steady locked frame. She delivers each word like a formal ruling.
+
+character3 – authoritative, devastating:
+"Mr. Ellison signed this resort purchase this afternoon. He owns this desk, this tower, and the floor beneath your shoes."
+
+Audio: voice carrying through the luxury casino air, no one else speaking, HVAC whisper, total stillness.
+
+Transition: smash cut.
+
+4s-7s: tight close-up on character3, slight push-in. The final clarification lands like a verdict.
+
+character3 – final, crushing:
+"He is your owner."
+
+Audio: four words landing cleanly into silence, faint gaming floor rumble, then nothing.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, identity-reveal devastation atmosphere, keep character and background consistent.
+
+
+--- Video 21 (SRT Lines 73–75 | 02:12 – 02:19 | 3 shots) ---
+
+Reference guide:
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+character3 = chief operating officer, Asian woman in executive suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-2s: close-up on character3, steady frame. She adds one final sentence with chilling clarity.
+
+character3 – ice-cold, definitive:
+"And you denied him entry to the suite level bearing his family's name."
+
+Audio: voice in the polished quiet, distant lobby murmur, staff holding breath.
+
+Transition: smash cut.
+
+2s-5s: close-up on character2's face. The color drains. His jaw slackens. He glances at character1, at the executives, at the phone still recording nearby.
+
+No dialogue.
+
+Audio: involuntary inhale, suit fabric tightening with breath, faint slot machine pulse far away, silence pressing in.
+
+Transition: hard cut.
+
+5s-7s: medium shot on character2 from slightly below. He stands in the center of the executive arc, suddenly small under the chandelier light.
+
+No dialogue.
+
+Audio: shoe scrape on marble, tablet edge tapping his leg, low room tone, stillness.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, devastating realization atmosphere, keep character and background consistent.
+
+
+--- Video 22 (SRT Lines 76–78 | 02:19 – 02:24 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-3s: ground-level shot rising. character1 steps forward past character2 and toward the VIP counter. No one blocks him now. Staff instinctively step aside. He places the folio envelope on the backlit onyx desk.
+
+No dialogue.
+
+Audio: shoes on marble, envelope settling on stone, soft intake of breath from nearby staff, low ambient casino hum.
+
+Transition: hard cut.
+
+3s-5s: medium close-up on character1 at the threshold of the private desk. He turns just enough to look back at character2. His face is calm, not triumphant.
+
+No dialogue.
+
+Audio: soft paper movement, chandelier room tone, character2's ragged breathing faint behind him.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, reclaimed power atmosphere, keep character and background consistent.
+
+
+--- Video 23 (SRT Lines 79–82 | 02:24 – 02:31 | 3 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-3s: medium close-up on character1 standing at the onyx desk with the gaming floor glow behind him. He speaks with quiet devastating clarity.
+
+character1 – calm, devastating:
+"If you had known who I was, you would have called me sir and opened that rope."
+
+Audio: precise voice against luxury casino acoustics, faint slot ambience, total staff silence.
+
+Transition: hard cut.
+
+3s-5s: medium shot on character2, reaction. His hands tremble slightly. His mouth moves, but no defense comes out.
+
+No dialogue.
+
+Audio: shaky exhale, tablet edge rattling faintly, HVAC hum, silence.
+
+Transition: quick cut.
+
+5s-7s: close-up on character1. His eyes narrow slightly. He delivers the final line like a boardroom verdict.
+
+character1 – absolute, final:
+"That is not discernment, Mr. Shaw. That's prejudice in a tailored suit."
+
+Audio: voice landing into total quiet, distant roulette ball clatter, nothing after but air.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, verdict atmosphere, keep character and background consistent.
+
+
+--- Video 24 (SRT Lines 83–85 | 02:31 – 02:39 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-4s: slow-motion medium shot on image1. character1 walks beyond the VIP desk toward the private elevator corridor without looking back. Behind him, character2 stands motionless inside the executive semicircle, stripped of certainty, watched by legal and operations staff.
+
+No dialogue.
+
+Audio: soft footsteps on marble, velvet rope lightly brushing stanchion, distant casino ambience outside the private zone, low executive room tone.
+
+Transition: hard cut.
+
+4s-8s: medium close-up on character1 walking deeper toward the elevator corridor lined with mirrored panels and warm gold light. His expression is composed, analytical, already thinking past this moment. What he does next will not just remove one manager. It will rewrite the culture of the property.
+
+No dialogue.
+
+Audio: steady footsteps, muted elevator chime, distant gaming floor hum fading, premium corridor silence.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, resolute aftermath atmosphere, keep character and background consistent.
+
+
+--- Video 25 (SRT Lines 86–89 | 02:39 – 02:45 | 2 shots) ---
+
+Reference guide:
+character1 = protagonist, Black man, early fifties, casino resort majority owner in simple elegant clothes
+character2 = antagonist, White male casino hotel floor manager in full hospitality suit
+image1 = casino hotel VIP check-in area, evening light, marble floors, chandeliers, gaming floor glow
+
+0s-3s: wide overhead shot of the full VIP check-in area. The velvet rope line. The executive arc. character2 isolated on the marble floor. character1 disappearing toward the private elevator corridor he was told he did not belong near. The power structure of the space has completely reversed.
+
+No dialogue.
+
+Audio: wide casino hotel ambience, low HVAC, distant slot machine shimmer, soft crowd murmur far away, the hush of many people saying nothing.
+
+Transition: smash cut.
+
+3s-6s: extreme close-up on character1's eyes reflected briefly in a mirrored column as he walks deeper into the corridor. Sharp. Focused. Absolutely settled. Part two is coming.
+
+No dialogue.
+
+Audio: one low heartbeat-like thud in ambience, then soft corridor room tone, then silence.
+
+No music beyond faint ambient casino resort sound. Only human voices, room tone, VIP hotel and gaming floor ambience, subtle ASMR details. Warm evening lighting, ultra-realistic cinematic style, cliffhanger atmosphere, keep character and background consistent.
+
+
+==================================================
+FINAL QUALITY CHECK
+==================================================
+
+1. No full-word all-caps used: PASS
+2. Every final shot ends at 8 seconds or earlier: PASS (all 25 verified)
+3. Every video prompt uses exactly 1 background and 2 characters: PASS
+4. Transitions follow scene logic: PASS
+5. Audio present in every shot: PASS
+6. Continuity preserved: PASS
+7. Character names replaced with labels: PASS (dialogue preserves spoken names only)
+8. Background references written as image labels: PASS
+9. Every video unit from validated split: PASS (two-pass check above)
+10. character1, character2, character3 fixed across project: PASS
+11. image1 fixed across project: PASS
+12. No video exceeds 8 seconds: PASS
+13. Total references: 4 (under limit of 10): PASS
+
+All checks: PASS

@@ -119,6 +119,34 @@ def load_scenario_prompts(scenario_dir: str) -> list[str]:
         return [ln.strip() for ln in f if ln.strip() and not ln.strip().startswith("#")]
 
 
+def build_worker_env(worker_id: str, worker_index: int) -> dict:
+    """
+    Build env riêng cho mỗi video worker để nhịp gửi/poll khác nhau nhẹ.
+
+    Mục tiêu:
+    - Giảm việc 5 worker có pattern thời gian giống hệt nhau.
+    - Không đổi mạnh tốc độ tổng (chỉ dao động nhỏ, bảo thủ).
+    """
+    env = os.environ.copy()
+
+    # Seed ổn định theo worker để mỗi worker có "tempo" riêng giữa các lần chạy.
+    env["FLOW_HUMANIZE_ENABLED"] = env.get("FLOW_HUMANIZE_ENABLED", "1")
+    env["FLOW_HUMANIZE_SEED"] = env.get("FLOW_HUMANIZE_SEED", f"{worker_id}_seed_{worker_index}")
+
+    # Dao động nhẹ quanh nhịp hiện tại (không tăng thời gian quá nhiều).
+    env.setdefault("FLOW_SEND_JITTER_MIN", "0.85")
+    env.setdefault("FLOW_SEND_JITTER_MAX", "1.35")
+    env.setdefault("FLOW_SOFT_PAUSE_PROB", "0.12")
+    env.setdefault("FLOW_SOFT_PAUSE_MIN_SEC", "1.2")
+    env.setdefault("FLOW_SOFT_PAUSE_MAX_SEC", "3.2")
+
+    # Video: thời gian "suy nghĩ" trước khi gửi và poll lệch nhẹ quanh 10s.
+    env.setdefault("FLOW_VIDEO_PRE_SEND_BASE_SEC", "0.8")
+    env.setdefault("FLOW_VIDEO_POLL_BASE_SEC", "10.0")
+    env.setdefault("FLOW_VIDEO_POLL_JITTER_SEC", "1.2")
+    return env
+
+
 # ── Browser launcher ────────────────────────────────────────────────────────
 async def launch_browser(p, profile_dir: str, proxy_str: str | None, har_path: str):
     """
@@ -424,6 +452,7 @@ async def run_parallel(args):
                     await asyncio.sleep(stagger)
 
                 log(f"Spawn subprocess video: {worker_id}", "RUN")
+                worker_env = build_worker_env(worker_id=worker_id, worker_index=i)
                 proc = subprocess.Popen(
                     [
                         sys.executable,
@@ -438,6 +467,7 @@ async def run_parallel(args):
                         }),
                     ],
                     cwd=_SCRIPT_DIR,
+                    env=worker_env,
                 )
                 video_subprocesses.append((worker_id, proc))
 
@@ -461,6 +491,7 @@ async def run_parallel(args):
                 await asyncio.sleep(stagger)
 
             log(f"Spawn subprocess video: {worker_id}", "RUN")
+            worker_env = build_worker_env(worker_id=worker_id, worker_index=i)
             proc = subprocess.Popen(
                 [
                     sys.executable,
@@ -475,6 +506,7 @@ async def run_parallel(args):
                     }),
                 ],
                 cwd=_SCRIPT_DIR,
+                env=worker_env,
             )
             video_subprocesses.append((worker_id, proc))
 

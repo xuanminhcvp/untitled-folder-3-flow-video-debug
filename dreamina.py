@@ -63,7 +63,7 @@ GOOGLE_FLOW_HOME = "https://labs.google/fx/vi/tools/flow"
 # Chọn nền tảng chạy:
 # - dreamina: chạy luồng tự động cũ (gửi prompt + tải ảnh)
 # - google_flow: chỉ bật chế độ bắt request/response để bạn thao tác tay
-TARGET_PLATFORM = os.environ.get("TARGET_PLATFORM", "dreamina").strip().lower()
+TARGET_PLATFORM = os.environ.get("TARGET_PLATFORM", "google_flow").strip().lower()
 # Mode Google Flow:
 # - 1: chỉ bắt network thủ công (không tự gửi prompt)
 # - 0: tự gửi prompt + tải ảnh bằng request/response API
@@ -75,7 +75,8 @@ GOOGLE_FLOW_RANDOM_PROMPTS_COUNT = int(os.environ.get("GOOGLE_FLOW_RANDOM_PROMPT
 # Mỗi lần chạy Google Flow sẽ ép tạo project mới để test tách biệt.
 GOOGLE_FLOW_FORCE_NEW_PROJECT = os.environ.get("GOOGLE_FLOW_FORCE_NEW_PROJECT", "1").strip() in {"1", "true", "yes"}
 # Tự động upscale ảnh đã tạo lên 2K bằng API (không bấm UI).
-GOOGLE_FLOW_AUTO_UPSCALE_2K = os.environ.get("GOOGLE_FLOW_AUTO_UPSCALE_2K", "1").strip() in {"1", "true", "yes"}
+# Mặc định tắt theo yêu cầu: dùng ảnh thường để giảm thời gian chờ.
+GOOGLE_FLOW_AUTO_UPSCALE_2K = os.environ.get("GOOGLE_FLOW_AUTO_UPSCALE_2K", "0").strip() in {"1", "true", "yes"}
 # Chọn loại media khi chạy auto Google Flow:
 # - image: tạo ảnh như hiện tại
 # - video: tạo video (test request/response video)
@@ -137,6 +138,27 @@ GOOGLE_FLOW_VIDEO_DOWNLOAD_MAX_ATTEMPTS = int(os.environ.get("GOOGLE_FLOW_VIDEO_
 GOOGLE_FLOW_VIDEO_ALLOW_RELOAD_DURING_DOWNLOAD = os.environ.get(
     "GOOGLE_FLOW_VIDEO_ALLOW_RELOAD_DURING_DOWNLOAD", "1"
 ).strip().lower() in {"1", "true", "yes"}
+# ── Human-like pacing (giảm dấu hiệu automation, vẫn giữ tốc độ gần hiện tại) ──
+# Bật/tắt nhịp gửi "lúc nhanh lúc chậm" có kiểm soát.
+# Mặc định bật, nhưng dao động rất nhẹ để không làm tổng thời gian lệch nhiều.
+FLOW_HUMANIZE_ENABLED = os.environ.get("FLOW_HUMANIZE_ENABLED", "1").strip().lower() in {"1", "true", "yes"}
+# Seed riêng theo worker để mỗi Chrome có nhịp khác nhau ổn định giữa các lần chạy.
+# Nếu không truyền seed thì dùng ngẫu nhiên hệ thống.
+FLOW_HUMANIZE_SEED = os.environ.get("FLOW_HUMANIZE_SEED", "").strip()
+# Biên dao động delay sau khi gửi prompt (theo tỉ lệ của base delay).
+# Ví dụ base=1.0, min=0.85, max=1.35 -> delay dao động 0.85s..1.35s.
+FLOW_SEND_JITTER_MIN = float(os.environ.get("FLOW_SEND_JITTER_MIN", "0.85"))
+FLOW_SEND_JITTER_MAX = float(os.environ.get("FLOW_SEND_JITTER_MAX", "1.35"))
+# Xác suất chèn pause ngắn sau prompt để tránh nhịp quá đều.
+# Mặc định 12% để tác động nhẹ.
+FLOW_SOFT_PAUSE_PROB = float(os.environ.get("FLOW_SOFT_PAUSE_PROB", "0.12"))
+FLOW_SOFT_PAUSE_MIN_SEC = float(os.environ.get("FLOW_SOFT_PAUSE_MIN_SEC", "1.2"))
+FLOW_SOFT_PAUSE_MAX_SEC = float(os.environ.get("FLOW_SOFT_PAUSE_MAX_SEC", "3.2"))
+# Delay "suy nghĩ" trước khi bấm gửi prompt video (vì video đi từng cảnh).
+FLOW_VIDEO_PRE_SEND_BASE_SEC = float(os.environ.get("FLOW_VIDEO_PRE_SEND_BASE_SEC", "0.8"))
+# Poll interval trạng thái video (giây) — cho lệch nhẹ thay vì cố định 10s.
+FLOW_VIDEO_POLL_BASE_SEC = float(os.environ.get("FLOW_VIDEO_POLL_BASE_SEC", "10.0"))
+FLOW_VIDEO_POLL_JITTER_SEC = float(os.environ.get("FLOW_VIDEO_POLL_JITTER_SEC", "1.2"))
 # Poll map API scene->image trong mode Google Flow (giây)
 GOOGLE_FLOW_API_MAP_TIMEOUT_SEC = int(os.environ.get("GOOGLE_FLOW_API_MAP_TIMEOUT_SEC", "120"))
 # Nếu bật, script sẽ mở Flow và chờ bạn setup xong rồi Enter mới bắt đầu gửi prompt.
@@ -184,6 +206,9 @@ API_HISTORY_MAX_AGE_SEC = 600  # Chỉ nhận record API trong vòng 10 phút g�
 
 VP_WIDTH  = 1440
 VP_HEIGHT = 900
+
+# RNG riêng cho pacing để không ảnh hưởng logic random khác trong file.
+_flow_human_rng = random.Random(FLOW_HUMANIZE_SEED or None)
 
 # ── Debug system ──────────────────────────────────
 # Thư mục lưu screenshot và log debug mỗi lần chạy
@@ -3805,6 +3830,51 @@ async def open_google_flow_new_project(page, timeout_sec: int = 45) -> bool:
     return False
 
 
+def _flow_human_delay_after_send(base_delay_sec: float) -> float:
+    """
+    Tính delay sau khi gửi prompt theo kiểu "human-like" nhưng bảo thủ.
+
+    Mục tiêu:
+    - Không gửi đều tuyệt đối như máy.
+    - Không làm tăng tổng thời gian quá nhiều.
+    """
+    # Fallback an toàn: giữ đúng delay gốc như hiện tại.
+    base = max(0.2, float(base_delay_sec))
+    if not FLOW_HUMANIZE_ENABLED:
+        return base
+
+    # Clamp cấu hình để tránh nhập nhầm làm delay quá lớn/nhỏ.
+    jitter_min = min(max(FLOW_SEND_JITTER_MIN, 0.3), 3.0)
+    jitter_max = min(max(FLOW_SEND_JITTER_MAX, jitter_min), 3.5)
+
+    delay = base * _flow_human_rng.uniform(jitter_min, jitter_max)
+
+    # Thỉnh thoảng chèn pause ngắn để nhịp không quá đều.
+    pause_prob = min(max(FLOW_SOFT_PAUSE_PROB, 0.0), 0.8)
+    if _flow_human_rng.random() < pause_prob:
+        pause_min = min(max(FLOW_SOFT_PAUSE_MIN_SEC, 0.0), 30.0)
+        pause_max = min(max(FLOW_SOFT_PAUSE_MAX_SEC, pause_min), 45.0)
+        delay += _flow_human_rng.uniform(pause_min, pause_max)
+
+    # Giới hạn trần bảo thủ để không đội thời gian quá nhiều do config lỗi.
+    return min(delay, max(6.0, base * 4.0))
+
+
+def _flow_human_video_poll_interval() -> float:
+    """
+    Tính chu kỳ poll video có dao động nhẹ quanh mốc 10s.
+    Dao động nhỏ giúp nhịp request tự nhiên hơn mà không ảnh hưởng nhiều SLA.
+    """
+    base = max(3.0, FLOW_VIDEO_POLL_BASE_SEC)
+    if not FLOW_HUMANIZE_ENABLED:
+        return base
+
+    jitter = min(max(FLOW_VIDEO_POLL_JITTER_SEC, 0.0), 5.0)
+    low = max(2.0, base - jitter)
+    high = max(low, base + jitter)
+    return _flow_human_rng.uniform(low, high)
+
+
 async def run_google_flow_auto_request_response(page, prompts: list[str]) -> int:
     """
     Auto mode cho Google Flow:
@@ -3874,7 +3944,9 @@ async def run_google_flow_auto_request_response(page, prompts: list[str]) -> int
             await capture_prompt_submission_trace(page, i, prompt)
         except Exception as e:
             log(f"Lỗi gửi prompt #{i+1}: {e}", "WARN")
-        await asyncio.sleep(max(0.2, DELAY_SEC))
+        # Delay sau mỗi prompt có dao động nhẹ để tránh nhịp gửi quá đều.
+        # Vẫn neo quanh DELAY_SEC để giữ tổng thời gian gần mức cũ.
+        await asyncio.sleep(_flow_human_delay_after_send(DELAY_SEC))
 
     log(f"Đã gửi xong {len(prompts)} prompt, chờ {GOOGLE_FLOW_WAIT_AFTER_LAST_PROMPT_SEC}s...", "WAIT")
     for remaining in range(GOOGLE_FLOW_WAIT_AFTER_LAST_PROMPT_SEC, 0, -1):
@@ -4223,6 +4295,9 @@ async def run_google_flow_auto_video_request_response(page, prompts: list[str]) 
                 log(f"  cảnh_{scene_no:03d}: Không tìm được token reference trong prompt.", "DBG")
 
         # ── Bước 1b: Gửi prompt ────────────────────────────────────────────────
+        # Delay "suy nghĩ" ngắn trước khi gửi để nhịp thao tác tự nhiên hơn.
+        # Mặc định chỉ 0.x - vài giây nên không làm lệch thời gian tổng quá nhiều.
+        await asyncio.sleep(_flow_human_delay_after_send(FLOW_VIDEO_PRE_SEND_BASE_SEC))
         log(f"[FLOW-VIDEO {i+1}/{len(prompts)}] Gửi prompt: {prompt[:70]}", "SEND")
         sent = False
         try:
@@ -4306,7 +4381,8 @@ async def run_google_flow_auto_video_request_response(page, prompts: list[str]) 
             else:
                 log(f"  [{elapsed}s] canh_{scene_no:03d}: chưa thấy mediaId...", "DBG")
 
-            await asyncio.sleep(10)
+            # Poll theo chu kỳ có dao động nhẹ thay vì đúng 10s tuyệt đối.
+            await asyncio.sleep(_flow_human_video_poll_interval())
 
         if not scene_resolved:
             log(
