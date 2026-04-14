@@ -2,7 +2,7 @@
 """
 proxy_bridge.py
 ───────────────
-Khởi động 5 local proxy bridge dùng gost.
+Khởi động nhiều local proxy bridge dùng gost.
 
 Vấn đề: Chromium/Playwright KHÔNG hỗ trợ SOCKS5 proxy có authentication.
 Giải pháp: Chạy gost làm proxy trung gian:
@@ -112,6 +112,25 @@ def is_port_open(port: int) -> bool:
         return False
 
 
+def find_listen_pid_by_port(port: int) -> int | None:
+    """Tìm PID process đang listen port local (nếu có)."""
+    try:
+        proc = subprocess.run(
+            ["lsof", "-nP", "-iTCP:%d" % int(port), "-sTCP:LISTEN", "-t"],
+            capture_output=True,
+            text=True,
+            timeout=3,
+        )
+        if proc.returncode != 0:
+            return None
+        out = (proc.stdout or "").strip().splitlines()
+        if not out:
+            return None
+        return int(out[0].strip())
+    except Exception:
+        return None
+
+
 def cmd_start():
     """Khởi động tất cả gost bridge."""
     if not os.path.exists(GOST_PATH):
@@ -122,7 +141,8 @@ def cmd_start():
     config   = load_config()
     workers  = config.get("video_workers", [])
     bridges  = get_bridge_configs(workers)
-    pid_map  = {}
+    # Giữ lại PID map cũ để không làm mất thông tin worker đã chạy từ trước.
+    pid_map  = load_pids()
 
     print(f"\n  Khởi động {len(bridges)} proxy bridge...\n")
 
@@ -133,6 +153,13 @@ def cmd_start():
         # Nếu port đã mở → skip (đã chạy rồi)
         if is_port_open(local_port):
             print(f"  ⚠️  {worker_id}: port {local_port} đã mở, bỏ qua.")
+            live_pid = find_listen_pid_by_port(local_port)
+            if live_pid:
+                pid_map[worker_id] = {
+                    "pid":        live_pid,
+                    "local_port": local_port,
+                    "remote":     b["remote"],
+                }
             continue
 
         # Khởi động gost: lắng nghe localhost:local_port → forward đến remote proxy
@@ -196,8 +223,10 @@ def cmd_status():
         worker_id  = b["worker_id"]
         local_port = b["local_port"]
         is_up      = is_port_open(local_port)
-        pid        = pid_map.get(worker_id, {}).get("pid", "?")
-        status     = f"✅ UP  (PID={pid})" if is_up else "❌ DOWN"
+        pid_cached = pid_map.get(worker_id, {}).get("pid", "?")
+        pid_live = find_listen_pid_by_port(local_port)
+        pid_show = pid_live if pid_live else pid_cached
+        status     = f"✅ UP  (PID={pid_show})" if is_up else "❌ DOWN"
         print(f"  {worker_id:<12} :{local_port:<11} {status:<22} {b['proxy_real']}")
     print()
 
@@ -208,7 +237,7 @@ def cmd_test():
     workers = config.get("video_workers", [])
     bridges = get_bridge_configs(workers)
 
-    print(f"\n  Test kết nối qua 5 bridge...\n")
+    print(f"\n  Test kết nối qua {len(bridges)} bridge...\n")
     for b in bridges:
         worker_id  = b["worker_id"]
         local_port = b["local_port"]

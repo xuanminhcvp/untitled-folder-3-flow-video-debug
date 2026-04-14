@@ -443,6 +443,8 @@ async def preload_reference_library_images(
         "requested_count": len(image_paths or []),
         "valid_count": 0,
         "upload_triggered": False,
+        "verify_all_found": False,
+        "missing_after_preload": [],
         "waited_sec": 0,
         "url_after_preload": "",
         "error": "",
@@ -541,6 +543,58 @@ async def preload_reference_library_images(
     dbg["url_after_preload"] = str(page.url or "")
     if not dbg["upload_triggered"]:
         dbg["error"] = "upload_trigger_not_found"
+        return False, dbg
+
+    # Verify cứng: sau preload phải tìm lại được từng ảnh trong thư viện.
+    # Nếu thiếu bất kỳ ảnh nào -> trả FAIL để caller retry preload.
+    missing_names: list[str] = []
+    try:
+        plus_btn = await _find_reference_plus_button(page, vp_height)
+        if not plus_btn or not await _click_force(page, plus_btn):
+            dbg["error"] = "verify_open_library_failed"
+            return False, dbg
+        await asyncio.sleep(0.6)
+        search_box = await _find_reference_search_box(page)
+        if not search_box:
+            dbg["error"] = "verify_search_box_not_found"
+            return False, dbg
+
+        for abs_path in valid:
+            base_name = os.path.basename(abs_path)
+            stem_name = os.path.splitext(base_name)[0]
+            found = False
+            for query in (stem_name, base_name):
+                try:
+                    await search_box.click()
+                    await asyncio.sleep(0.05)
+                    try:
+                        await search_box.fill("")
+                    except Exception:
+                        await page.keyboard.press("Meta+a" if platform.system() == "Darwin" else "Control+a")
+                        await page.keyboard.press("Backspace")
+                    await asyncio.sleep(0.05)
+                    await search_box.fill(query)
+                    await asyncio.sleep(0.8)
+                    result_el = await _find_reference_dropdown_result(page, search_box, stem_name)
+                    if result_el:
+                        found = True
+                        break
+                except Exception:
+                    continue
+            if not found:
+                missing_names.append(base_name)
+        try:
+            await page.keyboard.press("Escape")
+        except Exception:
+            pass
+    except Exception as e:
+        dbg["error"] = f"verify_exception:{e}"
+        return False, dbg
+
+    dbg["missing_after_preload"] = missing_names
+    dbg["verify_all_found"] = len(missing_names) == 0
+    if missing_names:
+        dbg["error"] = "verify_missing_in_library"
         return False, dbg
     return True, dbg
 

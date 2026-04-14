@@ -127,6 +127,16 @@ GOOGLE_FLOW_VIDEO_ALLOW_DIRECT_FILE_INPUT = os.environ.get(
 GOOGLE_FLOW_VIDEO_REQUIRE_REFERENCE_UPLOAD = os.environ.get(
     "GOOGLE_FLOW_VIDEO_REQUIRE_REFERENCE_UPLOAD", "0"
 ).strip() in {"1", "true", "yes"}
+# Số lần thử preload/upload toàn bộ ảnh reference ở đầu phiên video.
+# Ví dụ =3 nghĩa là: lần đầu + retry thêm 2 lần.
+GOOGLE_FLOW_VIDEO_PRELOAD_MAX_ATTEMPTS = int(
+    os.environ.get("GOOGLE_FLOW_VIDEO_PRELOAD_MAX_ATTEMPTS", "3")
+)
+# Số ảnh reference tối đa có thể attach cho mỗi prompt video.
+# Flow UI hiện giới hạn tối đa 3 ảnh/prompt.
+GOOGLE_FLOW_VIDEO_MAX_REFERENCES_PER_PROMPT = int(
+    os.environ.get("GOOGLE_FLOW_VIDEO_MAX_REFERENCES_PER_PROMPT", "3")
+)
 
 # Số vòng retry tối đa khi tải video theo mỗi cảnh.
 # Khi debug nhanh nhiều cảnh, có thể hạ xuống (ví dụ 6) để ra báo cáo sớm.
@@ -190,6 +200,9 @@ FLOW_VIDEO_MIN_VALID_BYTES = int(os.environ.get("FLOW_VIDEO_MIN_VALID_BYTES", "5
 FLOW_VIDEO_MEDIA_MAX_CONSECUTIVE_FAILS = int(
     os.environ.get("FLOW_VIDEO_MEDIA_MAX_CONSECUTIVE_FAILS", "4")
 )
+# Mã trả về đặc biệt để báo cho runner biết:
+# luồng video dừng sớm vì preload/upload reference thất bại.
+FLOW_VIDEO_PRELOAD_FAILED_CODE = -2
 # Poll map API scene->image trong mode Google Flow (giây)
 GOOGLE_FLOW_API_MAP_TIMEOUT_SEC = int(os.environ.get("GOOGLE_FLOW_API_MAP_TIMEOUT_SEC", "120"))
 # Nếu bật, script sẽ mở Flow và chờ bạn setup xong rồi Enter mới bắt đầu gửi prompt.
@@ -764,6 +777,70 @@ def parse_structured_story_input(path: str = PROMPTS_FILE) -> dict:
         lines.append("")
         lines.append("Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.")
         video_prompts.append("\n".join(lines).strip())
+
+    # ── Fallback parser cho format mới: "Video 1: Reference guide: ..." ──
+    # Mục tiêu:
+    # - Không phá format cũ đã chạy ổn định.
+    # - Nếu format cũ không bắt được block nào, tự động parse theo format mới.
+    if not video_prompts:
+        full_marker = "FULL VIDEO PROMPTS"
+        full_idx = text.find(full_marker)
+        video_zone = text[full_idx + len(full_marker):] if full_idx >= 0 else text
+
+        # Bắt đầu của từng block video theo kiểu:
+        #   Video 1:
+        #   Video 12:
+        # Cho phép có/không có khoảng trắng đầu dòng.
+        video_headers = list(re.finditer(r"(?im)^\s*video\s+(\d+)\s*:\s*", video_zone))
+        for i, h in enumerate(video_headers):
+            video_no = int(h.group(1))
+            body_start = h.end()
+            body_end = video_headers[i + 1].start() if i + 1 < len(video_headers) else len(video_zone)
+            body = (video_zone[body_start:body_end] or "").strip()
+            if not body:
+                continue
+
+            # Parse label reference dùng trong block:
+            # - CHARACTER1 = ...
+            # - IMAGE2 = ...
+            used_labels: list[str] = []
+            for lm in re.finditer(r"\b(character\d+|image\d+)\b\s*=", body, flags=re.IGNORECASE):
+                lb = lm.group(1).strip().lower()
+                if lb not in used_labels:
+                    used_labels.append(lb)
+
+            # Cố gắng bỏ phần "Reference guide: ..." để prompt ngắn gọn hơn.
+            body_without_ref = re.sub(
+                r"^\s*reference\s+guide\s*:\s*",
+                "",
+                body,
+                flags=re.IGNORECASE,
+            ).strip()
+
+            # Nếu có mốc shot đầu tiên (0s-3s:), ưu tiên lấy từ đó trở đi
+            # để tránh lặp phần định nghĩa reference ở đầu.
+            shot_anchor = re.search(r"\b0s\s*-\s*\d+s\s*:", body_without_ref, flags=re.IGNORECASE)
+            if shot_anchor:
+                body_without_ref = body_without_ref[shot_anchor.start():].strip()
+
+            # Nếu không thấy label trong block, fallback dùng toàn bộ reference global.
+            if not used_labels:
+                used_labels = sorted(references.keys())
+
+            lines = [f"CẢNH {video_no:03d}: VIDEO UNIT {video_no}"]
+            lines.append("Reference labels phải giữ cố định:")
+            for lb in used_labels:
+                ref_text = references.get(lb, "")
+                if ref_text:
+                    lines.append(f"- {lb}: {ref_text}")
+                else:
+                    lines.append(f"- {lb}: (không tìm thấy mô tả reference)")
+            lines.append("")
+            lines.append("Nội dung shot/video cần tạo:")
+            lines.append(body_without_ref)
+            lines.append("")
+            lines.append("Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.")
+            video_prompts.append("\n".join(lines).strip())
 
     # Dựng prompt step 1 để tạo ảnh reference; scene 901+ để tránh đụng cảnh video 001..xxx.
     reference_generation_prompts: list[str] = []
@@ -2798,6 +2875,21 @@ def _has_audiovisual_load_ui_error(messages: list[str]) -> bool:
     return False
 
 
+def _has_generic_failure_ui_error(messages: list[str]) -> bool:
+    """
+    Nhận diện lỗi UI chung kiểu "Không thành công"/"failed" để tránh vòng lặp cứng.
+    """
+    for msg in messages or []:
+        low = str(msg).lower()
+        if "không thành công" in low:
+            return True
+        if "failed" in low:
+            return True
+        if "could not load" in low:
+            return True
+    return False
+
+
 def apply_event_order_fallback_scene_map(prompts: list[str], scene_map: dict) -> dict:
     """
     Fallback cho trường hợp API không map được scene rõ ràng (ví dụ prompt không có 'CẢNH 001').
@@ -4710,7 +4802,17 @@ async def _send_one_flow_video_scene_prompt(
         # Attach token reference theo prompt.
         ref_tokens = _extract_reference_tokens_from_video_prompt(prompt)
         if ref_tokens:
-            log(f"  cảnh_{scene_no:03d}: tokens reference: {ref_tokens}", "DBG")
+            max_refs = max(1, int(GOOGLE_FLOW_VIDEO_MAX_REFERENCES_PER_PROMPT))
+            original_tokens = ref_tokens[:]
+            ref_tokens = ref_tokens[:max_refs]
+            dropped_tokens = original_tokens[max_refs:]
+            log(f"  cảnh_{scene_no:03d}: tokens reference: {original_tokens}", "DBG")
+            if dropped_tokens:
+                log(
+                    f"  cảnh_{scene_no:03d}: vượt giới hạn {max_refs} reference/prompt, "
+                    f"bỏ qua token dư: {dropped_tokens}",
+                    "WARN",
+                )
             attach_ok_all = True
             for token in ref_tokens:
                 token_lower = token.lower()
@@ -5056,6 +5158,7 @@ async def _run_google_flow_video_scheduler_no_reload(page, prompts: list[str]) -
 
     stall_rounds_without_ready = 0
     unusual_activity_strike = 0
+    generic_ui_fail_streak = 0
     round_index = 0
     next_send_ts = time.time()
     project_id = _extract_flow_project_id_from_url(page.url)
@@ -5109,6 +5212,27 @@ async def _run_google_flow_video_scheduler_no_reload(page, prompts: list[str]) -
                 await asyncio.sleep(5)
             except Exception as e:
                 log(f"Lỗi khi reload page sau unusual activity: {e}", "WARN")
+            next_send_ts = max(next_send_ts, time.time() + _pick_flow_video_send_interval_sec(stall_rounds_without_ready))
+            continue
+
+        if _has_generic_failure_ui_error(ui_messages):
+            generic_ui_fail_streak += 1
+        else:
+            generic_ui_fail_streak = 0
+        if generic_ui_fail_streak >= 4:
+            cool = max(30, int(FLOW_VIDEO_UNUSUAL_COOLDOWN_SEC // 2))
+            log(
+                f"UI báo lỗi chung liên tiếp {generic_ui_fail_streak} vòng. "
+                f"Cooldown {cool}s + F5 để cắt vòng lặp.",
+                "WARN",
+            )
+            await asyncio.sleep(cool)
+            try:
+                await page.reload(wait_until="domcontentloaded")
+                await asyncio.sleep(4)
+            except Exception as e:
+                log(f"Lỗi reload sau generic-ui-fail: {e}", "WARN")
+            generic_ui_fail_streak = 0
             next_send_ts = max(next_send_ts, time.time() + _pick_flow_video_send_interval_sec(stall_rounds_without_ready))
             continue
 
@@ -5290,13 +5414,26 @@ async def run_google_flow_auto_video_request_response(page, prompts: list[str]) 
         preload_paths = list_reference_image_paths(GOOGLE_FLOW_VIDEO_REFERENCE_DIR)
         log(f"Preload {len(preload_paths)} ảnh reference vào thư viện Flow...", "STEP")
         if preload_paths:
-            ok_preload, preload_dbg = await preload_reference_library_images(
-                page,
-                image_paths=preload_paths,
-                vp_height=VP_HEIGHT,
-                preload_wait_sec=GOOGLE_FLOW_VIDEO_PRELOAD_WAIT_SEC,
-                log_cb=log,
-            )
+            ok_preload = False
+            preload_dbg = {}
+            max_preload_attempts = max(1, int(GOOGLE_FLOW_VIDEO_PRELOAD_MAX_ATTEMPTS))
+            for preload_attempt in range(1, max_preload_attempts + 1):
+                ok_preload, preload_dbg = await preload_reference_library_images(
+                    page,
+                    image_paths=preload_paths,
+                    vp_height=VP_HEIGHT,
+                    preload_wait_sec=GOOGLE_FLOW_VIDEO_PRELOAD_WAIT_SEC,
+                    log_cb=log,
+                )
+                if ok_preload:
+                    break
+                if preload_attempt < max_preload_attempts:
+                    log(
+                        f"Preload reference thất bại (lần {preload_attempt}/{max_preload_attempts}), thử lại...",
+                        "WARN",
+                    )
+                    await asyncio.sleep(2.0)
+
             log(
                 f"Preload thư viện reference: {'OK' if ok_preload else 'FAIL'} "
                 f"({len(preload_paths)} ảnh, mode={GOOGLE_FLOW_VIDEO_REFERENCE_MODE})",
@@ -5307,6 +5444,13 @@ async def run_google_flow_auto_video_request_response(page, prompts: list[str]) 
                 "flow_video_preload_reference",
                 extra={"ok": ok_preload, "count": len(preload_paths), "debug": preload_dbg},
             )
+            if not ok_preload:
+                log(
+                    "Preload/upload ảnh reference thất bại sau toàn bộ retry. "
+                    "Dừng vòng video để runner quay lại bước tạo ảnh reference.",
+                    "ERR",
+                )
+                return FLOW_VIDEO_PRELOAD_FAILED_CODE
         else:
             log(f"Không tìm thấy ảnh reference trong: {GOOGLE_FLOW_VIDEO_REFERENCE_DIR}", "WARN")
 
@@ -5350,7 +5494,17 @@ async def run_google_flow_auto_video_request_response(page, prompts: list[str]) 
             # Tìm tất cả token reference trong prompt này
             ref_tokens = _extract_reference_tokens_from_video_prompt(prompt)
             if ref_tokens:
-                log(f"  cảnh_{scene_no:03d}: tokens reference: {ref_tokens}", "DBG")
+                max_refs = max(1, int(GOOGLE_FLOW_VIDEO_MAX_REFERENCES_PER_PROMPT))
+                original_tokens = ref_tokens[:]
+                ref_tokens = ref_tokens[:max_refs]
+                dropped_tokens = original_tokens[max_refs:]
+                log(f"  cảnh_{scene_no:03d}: tokens reference: {original_tokens}", "DBG")
+                if dropped_tokens:
+                    log(
+                        f"  cảnh_{scene_no:03d}: vượt giới hạn {max_refs} reference/prompt, "
+                        f"bỏ qua token dư: {dropped_tokens}",
+                        "WARN",
+                    )
                 attach_ok_all = True
                 for token in ref_tokens:
                     token_lower = token.lower()
