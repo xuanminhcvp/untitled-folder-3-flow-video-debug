@@ -1,5 +1,6 @@
 {
   "_comment": "Config hệ thống multi kịch bản song song. Mỗi video_worker = 1 Chrome riêng với 1 kịch bản riêng.",
+  "_proxy_note": "Chromium không hỗ trợ SOCKS5 auth trực tiếp. Chạy 'python3 proxy_bridge.py start' trước để gost làm bridge. Chrome dùng localhost:1100X (không cần auth), gost forward đến proxy thật.",
 
   "image_worker": {
     "_comment": "Chrome tạo ảnh reference — dùng cho TẤT CẢ kịch bản, tạo tuần tự từng kịch bản.",
@@ -11,37 +12,42 @@
     {
       "worker_id": "video_1",
       "profile_dir": "~/dreamina_playwright_profile_video_1",
-      "proxy": "socks5://HPseFo:IpmDzM@118.70.187.141:55508",
+      "proxy": "socks5://127.0.0.1:11001",
+      "proxy_real": "socks5://HPseFo:IpmDzM@118.70.187.141:55508",
       "scenario_dir": "scenarios/kich_ban_A",
-      "_note": "IP: 118.70.187.141"
+      "_note": "IP: 118.70.187.141 — qua bridge localhost:11001"
     },
     {
       "worker_id": "video_2",
       "profile_dir": "~/dreamina_playwright_profile_video_2",
-      "proxy": "socks5://cQPhPD:psxyrr@118.70.171.107:12055",
+      "proxy": "socks5://127.0.0.1:11002",
+      "proxy_real": "socks5://cQPhPD:psxyrr@118.70.171.107:12055",
       "scenario_dir": "scenarios/kich_ban_B",
-      "_note": "IP: 118.70.171.107"
+      "_note": "IP: 118.70.171.107 — qua bridge localhost:11002"
     },
     {
       "worker_id": "video_3",
       "profile_dir": "~/dreamina_playwright_profile_video_3",
-      "proxy": "socks5://dyiuTU:jkkAOj@118.70.187.141:57444",
+      "proxy": "socks5://127.0.0.1:11003",
+      "proxy_real": "socks5://dyiuTU:jkkAOj@118.70.187.141:57444",
       "scenario_dir": "scenarios/kich_ban_C",
-      "_note": "IP: 118.70.187.141 (cùng IP với worker_1, khác port)"
+      "_note": "IP: 118.70.187.141 (cùng IP worker_1) — qua bridge localhost:11003"
     },
     {
       "worker_id": "video_4",
       "profile_dir": "~/dreamina_playwright_profile_video_4",
-      "proxy": "socks5://zZdAHY:fDWwOC@113.160.166.150:55923",
+      "proxy": "socks5://127.0.0.1:11004",
+      "proxy_real": "socks5://zZdAHY:fDWwOC@113.160.166.150:55923",
       "scenario_dir": "scenarios/kich_ban_D",
-      "_note": "IP: 113.160.166.150"
+      "_note": "IP: 113.160.166.150 — qua bridge localhost:11004"
     },
     {
       "worker_id": "video_5",
       "profile_dir": "~/dreamina_playwright_profile_video_5",
-      "proxy": "socks5://BRBJmF:dBTPyg@14.241.72.152:19437",
+      "proxy": "socks5://127.0.0.1:11005",
+      "proxy_real": "socks5://BRBJmF:dBTPyg@14.241.72.152:19437",
       "scenario_dir": "scenarios/kich_ban_E",
-      "_note": "IP: 14.241.72.152"
+      "_note": "IP: 14.241.72.152 — qua bridge localhost:11005"
     }
   ]
 }

@@ -70,9 +70,10 @@ def load_config() -> dict:
 def parse_proxy(proxy_str: str | None) -> dict | None:
     """
     Chuyển proxy string sang dict Playwright.
-    Input:  socks5://USER:PASS@IP:PORT
-    Output: {"server": "socks5://IP:PORT", "username": "USER", "password": "PASS"}
-    Trả None nếu proxy_str rỗng hoặc không hợp lệ.
+
+    Hỗ trợ 2 format:
+    - Có auth:    socks5://USER:PASS@IP:PORT  (proxy thật)
+    - Không auth: socks5://IP:PORT            (local bridge — khi có gost chạy sẵn)
     """
     if not proxy_str:
         return None
@@ -81,17 +82,20 @@ def parse_proxy(proxy_str: str | None) -> dict | None:
         if len(proto_rest) < 2:
             return None
         proto = proto_rest[0]
-        rest = proto_rest[1]
-        creds_host = rest.split("@", 1)
-        if len(creds_host) < 2:
-            return None
-        creds = creds_host[0].split(":", 1)
-        host_port = creds_host[1]
-        return {
-            "server":   f"{proto}://{host_port}",
-            "username": creds[0],
-            "password": creds[1] if len(creds) > 1 else "",
-        }
+        rest  = proto_rest[1]
+
+        if "@" in rest:
+            # Có auth: USER:PASS@IP:PORT
+            creds_part, host_port = rest.split("@", 1)
+            creds = creds_part.split(":", 1)
+            return {
+                "server":   f"{proto}://{host_port}",
+                "username": creds[0],
+                "password": creds[1] if len(creds) > 1 else "",
+            }
+        else:
+            # Không auth (local bridge): chỉ cần server
+            return {"server": f"{proto}://{rest}"}
     except Exception as e:
         log(f"Không parse được proxy '{proxy_str}': {e}", "WARN")
         return None

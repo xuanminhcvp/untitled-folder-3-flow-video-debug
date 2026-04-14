@@ -41,28 +41,35 @@ def load_config() -> dict:
 def parse_proxy(proxy_str: str | None) -> dict | None:
     """
     Chuyển proxy string sang dict cho Playwright.
-    
-    Input format:  socks5://USER:PASS@IP:PORT  hoặc  http://USER:PASS@IP:PORT
-    Output format: {"server": "...", "username": "...", "password": "..."}
+
+    Hỗ trợ 2 format:
+    - Có auth:  socks5://USER:PASS@IP:PORT  (proxy thật)
+    - Không auth: socks5://IP:PORT          (local bridge — dùng khi đã có gost)
     """
     if not proxy_str:
         return None
-    # Tách phần protocol://creds@host:port
     try:
-        # Ví dụ: socks5://HPseFo:IpmDzM@118.70.187.141:55508
         proto_rest = proxy_str.split("://", 1)
+        if len(proto_rest) < 2:
+            return None
         proto = proto_rest[0]  # socks5 hoặc http
-        rest = proto_rest[1]   # HPseFo:IpmDzM@118.70.187.141:55508
-        
-        creds_host = rest.split("@", 1)
-        creds = creds_host[0].split(":", 1)  # [user, pass]
-        host_port = creds_host[1]            # 118.70.187.141:55508
-        
-        username = creds[0]
-        password = creds[1] if len(creds) > 1 else ""
-        server = f"{proto}://{host_port}"
-        
-        return {"server": server, "username": username, "password": password}
+        rest  = proto_rest[1]  # phần sau ://
+
+        # Kiểm tra có phần auth (có dấu @) hay không
+        if "@" in rest:
+            # Format: USER:PASS@IP:PORT
+            creds_part, host_port = rest.split("@", 1)
+            creds = creds_part.split(":", 1)
+            username = creds[0]
+            password = creds[1] if len(creds) > 1 else ""
+            return {
+                "server":   f"{proto}://{host_port}",
+                "username": username,
+                "password": password,
+            }
+        else:
+            # Format không auth: IP:PORT (dùng cho local bridge)
+            return {"server": f"{proto}://{rest}"}
     except Exception as e:
         print(f"[WARN] Không parse được proxy '{proxy_str}': {e}")
         return None
