@@ -41,14 +41,17 @@ def load_config() -> dict:
         return json.load(f)
 
 
-def parse_proxy_parts(proxy_str: str) -> tuple[str, str, str, str, str]:
+def parse_proxy_real_parts(proxy_str: str) -> tuple[str, str, str, str, str]:
     """
-    Parse 'socks5://USER:PASS@IP:PORT'
+    Parse proxy THẬT dạng 'socks5://USER:PASS@IP:PORT'
     Trả về: (proto, user, password, ip, port)
+    Chỉ dùng với proxy có auth — đây là proxy gost sẽ forward tới.
     """
     proto_rest = proxy_str.split("://", 1)
     proto = proto_rest[0]
     rest  = proto_rest[1]
+    if "@" not in rest:
+        raise ValueError(f"proxy_real phải có auth (USER:PASS@IP:PORT), nhận được: '{proxy_str}'")
     creds_host = rest.split("@", 1)
     user, password = creds_host[0].split(":", 1)
     ip, port = creds_host[1].rsplit(":", 1)
@@ -56,20 +59,31 @@ def parse_proxy_parts(proxy_str: str) -> tuple[str, str, str, str, str]:
 
 
 def get_bridge_configs(workers: list[dict]) -> list[dict]:
-    """Build danh sách bridge: local_port → remote proxy."""
+    """
+    Build danh sách bridge config từ danh sách worker.
+    Đọc field 'proxy_real' (proxy thật có auth) để gost forward.
+    Field 'proxy' là local bridge (socks5://127.0.0.1:1100X) mà Chrome sẽ dùng.
+    """
     bridges = []
     for i, w in enumerate(workers):
-        proxy_str = w.get("proxy")
-        if not proxy_str:
+        # Ưu tiên proxy_real; nếu không có thì thử proxy (format cũ trước khi cập nhật)
+        proxy_real_str = w.get("proxy_real") or w.get("proxy", "")
+        if not proxy_real_str or "@" not in proxy_real_str:
+            # Không phải proxy có auth → không cần bridge
             continue
-        proto, user, password, ip, port = parse_proxy_parts(proxy_str)
         local_port = LOCAL_PORT_START + i
+        try:
+            proto, user, password, ip, port = parse_proxy_real_parts(proxy_real_str)
+        except Exception as e:
+            print(f"  [WARN] Bỏ qua {w['worker_id']}: {e}")
+            continue
         bridges.append({
-            "worker_id":  w["worker_id"],
-            "local_port": local_port,
-            "local_addr": f"socks5://:{local_port}",   # gost lắng nghe local
-            "remote":     f"{proto}://{user}:{password}@{ip}:{port}",
-            "proxy_str":  proxy_str,
+            "worker_id":   w["worker_id"],
+            "local_port":  local_port,
+            "local_addr":  f"socks5://:{local_port}",
+            "remote":      f"{proto}://{user}:{password}@{ip}:{port}",
+            "proxy_real":  proxy_real_str,
+            "proxy_local": w.get("proxy", f"socks5://127.0.0.1:{local_port}"),
         })
     return bridges
 
@@ -141,7 +155,7 @@ def cmd_start():
         time.sleep(0.3)  # chờ gost bind port
 
         if is_port_open(local_port):
-            print(f"  ✅ {worker_id}: localhost:{local_port} → {b['proxy_str']} (PID={proc.pid})")
+            print(f"  ✅ {worker_id}: localhost:{local_port} → {b['proxy_real']} (PID={proc.pid})")
         else:
             print(f"  ❌ {worker_id}: port {local_port} không mở được!")
 
@@ -184,7 +198,7 @@ def cmd_status():
         is_up      = is_port_open(local_port)
         pid        = pid_map.get(worker_id, {}).get("pid", "?")
         status     = f"✅ UP  (PID={pid})" if is_up else "❌ DOWN"
-        print(f"  {worker_id:<12} :{local_port:<11} {status:<10} {b['proxy_str']}")
+        print(f"  {worker_id:<12} :{local_port:<11} {status:<22} {b['proxy_real']}")
     print()
 
 
