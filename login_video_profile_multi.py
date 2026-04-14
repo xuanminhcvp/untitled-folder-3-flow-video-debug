@@ -116,7 +116,9 @@ async def open_login_browser(worker: dict, worker_label: str):
             ],
             "ignore_default_args": ["--enable-automation"],
             "accept_downloads": True,
-            "viewport": {"width": 1920, "height": 1080},
+            # viewport=None → Chrome tự dùng kích thước màn hình thật
+            # Không cố định để login thủ công thoải mái scroll/tương tác
+            "viewport": None,
         }
         
         # Thêm proxy nếu có
