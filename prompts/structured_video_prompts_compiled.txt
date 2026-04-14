@@ -1,0 +1,763 @@
+### PROMPT 001
+CẢNH 001: VIDEO UNIT 1
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-3s: wide shot of image1, aggressive handheld, fast push-in toward the luxury sedan. character2 stands over character1 near the driver-side door, pointing down with full-arm authority, face contorted with aggression, jaw clenched, brow furrowed, neck veins visible. character1 has both hands raised, standing still, expression calm but alert.
+
+character2 – aggressive, commanding:
+"Get on the ground. Now. On the ground."
+
+Audio: quiet morning air shattered by sharp commanding voice, boot scrape on asphalt, faint radio static from character2's belt, distant bird startled into flight.
+
+Transition: smash cut.
+
+3s-5s: medium shot, slight low angle on character1. character1 takes a half-step back, hands still raised at shoulder height, palms open, expression composed but firm, trying to speak. character2 advances into frame from the right.
+
+character1 – calm, measured:
+"Officer, I live here. This is my—"
+
+Audio: soft morning breeze, shoe scrape on pavement, fabric shift from raised arms, distant dog bark.
+
+Transition: hard cut.
+
+5s-8s: tight medium close-up on character2 pushing into character1's space. character2 jabs a rigid finger toward character1's face, sneering with open contempt, upper lip curling. character1 partially visible at frame edge, still composed.
+
+character2 – hostile, silencing:
+"Shut your mouth."
+
+Audio: sharp breath through nose, leather duty belt creak, faint radio crackle, tense morning silence pressing in.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, tense hostile atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 002
+CẢNH 002: VIDEO UNIT 2
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-2s: medium close-up on character2, slight handheld. character2 leans forward with mocking superiority, head tilted, eyebrows raised, lips curled into a sneer. character1 visible in soft focus behind, hands still partially raised.
+
+character2 – mocking, dismissive:
+"Did I ask where you live?"
+
+Audio: quiet street hum, aggressive exhale, boot shift on asphalt.
+
+Transition: quick cut.
+
+2s-4s: medium shot on character1, static frame. character1 stands with hands still slightly raised, posture upright, expression steady, trying to de-escalate with open body language. character2 looms at frame edge.
+
+character1 – calm, restrained:
+"Sir, I'm just trying to—"
+
+Audio: morning air, fabric shift, distant bird call, soft breath.
+
+Transition: smash cut.
+
+4s-7s: close-up on character2, quick push-in. character2's expression shifts from mockery to open disgust, nostrils flaring, upper lip pulling back. He looks character1 up and down slowly.
+
+character2 – disgusted, cruel:
+"You stink. You smell like you crawled out of a junkyard."
+
+Audio: sharp nasal exhale, leather belt creak, faint radio static, tense silence underneath.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, tense hostile atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 003
+CẢNH 003: VIDEO UNIT 3
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-3s: medium shot. character2 circles toward the luxury sedan parked at the curb, gestures at it with an open palm, suspicious glare, jaw working. He looks from the car to character1 and back. character1 stands nearby, hands slowly lowering, expression calm.
+
+character2 – suspicious, accusatory:
+"Where did you steal this car?"
+
+Audio: boot scrape on pavement, distant morning traffic hum, fabric shift, grit crunching underfoot.
+
+Transition: quick cut.
+
+3s-5s: medium close-up on character1, static frame. character1 looks directly at character2, expression firm and unwavering, posture straight, chin level. He speaks clearly.
+
+character1 – steady, controlled:
+"I didn't steal anything. I own—"
+
+Audio: soft breath, morning breeze, faint distant lawn sprinkler, calm voice against quiet street.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, tense hostile atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 004
+CẢNH 004: VIDEO UNIT 4
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-2s: close-up on character2, mocking grin spreading across his face. He repeats the word with exaggerated disbelief, head nodding slowly, brow raised, tongue pressing against cheek.
+
+character2 – mocking, contemptuous:
+"You own?"
+
+Audio: sharp exhale through nose, leather belt shift, quiet street.
+
+Transition: hard cut.
+
+2s-5s: medium shot. character2 steps closer to character1, gestures broadly at the luxury sedan with a sweep of his arm, expression dripping with condescension. character1 remains still, jaw tight but composed, eyes steady.
+
+character2 – sneering, derisive:
+"Guys like you don't buy cars like this. You boost them."
+
+Audio: boot step on asphalt, car engine ticking in morning heat, faint radio crackle from belt.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, tense hostile atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 005
+CẢNH 005: VIDEO UNIT 5
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-2s: medium shot on character1, soft handheld. character1 extends one hand forward in a peaceful open-palm gesture, expression calm but with a controlled flicker of concern, posture open and non-threatening.
+
+character1 – measured, appealing:
+"Officer, please. I can show you the—"
+
+Audio: soft morning air, shoe shift on pavement, distant bird, fabric movement.
+
+Transition: quick cut.
+
+2s-5s: tight close-up on character2, aggressive push-in. character2 cuts character1 off with a sharp chopping hand motion, face twisted with contempt, teeth slightly bared, veins in neck taut.
+
+character2 – furious, demeaning:
+"Shut up, you dumb piece of—"
+
+Audio: sharp breath, jaw clench audible, leather holster creak, spit on consonants.
+
+Transition: smash cut.
+
+5s-7s: medium shot from low angle. character2 points down at the pavement with a stiff finger, looming over character1, shoulders squared, body blocking the morning sun. character1 visible in frame, expression hardening but still controlled.
+
+character2 – threatening, absolute:
+"One more word and you eat this pavement."
+
+Audio: menacing silence, faint radio static, boot grinding on grit, distant car passing on the next block.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, tense hostile atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 006
+CẢNH 006: VIDEO UNIT 6
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-3s: medium shot, fast aggressive handheld. character2 lunges forward and grabs character1 by the back of the neck with one hand, spinning him around. character1's body twists, feet lose traction, arms reaching for nothing. Motion blur on the grab. Violent and sudden.
+
+No dialogue.
+
+Audio: sharp fabric grab, grunt of exertion, body pivot, shoe skid on asphalt, harsh breathing through teeth.
+
+Transition: smash cut.
+
+3s-6s: low angle, nearly ground level. character1 hits the asphalt face-first, cheek slamming against the street surface. character2 immediately drops a knee into character1's spine, pressing him flat against the road. character1's arms wrenched behind his back. Fine dust and grit rise from the impact.
+
+No dialogue.
+
+Audio: heavy body impact on pavement, sharp forced exhale on contact, knee drop thud, fabric drag on asphalt, grit scraping under skin.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, violent tense atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 007
+CẢNH 007: VIDEO UNIT 7
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-4s: extreme close-up on character1's wrists behind his back. Steel handcuffs click shut, metal biting into skin, wrists already reddening from pressure. character2's thick hands visible tightening the cuffs with practiced roughness.
+
+No dialogue.
+
+Audio: metallic handcuff click and ratchet, chain rattle, short grunt of pain, fabric shift against asphalt.
+
+Transition: hard cut.
+
+4s-7s: low ground-level shot along the asphalt surface. character1's face pressed sideways against the street, a thin line of blood running from a scrape on his cheekbone down toward the pavement. His eyes are open, staring forward with quiet fury and clarity. The street stretches ahead — the same street where he has lived for four years. character2's boots visible standing over him.
+
+No dialogue.
+
+Audio: heavy shallow breathing against rough pavement, distant morning birds resuming, faint sprinkler hiss, blood settling on warm asphalt, absolute quiet underneath.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, raw painful atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 008
+CẢNH 008: VIDEO UNIT 8
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-3s: medium shot from slightly above. character1 lies motionless on the asphalt, face down, hands cuffed behind his back. He does not struggle. He does not move. character2 stands over him with feet planted wide, hands on hips, looking casually around the street like this is routine.
+
+No dialogue.
+
+Audio: still morning air, faint distant traffic, character1's controlled steady breathing, boot shift on grit.
+
+Transition: hard cut.
+
+3s-5s: close-up on character1's face against the pavement. Blood drying on his cheek. Grit embedded in the scrape. His eyes are focused, sharp, and calculating. His lips part slightly — about to speak.
+
+No dialogue.
+
+Audio: shallow controlled breath, grit shifting under jaw, faint heartbeat pulse in ambient tone, morning stillness.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, tense contained atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 009
+CẢNH 009: VIDEO UNIT 9
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-3s: close-up on character1's face on the asphalt. He speaks with absolute calm, voice low and steady, eyes locked forward. Blood visible on his cheek, grit on his skin. Five words.
+
+character1 – calm, absolute:
+"You're making a terrible mistake."
+
+Audio: quiet voice against rough pavement, steady breathing, morning silence absorbing the words.
+
+Transition: quick cut.
+
+3s-5s: medium shot from character1's low ground-level perspective looking up. character2 crouches slightly, throws his head back and laughs — a short arrogant bark. His hand rests casually on his duty belt. Total unearned confidence.
+
+No dialogue.
+
+Audio: sharp mocking laugh cutting the air, belt buckle clink, boot shift, street quiet after the laugh fades.
+
+Transition: hard cut.
+
+5s-8s: medium close-up on character2 standing, still grinning. His badge catches the morning sunlight. He crosses his arms over his chest, looking down at character1 with practiced indifference. Nine years of doing this. Six complaints filed against him. All dismissed.
+
+No dialogue.
+
+Audio: faint radio crackle from belt, morning breeze through trees, distant lawn mower starting somewhere on the block, leather belt creak.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, tense atmosphere of unchecked power, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 010
+CẢNH 010: VIDEO UNIT 10
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-3s: wide establishing shot of the full scene on image1. character1 lies face-down on the street surface. character2 stands tall over him, hands on hips, surveying the block like he owns it. The luxury sedan and suburban houses frame the composition. Just another stop. Just another morning.
+
+No dialogue.
+
+Audio: quiet suburban morning ambience, distant dog bark, lawn sprinkler running, car passing slowly on the next street over.
+
+Transition: hard cut.
+
+3s-6s: slow push-in on character2's face. Expression flat, bored, utterly dismissive. He looks down at character1 with the same face he has worn for dozens of stops before this one. Just another guy who didn't belong.
+
+No dialogue.
+
+Audio: morning stillness, faint warm air movement, boot grinding slowly on asphalt grit, distant screen door closing.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, oppressive casual atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 011
+CẢNH 011: VIDEO UNIT 11
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-2s: medium shot on image1. character2 crouches down beside character1 on the asphalt, elbows resting on his knees, getting his face close to character1's level. His expression shifts to something darker — intimate cruelty, private menace.
+
+No dialogue.
+
+Audio: knee creak on pavement, fabric stretch, leather shift, close breathing between two bodies.
+
+Transition: hard cut.
+
+2s-5s: close-up from character1's ground-level perspective. character2's face fills the frame, inches away, morning light behind him creating a harsh rim. He speaks slowly with cold absolute authority, savoring every word.
+
+character2 – cold, absolute:
+"Your rights end where my badge begins."
+
+Audio: close hot breath, whispered menace carrying in quiet street air, faint radio blip.
+
+Transition: quick cut.
+
+5s-7s: extreme close-up on character2's mouth and eyes. He pauses, then speaks with total conviction, a faint satisfied smile pulling at the corner of his lip. Eyes bright with sick pleasure.
+
+character2 – god complex, savoring:
+"Out here, I'm god."
+
+Audio: quiet breath, tense silence, single distant bird call cutting through.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, suffocating intimate menace, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 012
+CẢNH 012: VIDEO UNIT 12
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-3s: close-up on character2 from slightly above, still crouched beside character1. He finishes his declaration with quiet venom, eyes locked on character1's face, head tilting slightly as he delivers the final word.
+
+character2 – venomous, final:
+"And god says you're nothing."
+
+Audio: low venomous voice in morning air, faint radio blip, exhale through nose, silence swallowing the words.
+
+Transition: smash cut.
+
+3s-6s: wide shot from across the street, seen through a house window frame. The full scene visible — character2 crouching over character1 on the ground, the luxury sedan, morning light on the street. A phone screen enters the bottom of frame, camera app active and recording. The phone trembles slightly in unseen hands.
+
+No dialogue.
+
+Audio: muffled street sounds through window glass, phone camera shutter activation click, faint trembling breath of the person recording, distant birds outside.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, tense witnessing atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 013
+CẢNH 013: VIDEO UNIT 13
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-3s: medium shot on image1. character2 stands up from his crouch and walks toward the luxury sedan. He peers through the rear window, spots a locked leather briefcase on the back seat. His eyes narrow with predatory interest. He taps the glass with one knuckle.
+
+No dialogue.
+
+Audio: boot steps on asphalt, knuckle tap on car window glass, morning quiet, leather belt shift.
+
+Transition: hard cut.
+
+3s-5s: medium close-up on character2, turning back toward character1 still on the ground. He points at the car with a jabbing finger.
+
+character2 – demanding, entitled:
+"Open it."
+
+Audio: short sharp voice, finger jab toward car, faint wind through oak leaves.
+
+Transition: quick cut.
+
+5s-8s: close-up on character1's face on the asphalt. His expression sharpens — the first visible sign of controlled defiance. His eyes narrow. He speaks clearly, each word deliberate and precise, like a man who knows exactly what these words mean.
+
+character1 – firm, controlled:
+"No. No warrant. No probable cause."
+
+Audio: calm measured voice against pavement, steel handcuff chain shifting behind his back, quiet steady breath, street silence.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, rising tension atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 014
+CẢNH 014: VIDEO UNIT 14
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-3s: medium shot on character2 standing with hands on hips near the sedan, head tilted sideways, smirking broadly. He is amused by the defiance, treating it like a joke, like a performance he has seen a hundred times before.
+
+character2 – mocking, amused:
+"Listen to you with your big words."
+
+Audio: soft mocking exhale, belt shift, distant suburban street sound, gum chewing.
+
+Transition: quick cut.
+
+3s-5s: medium close-up on character2, leaning slightly forward toward where character1 lies, finger wagging. His smirk widens into a full contemptuous grin.
+
+character2 – derisive, contemptuous:
+"Every thug I stop suddenly knows the Fourth Amendment."
+
+Audio: sharp nasal half-laugh, boot scrape, morning breeze stirring leaves, radio static chirp.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, tense contemptuous atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 015
+CẢNH 015: VIDEO UNIT 15
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-3s: ground-level close-up on character1. He slowly turns his head on the asphalt to look directly up at character2. His expression has changed — no longer just calm. Now it is steel. A man who knows exactly what comes next. His eyes are sharp and locked.
+
+No dialogue.
+
+Audio: grit scraping under jaw as head turns, slow deliberate breath, morning silence deepening.
+
+Transition: hard cut.
+
+3s-6s: same ground-level angle on character1. He speaks upward from the pavement. Each word is precise, measured, delivered like a legal filing entered into the record. character2's scuffed boots visible at the top of frame.
+
+character1 – ice-cold, deliberate:
+"Sergeant Hadley. Badge two-two-one-four. Remember this moment."
+
+Audio: clear calm voice rising from the asphalt, distant morning birds, absolute street silence underneath the words.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, power-shift atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 016
+CẢNH 016: VIDEO UNIT 16
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-2s: close-up on character1, still face-down on the asphalt, eyes locked upward at character2. He speaks with quiet certainty — not threatening, not begging, simply stating a fact.
+
+character1 – certain, unwavering:
+"In ten minutes, your world changes."
+
+Audio: calm steady voice against pavement, quiet street absorbing the words, distant oak leaves rustling.
+
+Transition: quick cut.
+
+2s-5s: medium shot on character2 standing. For the first time a flicker crosses his face — not fear yet, but irritation sharpening into unease. This man on the ground will not break.
+
+character2 – irritated, defensive:
+"Are you threatening me?"
+
+Audio: strained voice, boot shift backward, leather holster creak, jaw clench.
+
+Transition: hard cut.
+
+5s-7s: close-up on character1 from ground level. A faint knowing expression settles across his face. Not a smile — something heavier. The certainty of a man who has already seen the ending.
+
+character1 – calm, final:
+"I don't make threats. I'm telling you what's coming."
+
+Audio: quiet controlled voice, morning breeze shifting, distant car engine starting down the block, silence expanding after the words land.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, tension-cracking atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 017
+CẢNH 017: VIDEO UNIT 17
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-4s: wide shot down the length of image1. Three matte black Suburbans turn onto the suburban street in tight formation. No sirens. No lights. Silent. Deliberate. They approach at measured speed, morning light glinting off dark windshields. In the middle distance, character2 stands over character1 on the ground. The approaching vehicles cast long shadows across the asphalt.
+
+No dialogue.
+
+Audio: deep engine rumble growing steadily louder, heavy tires on asphalt, morning birds suddenly silent, wind disturbance from the convoy.
+
+Transition: hard cut.
+
+4s-8s: medium-wide shot. All three Suburban doors open simultaneously. Eight figures in dark suits, tactical vests, and earpieces step out in precise coordinated motion, fanning outward. character2 turns his head sharply toward the vehicles, hand instinctively dropping to his holster. character1 remains on the ground, motionless and still.
+
+No dialogue.
+
+Audio: multiple car doors opening and closing in sharp unison, boot heels striking pavement together, earpiece feedback chirp, engines idling low, morning quiet replaced by controlled federal presence.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, power-arrival atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 018
+CẢNH 018: VIDEO UNIT 18
+Reference labels phải giữ cố định:
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- character3: A White man in his late fifties, tall lean build, silver hair swept neatly back, clean-shaven, angular face with deep-set authoritative grey eyes and sharp cheekbones. Wearing a dark charcoal suit, white dress shirt with no tie, black FBI tactical vest over the suit jacket, coiled earpiece in right ear, silver FBI badge held in left hand. Commanding squared posture, chin level. Expression baseline: cold authority, controlled intensity, zero tolerance. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-4s: medium-wide shot on image1. Agents in dark suits and tactical vests fan out and form a deliberate semicircle around character2. character2 looks left, then right — surrounded. His hand hovers over his holster. His chest rises faster. His confidence visibly fractures as the ring tightens.
+
+No dialogue.
+
+Audio: multiple boot steps on pavement closing in, tactical vest fabric shifting, earpiece static chirps from several directions, character2's breathing quickening.
+
+Transition: hard cut.
+
+4s-8s: medium shot. character3 emerges from behind the line of agents, walking forward with measured unhurried authority. Silver hair catching the morning light. Badge held high in his left hand, catching a glint of sun. His stride is deliberate, controlled, absolute. His face is carved stone — cold, unblinking, jaw set.
+
+No dialogue.
+
+Audio: steady authoritative boot steps on asphalt, badge metal glinting, agents shifting position behind, car engine idling, morning air taut.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, federal authority atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 019
+CẢNH 019: VIDEO UNIT 19
+Reference labels phải giữ cố định:
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- character3: A White man in his late fifties, tall lean build, silver hair swept neatly back, clean-shaven, angular face with deep-set authoritative grey eyes and sharp cheekbones. Wearing a dark charcoal suit, white dress shirt with no tie, black FBI tactical vest over the suit jacket, coiled earpiece in right ear, silver FBI badge held in left hand. Commanding squared posture, chin level. Expression baseline: cold authority, controlled intensity, zero tolerance. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-3s: medium shot on character3, badge still raised. He stops three feet from character2 and speaks with ice-cold command, eyes locked, no blink.
+
+character3 – commanding, zero tolerance:
+"Step away from that man. Now."
+
+Audio: sharp authoritative voice cutting morning air, agents holding position behind, absolute street silence.
+
+Transition: hard cut.
+
+3s-5s: medium close-up on character2. His jaw tightens reflexively. The old territorial instinct kicks in — defiant, aggressive, the only language he knows.
+
+character2 – defensive, aggressive:
+"This is my stop. Back off. "
+
+Audio: strained defiant voice, leather holster creak, boot plant on ground, shallow fast breathing.
+
+Transition: quick cut.
+
+5s-7s: close-up on character3. His expression does not change. Not a flinch, not a blink. He lowers the badge slightly to his side and speaks with the weight of the entire federal government behind every syllable.
+
+character3 – cold authority, measured:
+"My name is Scott Brennan. Deputy Director, FBI. "
+
+Audio: clear voice cutting through silence, distant engine idle, earpiece click, morning air holding still.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, federal confrontation atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 020
+CẢNH 020: VIDEO UNIT 20
+Reference labels phải giữ cố định:
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- character3: A White man in his late fifties, tall lean build, silver hair swept neatly back, clean-shaven, angular face with deep-set authoritative grey eyes and sharp cheekbones. Wearing a dark charcoal suit, white dress shirt with no tie, black FBI tactical vest over the suit jacket, coiled earpiece in right ear, silver FBI badge held in left hand. Commanding squared posture, chin level. Expression baseline: cold authority, controlled intensity, zero tolerance. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-4s: medium shot on character3, steady locked frame. He speaks each word like a hammer strike falling on an anvil, eyes locked directly on character2, no expression on his face except absolute authority.
+
+character3 – authoritative, devastating:
+"Deputy Director, FBI. The man under your boot is Director Gerald Torres."
+
+Audio: voice carrying in morning air, absolute silence from every agent, faint wind, words landing like physical blows.
+
+Transition: smash cut.
+
+4s-7s: tight close-up on character3, slight push-in. The smallest pause before the final two words. They land like a verdict read in court.
+
+character3 – final, crushing:
+"My boss."
+
+Audio: two-word impact followed by ringing silence, faint earpiece click, morning holding its breath, no other sound.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, identity-reveal devastation atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 021
+CẢNH 021: VIDEO UNIT 21
+Reference labels phải giữ cố định:
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- character3: A White man in his late fifties, tall lean build, silver hair swept neatly back, clean-shaven, angular face with deep-set authoritative grey eyes and sharp cheekbones. Wearing a dark charcoal suit, white dress shirt with no tie, black FBI tactical vest over the suit jacket, coiled earpiece in right ear, silver FBI badge held in left hand. Commanding squared posture, chin level. Expression baseline: cold authority, controlled intensity, zero tolerance. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-2s: close-up on character3, steady frame. He delivers the final identity blow with chilling unhurried precision, head tilting slightly forward.
+
+character3 – ice-cold, definitive:
+"Your boss's boss's boss."
+
+Audio: voice in morning quiet, faint wind, absolute agent silence, words hitting like the last nail.
+
+Transition: smash cut.
+
+2s-5s: close-up on character2's face. The color drains visibly — white replaces ruddy. His eyes widen. His mouth opens. Nothing comes out. The gum in his jaw has stopped moving completely. His hand falls from his holster and hangs limp at his side.
+
+No dialogue.
+
+Audio: sharp involuntary inhale, jaw going slack, morning silence pressing in from every direction, blood rushing.
+
+Transition: hard cut.
+
+5s-7s: medium shot on character2 from slightly below. He stands frozen in the center of the agent semicircle, mouth still open, arms hanging dead at his sides. Surrounded. Stripped. He looks like a man who just watched his own career end in real time.
+
+No dialogue.
+
+Audio: hollow wind through the street, distant bird calling, faint radio crackle from his own belt, absolute stillness.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, devastating realization atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 022
+CẢNH 022: VIDEO UNIT 22
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-3s: ground-level shot rising. character1 presses his palms flat against the asphalt and pushes himself up slowly. Deliberately. No rush. He rises to his knees, then straightens to his full height. His back is straight. His chin lifts. character2 visible in soft focus behind him, frozen and white-faced.
+
+No dialogue.
+
+Audio: palms lifting from grit, fabric shift, knee straightening, slow controlled exhale, handcuff chain swinging lightly, boot soles finding the ground.
+
+Transition: hard cut.
+
+3s-5s: medium close-up on character1 now standing at full height. He reaches up and wipes a streak of blood from his cheekbone with the back of his cuffed hand. His eyes find character2 and lock on. Dead steady. Unflinching. Morning light warm on his face.
+
+No dialogue.
+
+Audio: blood smear on skin, morning light humming in the air, absolute quiet, character2's shallow ragged breathing faintly audible behind.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, quiet power-reclaimed atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 023
+CẢNH 023: VIDEO UNIT 23
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-3s: medium close-up on character1, standing tall in morning light, blood still visible on his cheek. He looks directly at character2 and speaks with quiet devastating calm — not anger, not revenge, something far heavier.
+
+character1 – calm, devastating:
+"If you had known who I was, your knee never touches my back."
+
+Audio: clear measured voice in open morning air, street silence absorbing every word, faint breeze.
+
+Transition: hard cut.
+
+3s-5s: medium shot on character2, reaction. His face is chalk white. He blinks rapidly. His mouth works but nothing forms. His hands tremble visibly at his sides. His uniform looks wrong on him now — too big, like the authority drained out of it.
+
+No dialogue.
+
+Audio: shaky breathing, belt hardware rattling faintly, dry swallow, morning quiet pressing.
+
+Transition: quick cut.
+
+5s-7s: close-up on character1, eyes narrowing slightly. He delivers the final words like a judge reading a verdict from the bench. Each syllable precise and irreversible.
+
+character1 – absolute, final:
+"That's not a defense, sergeant. That's a confession."
+
+Audio: voice landing in total silence, distant car door closing far away, morning holding every sound, nothing after the words but air.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, verdict atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 024
+CẢNH 024: VIDEO UNIT 24
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-4s: slow-motion medium shot on image1. character1 turns and walks away from character2 down the suburban street, morning golden light catching his silhouette and casting a long shadow forward. Behind him, character2 stands motionless in the agent semicircle, small, stripped, surrounded. The distance between them grows.
+
+No dialogue.
+
+Audio: slow footsteps on asphalt, morning wind through oak trees, distant suburban sounds resuming, faint helicopter far overhead.
+
+Transition: hard cut.
+
+4s-8s: medium close-up on character1 walking, camera tracking alongside at his pace. His expression is set — not triumphant, not angry. Resolved. Blood dried on his cheek. Morning light warm on his face. What he did next didn't just end one career. It burned the entire system down.
+
+No dialogue.
+
+Audio: steady footsteps, wind in oak leaves, morning birds returning cautiously, engines idling far behind.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning golden light, ultra-realistic cinematic style, resolute aftermath atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+
+### PROMPT 025
+CẢNH 025: VIDEO UNIT 25
+Reference labels phải giữ cố định:
+- character1: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+- character2: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+- image1: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
+Nội dung shot/video cần tạo:
+0s-3s: wide overhead drone-angle shot of the full scene on image1. The three black Suburbans. The ring of agents. character2 standing alone in the center, diminished. character1 walking away in warm light. The suburban street bathed in golden morning glow stretching into the distance. The whole world just changed.
+
+No dialogue.
+
+Audio: wide ambient suburban morning, wind sweeping through trees, distant birds, engines idling, vast open quiet settling over the scene.
+
+Transition: smash cut.
+
+3s-6s: extreme close-up on character1's eyes. Sharp. Focused. Looking straight ahead. The faintest edge of what is coming next — not a smile, not fury, but absolute intent. Part two is coming.
+
+No dialogue.
+
+Audio: single low heartbeat thud, then silence, then faint wind. Nothing else.
+
+No music. Only human voices, room tone, ambient suburban street sound, subtle ASMR details. Warm early morning light, ultra-realistic cinematic style, cliffhanger atmosphere, keep character and background consistent.
+
+Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.
+

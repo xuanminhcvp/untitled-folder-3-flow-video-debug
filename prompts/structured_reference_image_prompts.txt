@@ -1,0 +1,12 @@
+### PROMPT 001
+CẢNH 901: A dark-skinned Black man in his late forties, clearly African-descended, with rich deep brown melanin-rich skin, strong composed build, clean-shaven, sharp jawline, deep brown eyes with an unwavering steady gaze. Short cropped black hair with subtle grey at the temples. Wearing a casual dark navy henley shirt and dark fitted jeans, clean leather shoes. No visible jewelry or accessories. Upright dignified posture even in casual clothes. Expression baseline: calm, measured, unflinching, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, natural deep skin tone, soft directional morning light that preserves dark skin richness, neutral background.
+
+### PROMPT 002
+CẢNH 902: A White male police officer in his late thirties, stocky muscular build, buzz cut sandy brown hair, ruddy complexion, heavy brow ridge, small pale eyes with a permanent aggressive squint. Wearing a dark navy police uniform, tactical duty belt with holstered sidearm and radio, silver badge displayed on chest, body camera on right shoulder. Thick neck, wide shoulders, dominant forward-leaning posture. Expression baseline: hostile, sneering, arrogant, jaw clenched. Ultra-realistic cinematic portrait, morning light, neutral background.
+
+### PROMPT 003
+CẢNH 903: A White man in his late fifties, tall lean build, silver hair swept neatly back, clean-shaven, angular face with deep-set authoritative grey eyes and sharp cheekbones. Wearing a dark charcoal suit, white dress shirt with no tie, black FBI tactical vest over the suit jacket, coiled earpiece in right ear, silver FBI badge held in left hand. Commanding squared posture, chin level. Expression baseline: cold authority, controlled intensity, zero tolerance. Ultra-realistic cinematic portrait, morning light, neutral background.
+
+### PROMPT 004
+CẢNH 904: A quiet suburban residential street in the American South, early morning golden hour light. Rows of well-maintained houses with front porches and mature oak trees lining both sides. A glossy black luxury sedan parked along the curb in front of a modest brownstone house. Warm directional morning light cutting through tree canopy, dappled shadows on clean asphalt. Green lawns, potted plants on porches, peaceful neighborhood feel. Ultra-realistic cinematic style, golden morning tones, shallow depth of field, atmospheric haze.
+
