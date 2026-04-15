@@ -83,6 +83,8 @@ async def open_login_browser(worker: dict, worker_label: str):
     - Chờ user đóng Chrome (hoặc nhấn Enter) mới kết thúc
     """
     profile_dir = os.path.expanduser(worker["profile_dir"])
+    if not os.path.isabs(profile_dir):
+        profile_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), profile_dir)
     proxy_str = worker.get("proxy")
     proxy_config = parse_proxy(proxy_str)
     worker_id = worker.get("worker_id", worker_label)

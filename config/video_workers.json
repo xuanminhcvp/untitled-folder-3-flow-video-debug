@@ -4,14 +4,14 @@
 
   "image_worker": {
     "_comment": "Chrome tạo ảnh reference — dùng cho TẤT CẢ kịch bản, tạo tuần tự từng kịch bản.",
-    "profile_dir": "~/dreamina_playwright_profile_image",
+    "profile_dir": "chrome_profiles/dreamina_playwright_profile_image",
     "proxy": null
   },
 
   "video_workers": [
     {
       "worker_id": "video_1",
-      "profile_dir": "~/dreamina_playwright_profile_video_1",
+      "profile_dir": "chrome_profiles/dreamina_playwright_profile_video_1",
       "proxy": "socks5://127.0.0.1:11001",
       "proxy_real": "socks5://HPseFo:IpmDzM@118.70.187.141:55508",
       "scenario_dir": "scenarios/kich_ban_A",
@@ -19,7 +19,7 @@
     },
     {
       "worker_id": "video_2",
-      "profile_dir": "~/dreamina_playwright_profile_video_2",
+      "profile_dir": "chrome_profiles/dreamina_playwright_profile_video_2",
       "proxy": "socks5://127.0.0.1:11002",
       "proxy_real": "socks5://cQPhPD:psxyrr@118.70.171.107:12055",
       "scenario_dir": "scenarios/kich_ban_B",
@@ -27,7 +27,7 @@
     },
     {
       "worker_id": "video_3",
-      "profile_dir": "~/dreamina_playwright_profile_video_3",
+      "profile_dir": "chrome_profiles/dreamina_playwright_profile_video_3",
       "proxy": "socks5://127.0.0.1:11003",
       "proxy_real": "socks5://dyiuTU:jkkAOj@118.70.187.141:57444",
       "scenario_dir": "scenarios/kich_ban_C",
@@ -35,7 +35,7 @@
     },
     {
       "worker_id": "video_4",
-      "profile_dir": "~/dreamina_playwright_profile_video_4",
+      "profile_dir": "chrome_profiles/dreamina_playwright_profile_video_4",
       "proxy": "socks5://127.0.0.1:11004",
       "proxy_real": "socks5://zZdAHY:fDWwOC@113.160.166.150:55923",
       "scenario_dir": "scenarios/kich_ban_D",
@@ -43,11 +43,51 @@
     },
     {
       "worker_id": "video_5",
-      "profile_dir": "~/dreamina_playwright_profile_video_5",
+      "profile_dir": "chrome_profiles/dreamina_playwright_profile_video_5",
       "proxy": "socks5://127.0.0.1:11005",
       "proxy_real": "socks5://BRBJmF:dBTPyg@14.241.72.152:19437",
       "scenario_dir": "scenarios/kich_ban_E",
       "_note": "IP: 14.241.72.152 — qua bridge localhost:11005"
+    },
+    {
+      "worker_id": "video_6",
+      "profile_dir": "chrome_profiles/dreamina_playwright_profile_video_6",
+      "proxy": "socks5://127.0.0.1:11006",
+      "proxy_real": "socks5://XRfZUn:EfHfqK@14.241.72.184:28697",
+      "scenario_dir": "scenarios/kich_ban_F",
+      "_note": "IP: 14.241.72.184 — qua bridge localhost:11006"
+    },
+    {
+      "worker_id": "video_7",
+      "profile_dir": "chrome_profiles/dreamina_playwright_profile_video_7",
+      "proxy": "socks5://127.0.0.1:11007",
+      "proxy_real": "socks5://ZEtLWy:bNiPHS@14.224.198.226:42605",
+      "scenario_dir": "scenarios/kich_ban_G",
+      "_note": "IP: 14.224.198.226 — qua bridge localhost:11007"
+    },
+    {
+      "worker_id": "video_8",
+      "profile_dir": "chrome_profiles/dreamina_playwright_profile_video_8",
+      "proxy": "socks5://127.0.0.1:11008",
+      "proxy_real": "socks5://dRKuUM:yTGZYh@14.224.198.91:49885",
+      "scenario_dir": "scenarios/kich_ban_H",
+      "_note": "IP: 14.224.198.91 — qua bridge localhost:11008"
+    },
+    {
+      "worker_id": "video_9",
+      "profile_dir": "chrome_profiles/dreamina_playwright_profile_video_9",
+      "proxy": "socks5://127.0.0.1:11009",
+      "proxy_real": "socks5://gzjIbZ:gBhaAj@14.241.72.139:23872",
+      "scenario_dir": "scenarios/kich_ban_I",
+      "_note": "SOCKS5 proxy qua bridge localhost:11009"
+    },
+    {
+      "worker_id": "video_10",
+      "profile_dir": "chrome_profiles/dreamina_playwright_profile_video_10",
+      "proxy": "socks5://127.0.0.1:11010",
+      "proxy_real": "socks5://nPUvTg:YqqOhp@113.160.166.93:24567",
+      "scenario_dir": "scenarios/kich_ban_J",
+      "_note": "SOCKS5 proxy qua bridge localhost:11010"
     }
   ]
 }

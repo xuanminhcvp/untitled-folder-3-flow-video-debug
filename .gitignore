@@ -9,3 +9,8 @@ progress_dreamina.json
 
 # OS/editor
 .DS_Store
+chrome_profiles/
+chrome_profiles.zip
+# Large browser debug traces (do not commit)
+*.har
+scenarios/**/debug_video_*.har

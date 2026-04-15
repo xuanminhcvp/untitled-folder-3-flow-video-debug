@@ -34,8 +34,10 @@ import socket
 import argparse
 import subprocess
 import tempfile
+import random
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 from playwright.async_api import async_playwright
 
 
@@ -68,6 +70,11 @@ PROXY_PRECHECK_MAX_ATTEMPTS = 2
 PROXY_PRECHECK_RETRY_DELAY_SEC = 2.0
 PROXY_OPEN_CHECK_TIMEOUT_SEC = 1.2
 PROXY_HTTP_CHECK_TIMEOUT_SEC = 8
+PROXY_TEST_URLS = [
+    "https://labs.google/fx/vi/tools/flow",
+    "https://accounts.google.com/",
+    "https://api.ipify.org?format=json",
+]
 
 
 # ── Logging ─────────────────────────────────────────────────────────────────
@@ -76,6 +83,16 @@ def log(msg: str, level: str = "INFO", worker_id: str = ""):
     now = datetime.now().strftime("%H:%M:%S")
     prefix = f"[{worker_id}]" if worker_id else "[MAIN]"
     print(f"[{now}] [{level:<5}] {prefix} {msg}")
+
+
+async def _sleep_jitter(base_sec: float, low: float = 0.85, high: float = 1.2, floor: float = 0.2):
+    """
+    Sleep có jitter nhẹ để tránh nhịp cố định tuyệt đối.
+    """
+    b = max(float(floor), float(base_sec))
+    lo = min(max(low, 0.5), 1.0)
+    hi = max(high, lo)
+    await asyncio.sleep(max(float(floor), random.uniform(b * lo, b * hi)))
 
 
 # ── Config helpers ─────────────────────────────────────────────────────────
@@ -88,57 +105,55 @@ def load_config() -> dict:
         return json.load(f)
 
 
-def parse_proxy(proxy_str: str | None) -> dict | None:
+def parse_proxy_url(proxy_str: str | None) -> dict | None:
     """
-    Chuyển proxy string sang dict Playwright.
-
-    Hỗ trợ 2 format:
-    - Có auth:    socks5://USER:PASS@IP:PORT  (proxy thật)
-    - Không auth: socks5://IP:PORT            (local bridge — khi có gost chạy sẵn)
+    Parse proxy URL mixed mode:
+    - socks5://127.0.0.1:11009
+    - socks5://user:pass@host:port
+    - http://user:pass@host:port
+    - http://host:port
     """
     if not proxy_str:
         return None
     try:
-        proto_rest = proxy_str.split("://", 1)
-        if len(proto_rest) < 2:
+        u = urlparse(proxy_str)
+        if not u.scheme or not u.hostname or not u.port:
             return None
-        proto = proto_rest[0]
-        rest  = proto_rest[1]
-
-        if "@" in rest:
-            # Có auth: USER:PASS@IP:PORT
-            creds_part, host_port = rest.split("@", 1)
-            creds = creds_part.split(":", 1)
-            return {
-                "server":   f"{proto}://{host_port}",
-                "username": creds[0],
-                "password": creds[1] if len(creds) > 1 else "",
-            }
-        else:
-            # Không auth (local bridge): chỉ cần server
-            return {"server": f"{proto}://{rest}"}
+        return {
+            "scheme": (u.scheme or "").lower(),
+            "host": u.hostname,
+            "port": int(u.port),
+            "username": unquote(u.username or ""),
+            "password": unquote(u.password or ""),
+            "raw": proxy_str,
+        }
     except Exception as e:
-        log(f"Không parse được proxy '{proxy_str}': {e}", "WARN")
+        log(f"parse_proxy_url fail for '{proxy_str}': {e}", "WARN")
         return None
+
+
+def parse_proxy(proxy_str: str | None) -> dict | None:
+    """
+    Trả về dict đúng format Playwright; backward-compatible với worker cũ.
+    """
+    p = parse_proxy_url(proxy_str)
+    if not p:
+        return None
+    cfg = {"server": f"{p['scheme']}://{p['host']}:{p['port']}"}
+    if p["username"]:
+        cfg["username"] = p["username"]
+        cfg["password"] = p["password"]
+    return cfg
 
 
 def _parse_proxy_endpoint(proxy_str: str | None) -> tuple[str, int] | None:
     """
-    Parse proxy endpoint từ chuỗi dạng socks5://127.0.0.1:11002
-    hoặc socks5://user:pass@host:port.
+    Parse proxy endpoint từ chuỗi mixed mode.
     """
-    if not proxy_str:
+    p = parse_proxy_url(proxy_str)
+    if not p:
         return None
-    try:
-        rest = proxy_str.split("://", 1)[1]
-        if "@" in rest:
-            _, host_port = rest.rsplit("@", 1)
-        else:
-            host_port = rest
-        host, port_str = host_port.rsplit(":", 1)
-        return host.strip(), int(port_str.strip())
-    except Exception:
-        return None
+    return p["host"], p["port"]
 
 
 def _is_tcp_open(host: str, port: int, timeout_sec: float = PROXY_OPEN_CHECK_TIMEOUT_SEC) -> bool:
@@ -157,24 +172,98 @@ def _is_tcp_open(host: str, port: int, timeout_sec: float = PROXY_OPEN_CHECK_TIM
             pass
 
 
-def _probe_http_through_proxy(proxy_str: str, timeout_sec: int = PROXY_HTTP_CHECK_TIMEOUT_SEC) -> bool:
+def _curl_proxy_args(proxy_str: str) -> list[str]:
     """
-    Probe internet qua proxy local để tránh false-positive kiểu 'port mở nhưng proxy không forward được'.
+    Chuẩn hóa cách curl dùng proxy.
+    socks5 -> socks5h để DNS đi qua proxy
+    http/https -> --proxy trực tiếp
+    """
+    p = parse_proxy_url(proxy_str)
+    if not p:
+        return []
+
+    if p["scheme"].startswith("socks5"):
+        auth = ""
+        if p["username"]:
+            auth = f"{p['username']}:{p['password']}@"
+        return ["--proxy", f"socks5h://{auth}{p['host']}:{p['port']}"]
+
+    auth = ""
+    if p["username"]:
+        auth = f"{p['username']}:{p['password']}@"
+    return ["--proxy", f"{p['scheme']}://{auth}{p['host']}:{p['port']}"]
+
+
+def _probe_url_through_proxy(
+    proxy_str: str,
+    url: str,
+    timeout_sec: int = PROXY_HTTP_CHECK_TIMEOUT_SEC,
+) -> tuple[bool, str]:
+    """
+    Probe HTTPS tunnel thực tới URL đích.
     """
     try:
         cmd = [
             "curl",
+            "-I",
             "-sS",
+            "-L",
             "--max-time",
             str(int(timeout_sec)),
-            "--proxy",
-            proxy_str,
-            "https://api.ipify.org?format=json",
+            "--connect-timeout",
+            "4",
+            *(_curl_proxy_args(proxy_str)),
+            url,
         ]
         proc = subprocess.run(cmd, capture_output=True, text=True)
-        return proc.returncode == 0 and bool((proc.stdout or "").strip())
-    except Exception:
-        return False
+        out = ((proc.stdout or "") + "\n" + (proc.stderr or "")).strip()
+        ok = proc.returncode == 0 and ("HTTP/" in out or "location:" in out.lower())
+        return ok, out[-500:]
+    except Exception as e:
+        return False, str(e)
+
+
+def _probe_proxy_tunnel(proxy_str: str, worker_id: str = "") -> tuple[bool, str]:
+    """
+    Pass khi proxy usable với URL quan trọng, không chỉ ipify.
+    """
+    for url in PROXY_TEST_URLS:
+        ok, detail = _probe_url_through_proxy(proxy_str, url)
+        log(f"proxy_probe worker={worker_id} proxy={proxy_str} url={url} ok={ok}", "INFO")
+        if ok:
+            return True, f"usable via {url}"
+    return False, f"all test urls failed for proxy={proxy_str}"
+
+
+def build_proxy_candidates(worker: dict) -> list[dict]:
+    """
+    Chọn candidate theo policy:
+    - HTTP proxy thật: thử trực tiếp trước, fail thì fallback local bridge.
+    - Worker cũ: local bridge như hiện tại.
+    """
+    proxy_local = str(worker.get("proxy", "") or "").strip()
+    proxy_real = str(worker.get("proxy_real", "") or "").strip()
+    out: list[dict] = []
+
+    real_parsed = parse_proxy_url(proxy_real)
+    local_parsed = parse_proxy_url(proxy_local)
+
+    if real_parsed and real_parsed["scheme"] in {"http", "https"}:
+        out.append({"name": "direct_http_real", "proxy": proxy_real})
+    if local_parsed:
+        out.append({"name": "local_bridge", "proxy": proxy_local})
+    elif real_parsed:
+        out.append({"name": "direct_real", "proxy": proxy_real})
+
+    seen = set()
+    uniq = []
+    for item in out:
+        proxy = item.get("proxy")
+        if not proxy or proxy in seen:
+            continue
+        seen.add(proxy)
+        uniq.append(item)
+    return uniq
 
 
 def _restart_proxy_bridge() -> bool:
@@ -197,35 +286,46 @@ def _restart_proxy_bridge() -> bool:
 
 def _ensure_worker_proxy_ready(worker: dict) -> bool:
     """
-    Đảm bảo proxy local của worker sẵn sàng trước khi launch Chrome.
+    Đảm bảo worker có ít nhất 1 proxy candidate usable thật sự.
     """
     worker_id = str(worker.get("worker_id", ""))
-    proxy_str = str(worker.get("proxy", "") or "").strip()
-    if not proxy_str:
+    candidates = build_proxy_candidates(worker)
+    if not candidates:
         return True
 
-    endpoint = _parse_proxy_endpoint(proxy_str)
-    if not endpoint:
-        log(f"Worker {worker_id}: proxy không parse được: {proxy_str}", "ERR")
-        return False
-    host, port = endpoint
+    for cand in candidates:
+        proxy_str = str(cand.get("proxy", "") or "").strip()
+        endpoint = _parse_proxy_endpoint(proxy_str)
+        if not endpoint:
+            log(f"Worker {worker_id}: candidate proxy parse fail: {proxy_str}", "WARN")
+            continue
 
-    for attempt in range(1, PROXY_PRECHECK_MAX_ATTEMPTS + 1):
-        tcp_ok = _is_tcp_open(host, port)
-        http_ok = _probe_http_through_proxy(proxy_str) if tcp_ok else False
-        if tcp_ok and http_ok:
+        host, port = endpoint
+        is_local = host in ("127.0.0.1", "localhost")
+        tcp_ok = _is_tcp_open(host, port) if is_local else True
+
+        if not tcp_ok and cand.get("name") == "local_bridge":
+            log(f"Worker {worker_id}: local bridge chưa mở -> restart bridge.", "WARN")
+            _restart_proxy_bridge()
+            time.sleep(PROXY_PRECHECK_RETRY_DELAY_SEC)
+            tcp_ok = _is_tcp_open(host, port)
+
+        if not tcp_ok:
+            log(f"Worker {worker_id}: {cand.get('name')} tcp not open: {proxy_str}", "WARN")
+            continue
+
+        tunnel_ok, detail = _probe_proxy_tunnel(proxy_str, worker_id=worker_id)
+        log(
+            f"Worker {worker_id}: precheck candidate={cand.get('name')} tcp={tcp_ok} "
+            f"tunnel={tunnel_ok} detail={detail}",
+            "INFO",
+        )
+        if tunnel_ok:
+            worker["_selected_proxy_name"] = cand.get("name")
+            worker["_selected_proxy"] = proxy_str
             return True
 
-        log(
-            f"Worker {worker_id}: proxy local chưa sẵn sàng (attempt {attempt}/{PROXY_PRECHECK_MAX_ATTEMPTS}, "
-            f"tcp={tcp_ok}, http={http_ok}) -> thử khởi động lại bridge.",
-            "WARN",
-        )
-        _restart_proxy_bridge()
-        if attempt < PROXY_PRECHECK_MAX_ATTEMPTS:
-            time.sleep(PROXY_PRECHECK_RETRY_DELAY_SEC)
-
-    log(f"Worker {worker_id}: proxy local vẫn lỗi sau precheck.", "ERR")
+    log(f"Worker {worker_id}: không có proxy candidate nào usable.", "ERR")
     return False
 
 
@@ -277,6 +377,10 @@ def build_worker_env(worker_id: str, worker_index: int) -> dict:
     env.setdefault("FLOW_VIDEO_POLL_JITTER_SEC", "2.0")
     # Upload reference: lần đầu + retry thêm 2 lần.
     env.setdefault("GOOGLE_FLOW_VIDEO_PRELOAD_MAX_ATTEMPTS", "3")
+    # Bật strict reference: thiếu/attach fail token nào thì không gửi prompt video.
+    env.setdefault("GOOGLE_FLOW_VIDEO_REQUIRE_REFERENCE_UPLOAD", "1")
+    # Hỗ trợ prompt có 4 token reference (ví dụ character1/2 + image1/2).
+    env.setdefault("GOOGLE_FLOW_VIDEO_MAX_REFERENCES_PER_PROMPT", "4")
     return env
 
 
@@ -451,6 +555,107 @@ async def launch_browser(p, profile_dir: str, proxy_str: str | None, har_path: s
     return await p.chromium.launch_persistent_context(**kwargs)
 
 
+async def _open_flow_probe_page(browser, worker_id: str, proxy_name: str):
+    """
+    Mở 1 page probe để xác nhận proxy usable thật sự với Google Flow.
+    """
+    page = await browser.new_page()
+
+    def _on_req_failed(req):
+        try:
+            failure = req.failure
+            failure_text = str(failure or "")
+        except Exception:
+            failure_text = ""
+        log(
+            f"[proxy={proxy_name}] requestfailed url={req.url} method={req.method} failure={failure_text}",
+            "WARN",
+            worker_id,
+        )
+
+    page.on("requestfailed", _on_req_failed)
+    try:
+        log(f"[proxy={proxy_name}] goto start: {GOOGLE_FLOW_HOME}", "INFO", worker_id)
+        resp = await page.goto(GOOGLE_FLOW_HOME, wait_until="domcontentloaded", timeout=45000)
+        final_url = str(page.url or "")
+        status = resp.status if resp else None
+        log(
+            f"[proxy={proxy_name}] goto ok status={status} final_url={final_url}",
+            "OK",
+            worker_id,
+        )
+        if final_url.startswith("about:blank"):
+            raise RuntimeError("goto returned but final_url is still about:blank")
+        return page
+    except Exception as e:
+        final_url = str(page.url or "")
+        log(
+            f"[proxy={proxy_name}] goto fail final_url={final_url} err={type(e).__name__}: {e}",
+            "ERR",
+            worker_id,
+        )
+        await page.close()
+        raise
+
+
+async def launch_browser_with_fallback(p, worker: dict, profile_dir: str, har_path: str):
+    """
+    Launch browser với fallback proxy candidates.
+    """
+    worker_id = str(worker.get("worker_id", ""))
+    candidates = build_proxy_candidates(worker)
+    last_err = None
+
+    if not candidates:
+        log("No proxy candidate -> launch without proxy", "INFO", worker_id)
+        browser = await launch_browser(p, profile_dir, None, har_path)
+        return browser, None
+
+    for cand in candidates:
+        proxy_name = str(cand.get("name", ""))
+        proxy_str = str(cand.get("proxy", "") or "").strip()
+        proxy_cfg = parse_proxy(proxy_str)
+        if not proxy_cfg:
+            continue
+        browser = None
+        try:
+            log(f"[proxy={proxy_name}] launch start proxy={proxy_cfg.get('server')}", "INFO", worker_id)
+            Path(profile_dir).mkdir(parents=True, exist_ok=True)
+            kwargs = {
+                "user_data_dir": profile_dir,
+                "headless": False,
+                "channel": "chrome",
+                "args": [
+                    "--start-maximized",
+                    "--disable-blink-features=AutomationControlled",
+                    "--no-first-run",
+                    "--no-default-browser-check",
+                ],
+                "ignore_default_args": ["--enable-automation"],
+                "accept_downloads": True,
+                "record_har_path": har_path,
+                "viewport": {"width": 1920, "height": 1080},
+                "proxy": proxy_cfg,
+            }
+            browser = await p.chromium.launch_persistent_context(**kwargs)
+            probe_page = await _open_flow_probe_page(browser, worker_id, proxy_name)
+            await probe_page.close()
+            worker["_selected_proxy_name"] = proxy_name
+            worker["_selected_proxy"] = proxy_str
+            return browser, proxy_name
+        except Exception as e:
+            last_err = e
+            log(f"[proxy={proxy_name}] launch/probe fail: {e}", "ERR", worker_id)
+            if browser is not None:
+                try:
+                    await browser.close()
+                except Exception:
+                    pass
+            continue
+
+    raise RuntimeError(f"All proxy candidates failed for {worker_id}: {last_err}")
+
+
 # ── Image step cho 1 kịch bản ─────────────────────────────────────────────────
 async def run_image_step_for_scenario(
     p,
@@ -523,6 +728,7 @@ def _run_video_worker_subprocess(
     worker_id: str,
     profile_dir: str,
     proxy_str: str | None,
+    proxy_real: str | None,
     scenario_dir: str,
     output_dir: str,
 ):
@@ -578,31 +784,22 @@ def _run_video_worker_subprocess(
 
         from playwright.async_api import async_playwright
         async with async_playwright() as p:
-            # Build proxy kwargs
-            proxy_config = None
-            if proxy_str:
-                proxy_config = parse_proxy(proxy_str)
-
-            Path(profile_dir).mkdir(parents=True, exist_ok=True)
-            kwargs = {
-                "user_data_dir": profile_dir,
-                "headless": False,
-                "channel": "chrome",
-                "args": [
-                    "--start-maximized",
-                    "--disable-blink-features=AutomationControlled",
-                    "--no-first-run",
-                    "--no-default-browser-check",
-                ],
-                "ignore_default_args": ["--enable-automation"],
-                "accept_downloads": True,
-                "record_har_path": har_path,
-                "viewport": {"width": 1920, "height": 1080},
+            worker_cfg = {
+                "worker_id": worker_id,
+                "proxy": proxy_str,
+                "proxy_real": proxy_real,
             }
-            if proxy_config:
-                kwargs["proxy"] = proxy_config
-
-            browser = await p.chromium.launch_persistent_context(**kwargs)
+            browser, selected_proxy_name = await launch_browser_with_fallback(
+                p=p,
+                worker=worker_cfg,
+                profile_dir=profile_dir,
+                har_path=har_path,
+            )
+            dreamina.log(
+                f"[{worker_id}] Browser launched via proxy={selected_proxy_name} "
+                f"raw={worker_cfg.get('_selected_proxy')}",
+                "INFO",
+            )
             try:
                 # Map scene -> prompt để có thể rerun riêng các scene thiếu biến thể.
                 prompt_by_scene: dict[int, str] = {}
@@ -619,7 +816,23 @@ def _run_video_worker_subprocess(
                     dreamina.log(f"[{worker_id}] Không parse được scene number từ video prompts.", "WARN")
                     return 0
 
-                pending_scene_nos = scene_order[:]
+                # Resume thông minh khi failover sang worker khác:
+                # - Scene đã có >2 biến thể trong output thì xem như đã đủ, không gửi lại.
+                # - Chỉ giữ scene còn thiếu (<=2) để tiếp tục phần dang dở.
+                pending_scene_nos = [
+                    sc for sc in scene_order
+                    if _collect_scene_variant_count(output_dir, sc) <= 2
+                ]
+                if len(pending_scene_nos) < len(scene_order):
+                    done_like = [sc for sc in scene_order if sc not in pending_scene_nos]
+                    dreamina.log(
+                        f"[{worker_id}] Resume mode: bỏ qua {len(done_like)} scene đã có >2 biến thể: "
+                        f"{[f'canh_{s:03d}' for s in done_like]}",
+                        "INFO",
+                    )
+                if not pending_scene_nos:
+                    dreamina.log(f"[{worker_id}] Không còn scene dang dở (tất cả đã >2 biến thể).", "DONE")
+                    return 0
                 low_variant_retry_round: dict[int, int] = {}
                 zero_variant_fail_count: dict[int, int] = {}
                 reference_regen_round = 0
@@ -936,6 +1149,7 @@ async def run_parallel(args):
                         "worker_id": w_id,
                         "profile_dir": expand_path(worker["profile_dir"]),
                         "proxy": worker.get("proxy"),
+                        "proxy_real": worker.get("proxy_real"),
                         "scenario_dir": s_dir,
                         "output_dir": output_dir,
                     }),
@@ -944,7 +1158,7 @@ async def run_parallel(args):
                 env=worker_env,
             )
             running_subprocesses[proc] = (worker, s_dir)
-            await asyncio.sleep(WORKER_STAGGER_SEC)
+            await _sleep_jitter(WORKER_STAGGER_SEC, low=0.8, high=1.35, floor=1.0)
 
     try:
         if not args.video_only:
@@ -1003,7 +1217,7 @@ async def run_parallel(args):
             await _collect_finished_workers()
             await _restore_cooled_workers()
             await _dispatch_pending_scenarios()
-            await asyncio.sleep(5)
+            await _sleep_jitter(5, low=0.8, high=1.3, floor=1.0)
     finally:
         # Dọn sạch subprocess khi dừng đột ngột (Ctrl+C, lỗi runtime...)
         if running_subprocesses:
@@ -1013,7 +1227,7 @@ async def run_parallel(args):
                 proc.terminate()
             except Exception:
                 pass
-        await asyncio.sleep(1.5)
+        await _sleep_jitter(1.5, low=0.8, high=1.25, floor=0.6)
         for proc in list(running_subprocesses.keys()):
             if proc.poll() is None:
                 try:
@@ -1058,6 +1272,7 @@ def main():
             worker_id    = worker_data["worker_id"],
             profile_dir  = worker_data["profile_dir"],
             proxy_str    = worker_data.get("proxy"),
+            proxy_real   = worker_data.get("proxy_real"),
             scenario_dir = worker_data["scenario_dir"],
             output_dir   = worker_data["output_dir"],
         )

@@ -12,10 +12,12 @@ import os
 from pathlib import Path
 from playwright.async_api import async_playwright
 
-# Đường dẫn profile giống hệt pipeline (dreamina.py)
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Đường dẫn profile được thiết lập để lưu vào ngay trong thư mục clone
 PROFILE_DIR_IMAGE = os.environ.get(
     "PROFILE_DIR_IMAGE",
-    os.path.expanduser("~/dreamina_playwright_profile_image"),
+    os.path.join(_SCRIPT_DIR, "chrome_profiles", "dreamina_playwright_profile_image"),
 ).strip()
 
 GOOGLE_FLOW_HOME = "https://labs.google/fx/vi/tools/flow"

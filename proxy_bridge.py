@@ -34,6 +34,11 @@ PID_FILE    = "/tmp/proxy_bridge_pids.json"  # lưu PID để stop sau
 
 # Port local bắt đầu từ 11001
 LOCAL_PORT_START = 11001
+TEST_URLS = [
+    "https://labs.google/fx/vi/tools/flow",
+    "https://accounts.google.com/",
+    "https://api.ipify.org?format=json",
+]
 
 
 def load_config() -> dict:
@@ -171,15 +176,19 @@ def cmd_start():
         ]
         proc = subprocess.Popen(
             cmd,
+            stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
+            start_new_session=True,
+            close_fds=True,
         )
         pid_map[worker_id] = {
             "pid":        proc.pid,
             "local_port": local_port,
             "remote":     b["remote"],
         }
-        time.sleep(0.3)  # chờ gost bind port
+        # Chờ lâu hơn một chút để phát hiện trường hợp process bind xong rồi chết ngay.
+        time.sleep(0.8)
 
         if is_port_open(local_port):
             print(f"  ✅ {worker_id}: localhost:{local_port} → {b['proxy_real']} (PID={proc.pid})")
@@ -231,31 +240,58 @@ def cmd_status():
     print()
 
 
+def probe_bridge_http(local_port: int, url: str, timeout_sec: int = 8) -> tuple[bool, str]:
+    """
+    Probe HTTPS tunnel qua SOCKS5 local bridge tới URL đích.
+    """
+    try:
+        result = subprocess.run(
+            [
+                "curl",
+                "-I",
+                "-sS",
+                "-L",
+                "--proxy", f"socks5h://127.0.0.1:{local_port}",
+                "--connect-timeout", "4",
+                "--max-time", str(int(timeout_sec)),
+                url,
+            ],
+            capture_output=True,
+            text=True,
+        )
+        out = ((result.stdout or "") + "\n" + (result.stderr or "")).strip()
+        ok = result.returncode == 0 and ("HTTP/" in out or "location:" in out.lower())
+        return ok, out[-400:]
+    except Exception as e:
+        return False, str(e)
+
+
 def cmd_test():
-    """Test kết nối HTTP qua từng bridge bằng curl."""
+    """Test HTTPS tunnel usable qua từng bridge."""
     config  = load_config()
     workers = config.get("video_workers", [])
     bridges = get_bridge_configs(workers)
 
-    print(f"\n  Test kết nối qua {len(bridges)} bridge...\n")
+    print(f"\n  Test HTTPS tunnel qua {len(bridges)} bridge...\n")
     for b in bridges:
         worker_id  = b["worker_id"]
         local_port = b["local_port"]
 
         if not is_port_open(local_port):
-            print(f"  ❌ {worker_id}: port {local_port} chưa mở — chạy 'python3 proxy_bridge.py start' trước")
+            print(f"  ❌ {worker_id}: port {local_port} chưa mở")
             continue
 
-        # Dùng curl để test request qua SOCKS5 local bridge
-        result = subprocess.run(
-            ["curl", "-s", "--socks5", f"127.0.0.1:{local_port}",
-             "--max-time", "5", "https://api.ipify.org"],
-            capture_output=True, text=True
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            print(f"  ✅ {worker_id}: OK — IP qua proxy = {result.stdout.strip()}")
-        else:
-            print(f"  ❌ {worker_id}: FAIL — {result.stderr.strip()[:80]}")
+        ok_any = False
+        for url in TEST_URLS:
+            ok, detail = probe_bridge_http(local_port, url)
+            if ok:
+                print(f"  ✅ {worker_id}: tunnel OK via {url}")
+                ok_any = True
+                break
+            print(f"  ⚠️  {worker_id}: fail via {url} :: {detail[:120]}")
+
+        if not ok_any:
+            print(f"  ❌ {worker_id}: bridge LISTEN nhưng HTTPS tunnel không usable")
     print()
 
 

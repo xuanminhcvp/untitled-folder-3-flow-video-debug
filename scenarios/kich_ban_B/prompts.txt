@@ -2,819 +2,91 @@
 CHARACTER REFERENCE IMAGE PROMPTS
 ==================================================
 
-character1 = An elegant Asian woman in her late forties, Vietnamese-American, medium warm skin tone, poised slim build, long straight black hair tucked neatly behind one ear, sharp intelligent dark brown eyes, calm unreadable expression with quiet authority. Wearing a simple cream silk blouse, tailored charcoal trousers, low black heels, and carrying a structured dark leather handbag. No flashy jewelry, only a minimal watch. Upright composed posture, controlled movements, expression baseline: calm, observant, refined, quietly powerful. Ultra-realistic cinematic portrait, realistic skin texture, soft natural afternoon light, neutral background.
+CHARACTER1. A Black woman in her late thirties with a beautiful composed face, high cheekbones, deep dark brown eyes that carry quiet authority, full lips, warm dark brown skin, her black hair in neat shoulder-length locs pulled back with a simple gold clip. She wears a tailored navy blazer over a cream silk blouse, dark fitted trousers, polished tan leather flats, small gold stud earrings, a thin gold chain necklace, a luxury leather carry-on bag at her side. Tall and elegant build, around 5'9, 150 pounds, the posture of a woman who enters rooms without apology. Her expression defaults to calm and watchful, the face of a mother who will protect her child with silence before she ever raises her voice. She looks like power dressed in patience.
 
-character2 = A White male luxury hotel security manager in his mid-forties, broad heavyset build, slicked-back dark blond hair, trimmed beard, slightly flushed complexion, narrow suspicious eyes, rigid posture used to ordering people around. Wearing a fitted black hotel security suit, white shirt, black tie, earpiece, name badge clipped to jacket, radio on belt. Expression baseline: dismissive, arrogant, territorial, tightly controlled hostility. Ultra-realistic cinematic portrait, realistic skin texture, polished hotel lighting, neutral background.
-
-character3 = A Black woman in her early fifties, tall athletic build, short natural hair with silver at the temples, deep brown skin, striking composed features, direct commanding eyes, immaculate posture. Wearing a dark navy executive pantsuit, white blouse, discreet luxury watch, hotel group executive badge clipped inside blazer. Expression baseline: cold authority, controlled intensity, zero tolerance. Ultra-realistic cinematic portrait, realistic skin texture, soft indoor daylight, neutral background.
+CHARACTER2. A White woman in her mid-forties with a sharp angular face, thin pursed lips, narrow pale blue eyes, highlighted blonde hair pulled tight in a regulation bun, light foundation covering reddened skin at the cheeks and nose. She wears a standard airline uniform: a fitted navy blazer with gold wing pins on the lapel, a white collared blouse underneath, a navy pencil skirt, low navy pumps, a small name badge pinned to her chest. Slim and rigid build, around 5'6, 135 pounds, the posture of someone who confuses procedure with power. Her expression defaults to tight-lipped superiority, the face of a woman who decides who belongs before she checks a boarding pass. She looks like politeness stretched over contempt.
 
 
 ==================================================
 LOCATION / BACKGROUND REFERENCE IMAGE PROMPTS
 ==================================================
 
-image1 = A grand luxury hotel entrance in a major American city, late afternoon golden light reflecting off tall glass doors and polished brass frames. Wide stone steps, valet podium, revolving doors, sleek black SUVs arriving at the curb, potted topiary, marble columns, and a long cream-colored awning over the driveway. Elegant urban atmosphere, wealthy clientele, subtle bustle, ultra-realistic cinematic style, warm upscale lighting, shallow depth of field.
+IMAGE1 = First class airplane cabin. A wide-body aircraft first class section with eight oversized leather seats in a 2-2 configuration, each seat cream-colored leather with adjustable headrests and personal screens. Warm overhead reading lights, polished wood-grain tray tables, small windows with half-drawn shades showing clouds and blue sky outside. A galley visible at the front with a drink cart, small bottles, and a tray of complimentary amenity kits on the counter. Soft warm cabin lighting, muted luxury, the quiet hum of air circulation, the kind of space built for people who pay to be comfortable.
 
 
 ==================================================
-REFERENCE COUNT CHECK
-==================================================
-
-character1 = protagonist (Elena Tran)
-character2 = antagonist (Marcus Hale)
-character3 = authority arrival (Danielle Brooks)
-image1 = luxury hotel entrance
-
-Total references: 4 (3 characters + 1 background)
-Limit: 10
-Status: PASS
-
-
-==================================================
-GLOBAL CHARACTER AND BACKGROUND MAPPING
+FIXED CHARACTER AND BACKGROUND MAPPING
 ==================================================
 
 Character Mapping:
-character1 = protagonist — Asian woman, late forties, hotel group owner, dressed simply but elegantly
-character2 = antagonist — White male hotel security manager, mid-forties, full hotel security suit
-character3 = chief operating officer — Black woman, early fifties, executive suit
+CHARACTER1 = The Mother (protagonist, late-30s Black woman)
+CHARACTER2 = The Flight Attendant (antagonist, mid-40s White woman)
+
+Note: The ten-year-old boy is not assigned a CHARACTER label. He is described directly in each video prompt with full physical details in parentheses. This is because AI reference image tools do not allow generating reference images of minors.
 
 Background Mapping:
-image1 = grand luxury hotel entrance, late afternoon, brass doors, valet curb
-
-These mappings are fixed for the entire project and must not be reassigned.
-
-
-==================================================
-SRT VIDEO UNIT SPLITS — TWO-PASS DURATION CHECK
-==================================================
-
-Video 1:  Lines 1–4   | 00:00:00.033 – 00:00:07.700 | 7.67s | PASS
-Video 2:  Lines 5–8   | 00:00:07.700 – 00:00:15.000 | 7.30s | PASS
-Video 3:  Lines 9–11  | 00:00:15.033 – 00:00:19.666 | 4.63s | PASS
-Video 4:  Lines 12–14 | 00:00:19.666 – 00:00:24.933 | 5.27s | PASS
-Video 5:  Lines 15–18 | 00:00:24.933 – 00:00:31.833 | 6.90s | PASS
-Video 6:  Lines 19–21 | 00:00:31.833 – 00:00:38.066 | 6.23s | PASS
-Video 7:  Lines 22–24 | 00:00:38.066 – 00:00:44.966 | 6.90s | PASS
-Video 8:  Lines 25–27 | 00:00:44.966 – 00:00:50.166 | 5.20s | PASS
-Video 9:  Lines 28–31 | 00:00:50.166 – 00:00:58.133 | 7.97s | PASS
-Video 10: Lines 32–34 | 00:00:58.133 – 00:01:04.200 | 6.07s | PASS
-Video 11: Lines 35–38 | 00:01:04.200 – 00:01:10.833 | 6.63s | PASS
-Video 12: Lines 39–41 | 00:01:10.833 – 00:01:17.000 | 6.17s | PASS
-Video 13: Lines 42–46 | 00:01:17.000 – 00:01:24.666 | 7.67s | PASS
-Video 14: Lines 47–48 | 00:01:24.666 – 00:01:30.000 | 5.33s | PASS
-Video 15: Lines 49–52 | 00:01:30.000 – 00:01:36.300 | 6.30s | PASS
-Video 16: Lines 53–57 | 00:01:36.300 – 00:01:43.666 | 7.37s | PASS
-Video 17: Lines 58–61 | 00:01:43.666 – 00:01:51.200 | 7.53s | PASS
-Video 18: Lines 62–66 | 00:01:51.200 – 00:01:59.100 | 7.90s | PASS
-Video 19: Lines 67–69 | 00:01:59.100 – 00:02:05.900 | 6.80s | PASS
-Video 20: Lines 70–72 | 00:02:05.900 – 00:02:12.433 | 6.53s | PASS
-Video 21: Lines 73–75 | 00:02:12.433 – 00:02:18.966 | 6.53s | PASS
-Video 22: Lines 76–78 | 00:02:18.966 – 00:02:23.900 | 4.93s | PASS
-Video 23: Lines 79–82 | 00:02:23.900 – 00:02:31.133 | 7.23s | PASS
-Video 24: Lines 83–85 | 00:02:31.133 – 00:02:39.033 | 7.90s | PASS
-Video 25: Lines 86–89 | 00:02:39.033 – 00:02:45.333 | 6.30s | PASS
-
-All 25 units: PASS (every unit ≤ 8 seconds)
+IMAGE1 = First class airplane cabin (all scenes)
 
 
 ==================================================
 FULL VIDEO PROMPTS
 ==================================================
 
+Video 1: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: medium shot inside IMAGE1, handheld. A boy (ten-year-old Black boy, small and slim, around 4'7, 75 pounds, warm dark brown skin, short neat black hair, big gentle brown eyes, wearing a clean navy polo shirt tucked into khaki shorts, clean white sneakers, a small gray backpack on his lap) sits in seat 2A by the window, his small gray backpack on his lap, his sketchpad open, looking out at the clouds with quiet wonder. CHARACTER2, her navy airline blazer buttoned sharp, gold wing pins on the lapel, white blouse pressed, name badge visible, her highlighted blonde bun tight, her thin pale face twisted with disgust, narrow pale blue eyes glaring, thin lips pulled back, strides down the aisle toward him, her navy pumps sharp on the cabin carpet. She stops at his row and looks down at him. Her face contorts. CHARACTER2 – sharp, venomous: "What the hell are you doing in my first class?" Transition: hard cut. 3s-6s: close-up on CHARACTER2's face, slight push-in. Her narrow pale blue eyes sweep the boy from head to toe. Her lip curls. She jabs one finger toward him. CHARACTER2 – hissing: "Get your dirty little hands off that seat before I call security." Camera racks focus from her jabbing finger to the boy behind it: his big brown eyes wide, his small hands frozen on his sketchpad, his clean navy polo bright against the cream leather seat. No dialogue. Audio: navy pumps clicking on cabin carpet, CHARACTER2's sharp venomous voice cutting through quiet cabin, cabin air humming, sketchpad pages rustling, other passengers going silent. No music. Only human voices, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, hostile confrontation atmosphere, keep character and background consistent.
 
---- Video 1 (SRT Lines 1–4 | 00:00 – 00:08 | 3 shots) ---
+Video 2: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-2s: medium close-up on the ten-year-old Black boy in the navy polo sitting in seat 2A inside IMAGE1, static frame. His big brown eyes look up at CHARACTER2 standing over him. His voice is small and careful. The boy – quiet, respectful: "Ma'am, this is seat 2A. My mom bought—" Transition: hard cut. 2s-4s: close-up on CHARACTER2's face, CHARACTER2, her navy airline blazer buttoned sharp, gold wing pins on the lapel, white blouse pressed, name badge visible, her highlighted blonde bun tight, her thin pale face twisted with disgust, narrow pale blue eyes glaring, thin lips pulled back, her angular features sharp under the cabin light, blonde bun tight, name badge glinting. She cuts him off before he can finish. Her pale blue eyes flash with impatience. Behind her, other first class passengers in cream leather seats glance sideways. Camera holds on CHARACTER2's face: pure contempt directed downward at a child. No dialogue. Audio: boy's small quiet voice, cabin air humming, the word cut off mid-sentence, CHARACTER2's sharp exhale through her nose, leather seat creaking as a passenger shifts, overhead bins settling. No music. Only human voices, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, child's politeness meeting adult cruelty atmosphere, keep character and background consistent.
 
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
+Video 3: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: medium close-up on CHARACTER2 standing in the aisle inside IMAGE1, slight push-in. CHARACTER2, her navy airline blazer buttoned sharp, gold wing pins on the lapel, white blouse pressed, name badge visible, her highlighted blonde bun tight, her thin pale face twisted with disgust, narrow pale blue eyes glaring, thin lips pulled back, leans down toward the boy, her navy blazer creasing at the shoulders, gold wing pins catching the light. Her voice drops to a vicious hiss. CHARACTER2 – vicious: "Shut your mouth. I do not care what your mama told you." Transition: quick cut. 3s-6s: tight close-up on CHARACTER2's face, her thin lips barely moving, her pale blue eyes pinned on the ten-year-old Black boy in the navy polo below her. CHARACTER2 – cold, deliberate: "Kids like you do not belong up here." Camera slowly pulls out to reveal the boy in the seat, his big brown eyes glassy, his small hands gripping the sketchpad on his lap, his clean navy polo rising and falling with shallow breaths. Behind them, a White businessman in the next row watches his personal screen, pretending not to hear. No dialogue. Audio: CHARACTER2's vicious whisper, cabin air humming, boy's shallow breathing, sketchpad cover gripped tight, leather seat creaking, the silence of passengers choosing not to intervene. No music. Only human voices, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, predatory cruelty against a child atmosphere, keep character and background consistent.
 
-0s-3s: wide shot of image1, aggressive handheld, fast push-in toward the valet entrance. character1 steps out of a yellow taxi carrying a structured handbag and a folded garment bag. character2 immediately intercepts her path from the hotel steps, one hand extended to stop her, expression already hard with suspicion. character1 pauses, calm and observant.
+Video 4: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-2s: close-up on the ten-year-old Black boy in the navy polo in seat 2A inside IMAGE1, static frame. His big brown eyes are wet but he does not cry. His small hands grip the sketchpad edges. His clean white sneakers are together on the cabin floor. His small voice trembles but holds. The boy – trembling, steady: "I did not steal anything, ma'am. I just want to sit—" Transition: hard cut. 2s-5s: medium shot from behind the boy, looking up at CHARACTER2 towering in the aisle. CHARACTER2, her navy airline blazer buttoned sharp, gold wing pins on the lapel, white blouse pressed, name badge visible, her highlighted blonde bun tight, her thin pale face twisted with disgust, narrow pale blue eyes glaring, thin lips pulled back, cuts him off with a raised hand. Camera captures the scale: her standing, him sitting, the cream leather seat making him look even smaller. Behind CHARACTER2, other passengers are visible in their seats, some looking away, some watching through lowered eyelids. No dialogue. Audio: boy's trembling small voice, cabin air humming, hand raised sharply cutting the air, cream leather seat settling, the suffocating quiet of a cabin pretending not to hear a child being bullied. No music. Only human voices, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, a child fighting to hold his ground atmosphere, keep character and background consistent.
 
-character2 – dismissive, blocking:
-"Service entrance is around the back."
+Video 5: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: medium close-up on CHARACTER2 inside IMAGE1, handheld. CHARACTER2, her navy airline blazer buttoned sharp, gold wing pins on the lapel, white blouse pressed, name badge visible, her highlighted blonde bun tight, her thin pale face twisted with disgust, narrow pale blue eyes glaring, thin lips pulled back, snaps her head back and waves her hand in front of her nose in exaggerated disgust, her whole body performing revulsion. Her navy blazer pulls at the buttons. Her name badge swings. Her voice rises loud enough for every first class passenger to hear. CHARACTER2 – loud, theatrical: "Oh god, the smell. Somebody from the back let their kid loose up here like a stray dog." Transition: hard cut. 3s-6s: wide shot of the first class cabin of IMAGE1. Every passenger is now looking. A woman in pearls presses her hand to her mouth. A man in a sport coat pauses mid-sip. the ten-year-old Black boy in the navy polo sits small and still in seat 2A, his clean navy polo and clean white sneakers a direct contradiction to every word just spoken. His big brown eyes stare down at his sketchpad. His lower lip presses tight. He will not cry in front of these people. No dialogue. Audio: CHARACTER2's loud theatrical voice echoing through the cabin, exaggerated hand waving, passengers gasping softly, leather seats creaking as people turn, cabin air hum going quieter, the boy's controlled breathing. No music. Only human voices, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, public racial humiliation of a child atmosphere, keep character and background consistent.
 
-Audio: city traffic hum, taxi door closing, rolling suitcase wheels on stone, faint lobby piano through revolving doors.
+Video 6: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-2s: tight close-up on CHARACTER2's face inside IMAGE1, slow push-in. CHARACTER2, her navy airline blazer buttoned sharp, gold wing pins on the lapel, white blouse pressed, name badge visible, her highlighted blonde bun tight, her thin pale face twisted with disgust, narrow pale blue eyes glaring, thin lips pulled back, her thin lips pull into a hard line, her pale blue eyes flatten with cold command. She points toward the back of the plane. CHARACTER2 – cold, final: "Get out." A beat. She leans closer. CHARACTER2 – quiet, threatening: "Now." Transition: smash cut. 2s-5s: close-up on the ten-year-old Black boy in the navy polo in seat 2A, static frame. He does not move. His big brown eyes are fixed on his sketchpad. His small dark brown hands grip the edges. His clean white sneakers press flat on the cabin floor. His whole small body is rigid with the effort of staying. He is ten years old and he is choosing not to run. CHARACTER2's navy blazer is visible at the edge of the frame, looming. No dialogue. Audio: CHARACTER2's cold commanding voice, the word "now" landing like a slap, absolute cabin silence after, boy's controlled breathing, sketchpad pages under trembling grip, cabin air hum. No music. Only human voices, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, the moment a child holds his ground atmosphere, keep character and background consistent.
 
-Transition: smash cut.
+Video 7: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: medium shot of (ten-year-old Black boy, small and slim, around 4'7, 75 pounds, warm dark brown skin, short neat black hair, big gentle brown eyes, wearing a clean navy polo shirt tucked into khaki shorts, clean white sneakers, a small gray backpack on his lap) sitting in seat 2A inside IMAGE1, slow push-in. He sits perfectly still. His clean navy polo is tucked neatly into his khaki shorts. His clean white sneakers rest on the cabin floor. His small dark brown hands tremble around the sketchpad on his lap, but his body does not move. Camera pushes in on his face: big gentle brown eyes, short neat black hair, warm dark brown skin catching the warm cabin light. He is ten years old and he is not leaving his seat. No dialogue. Transition: hard cut. 3s-7s: close-up insert on the boy's hands holding the sketchpad. His fingers tremble against the cover. Camera tilts up slowly from the sketchpad past his navy polo to his face. His jaw is clenched tight for a child so small. Behind him through the window, clouds drift by in blue sky. He had been dreaming about this window seat for three days. Camera holds on his profile against the window. CHARACTER2, her navy blazer creased at the elbows, blonde bun still tight, name badge catching the cabin light, her angular face hard with superiority, pale blue eyes narrowed, one hand on her hip, is visible at the edge of the frame, standing in the aisle, arms crossed, watching him. No dialogue. Audio: boy's trembling fingers on sketchpad cover, cabin air humming, distant engine drone, cream leather seat settling under the boy's still body, clouds visible through window, CHARACTER2 breathing through her nose in the aisle. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, a child's quiet courage atmosphere, keep character and background consistent.
 
-3s-5s: medium shot, slight low angle on character1. character1 keeps one hand on the garment bag, posture straight, expression composed and polite, trying to continue toward the entrance. character2 shifts sideways, blocking again.
+Video 8: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-2s: close-up on the ten-year-old Black boy in the navy polo's face reflected in the airplane window inside IMAGE1, static frame. His big brown eyes stare at the clouds outside, their reflection overlaid on his dark brown skin. Through the glass: endless blue sky, cotton-white clouds stretching to the horizon. His face is pressed close to the cool window surface. For one moment, the ugliness in the cabin disappears. No dialogue. Transition: hard cut. 2s-5s: medium shot from outside seat 2A, looking in. The boy sits small in the large cream leather first class seat, his gray backpack on his lap, sketchpad tucked to his side, his clean white sneakers dangling above the floor. The seat is enormous around him. He looks like he belongs there and like he has been told he does not, both at the same time. CHARACTER2, her navy blazer creased at the elbows, blonde bun still tight, name badge catching the cabin light, her angular face hard with superiority, pale blue eyes narrowed, one hand on her hip, stands in the aisle behind the row, arms crossed, navy uniform sharp, blonde bun tight, watching him with cold impatience. No dialogue. Audio: airplane window vibrating faintly, distant engine hum, cabin air circulating, cream leather seat settling, the gentle sound of clouds passing. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting with blue sky window light, ultra-realistic cinematic style, innocence and longing atmosphere, keep character and background consistent.
 
-character1 – calm, measured:
-"I'm checking in."
+Video 9: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-2s: medium-wide shot of the first class cabin inside IMAGE1, camera static. CHARACTER2, her navy blazer creased at the elbows, blonde bun still tight, name badge catching the cabin light, her angular face hard with superiority, pale blue eyes narrowed, one hand on her hip, stands in the center aisle, her navy pencil skirt sharp, name badge visible. Camera tracks her eyes: they pass over a White man in a polo reading a newspaper in 1A. No ticket check. They pass over a White woman with shopping bags in 1B. No ticket check. They pass over a White couple sharing champagne in 3A and 3B. No ticket check. No dialogue. Transition: hard cut. 2s-5s: close-up on CHARACTER2's pale blue eyes inside IMAGE1, camera tracking their movement. Her gaze sweeps past every White face without stopping, then locks with predatory focus on one target: the ten-year-old Black boy in the navy polo sitting alone in 2A, the only Black child in the cabin, his clean navy polo bright against the cream leather. Her eyes narrow. Camera racks focus from her eyes to the boy in the distance. She did not check anyone's ticket. She went straight to him. No dialogue. Audio: cabin air humming, CHARACTER2's navy pumps stepping slowly on carpet, newspaper pages turning unbothered, champagne glass clinking, the discriminating silence of selective enforcement. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, targeted racial profiling atmosphere, keep character and background consistent.
 
-Audio: soft heel step on stone, light fabric movement, distant valet whistle, muted hotel ambience.
+Video 10: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: tracking shot following CHARACTER2 from behind inside IMAGE1, her navy blazer and blonde bun centered in frame. CHARACTER2, her navy blazer creased at the elbows, blonde bun still tight, name badge catching the cabin light, her angular face hard with superiority, pale blue eyes narrowed, one hand on her hip, walks the first class aisle past seat after seat of White passengers: a man in a suit, a woman with designer sunglasses, a couple sharing a blanket. She passes each one without a glance, her navy pumps measuring a steady rhythm on the carpet. Camera tracks her all the way down the aisle. No dialogue. Transition: hard cut. 3s-6s: over-the-shoulder shot from behind CHARACTER2, her navy blazer in the foreground. She stops. Her body blocks the aisle. In the seat beyond her: the ten-year-old Black boy in the navy polo sitting alone in 2A, his small frame dwarfed by the cream leather seat, his sketchpad on his lap, his big brown eyes looking up at her. The only Black child in the entire cabin. Camera holds on the visual: her standing, him sitting, every White passenger behind her untouched. No dialogue. Audio: navy pumps on carpet stopping, cabin air hum, distant engine drone, the quiet click of her heels planting, cream leather settling, the sound of being singled out. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, systemic targeting atmosphere, keep character and background consistent.
 
-Transition: hard cut.
+Video 11: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: medium shot of the first class aisle inside IMAGE1, camera looking past the ten-year-old Black boy in the navy polo in seat 2A and CHARACTER2 in the aisle. From the front of the cabin, a figure approaches. CHARACTER1, her tailored navy blazer sharp over the cream silk blouse, dark trousers pressed, tan leather flats polished, gold stud earrings catching the cabin light, thin gold chain at her throat, her beautiful composed face calm and watchful, dark brown eyes steady, her black locs pulled back with the gold clip, walks down the aisle, her tailored navy blazer sharp, cream blouse catching the cabin light, tan leather flats silent on the carpet. Her dark brown face is absolutely calm. Her dark brown eyes are fixed ahead. She does not rush. She does not hesitate. Camera tracks her approach until she stops directly beside CHARACTER2. No dialogue. Transition: hard cut. 3s-6s: two-shot in the aisle of IMAGE1, camera at chest height. CHARACTER1 stands face to face with CHARACTER2. CHARACTER1 is taller, composed, her navy blazer immaculate, her gold chain resting still on her collarbone. CHARACTER2's pale blue eyes flick between the mother and the boy, her angular face tightening. CHARACTER1 says nothing. She simply stands there, her presence filling the aisle. Camera holds on the silence between them. No dialogue. Audio: tan leather flats approaching silently on carpet, cabin air hum, CHARACTER1 stopping with a subtle fabric shift, the silence of two women facing each other, distant engine drone, cream leather settling. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, maternal power entering quietly atmosphere, keep character and background consistent.
 
-5s-8s: tight medium close-up on character2 leaning into character1's space. character2 glances at the taxi, then at her simple outfit, lips curling with contempt. character1 remains still, expression unreadable.
+Video 12: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: close-up on CHARACTER1's hand inside IMAGE1, static frame. CHARACTER1, her tailored navy blazer sharp over the cream silk blouse, dark trousers pressed, tan leather flats polished, gold stud earrings catching the cabin light, thin gold chain at her throat, her beautiful composed face calm and watchful, dark brown eyes steady, her black locs pulled back with the gold clip, her dark brown fingers, gold chain visible at her wrist, reach into her blazer pocket and pull out two boarding passes. She holds them up at eye level between herself and CHARACTER2, the printed text visible: 2A and 2B, first class. Camera pushes in on the boarding passes catching the warm cabin light. No dialogue. Transition: hard cut. 3s-6s: close-up on CHARACTER2's face, CHARACTER2, her navy blazer now wrinkled at the shoulders, name badge crooked, her highlighted blonde bun pulling loose, her angular face losing its composure, pale blue eyes darting between faces, thin lips stammering, her pale blue eyes reading the boarding passes. Her angular face freezes. Her thin lips press together. The name badge on her chest rises and falls with a sharp breath. Camera holds as the certainty drains from her expression. Behind her, a passenger cranes his neck to see the boarding passes. No dialogue. Audio: boarding passes pulled from blazer pocket, paper held up catching cabin light, CHARACTER2's sharp intake of breath, cabin air hum, passenger shifting in cream leather to see, the rustle of proof. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, evidence presented without a word atmosphere, keep character and background consistent.
 
-character2 – mocking, hostile:
-"Not through this lobby, you're not."
+Video 13: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-2s: medium close-up on CHARACTER2 inside IMAGE1, handheld. CHARACTER2, her navy blazer creased at the elbows, blonde bun still tight, name badge catching the cabin light, her angular face hard with superiority, pale blue eyes narrowed, one hand on her hip, does not apologize. Her thin lips press flat. Her pale blue eyes break from CHARACTER1's gaze and drop to the carpet. She turns on her navy pumps and walks away down the aisle without a word, her blonde bun tight, her name badge swinging, her shoulders rigid. Camera watches her retreat. No dialogue. Transition: hard cut. 2s-5s: medium shot, CHARACTER1 takes her seat in 2B beside her son in 2A inside IMAGE1. CHARACTER1, her navy blazer unbuttoned, cream blouse visible, gold chain resting on her collarbone, her dark brown face calm but her dark brown eyes now carrying visible weight, jaw set, locs neat at her shoulders, her tall elegant frame standing straight, settles into the cream leather seat, her navy blazer adjusting, her cream blouse smooth. She does not watch CHARACTER2 leave. She turns to the ten-year-old Black boy in the navy polo beside her. Her dark brown hand reaches over and rests gently on his small hand gripping the sketchpad. Camera close-up on their hands: her adult dark brown hand over his small one, steadying his trembling. No dialogue. Audio: navy pumps walking away on carpet, rigid footsteps retreating, cabin air humming, cream leather settling as CHARACTER1 sits, mother's hand resting on the boy's hand, sketchpad trembling stopping, the quiet sound of safety arriving. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, no apology and maternal comfort atmosphere, keep character and background consistent.
 
-Audio: earpiece crackle, curbside engine idle, footsteps on polished stone, tense upscale ambience.
+Video 14: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: medium shot inside IMAGE1, camera at galley entrance. Minutes later. the ten-year-old Black boy in the navy polo walks back from the restroom toward his seat, his clean white sneakers quiet on the cabin carpet, his small gray backpack hanging from one shoulder. He passes the galley area with its drink cart and rows of small bottles. Camera tracks him from the side. His big brown eyes glance sideways at the tiny bottles on the cart, the way any curious child would look at something interesting. No dialogue. Transition: hard cut. 3s-6s: medium shot from inside the galley, looking out. The boy walks past. Behind a partition, CHARACTER2, her navy blazer creased at the elbows, blonde bun still tight, name badge catching the cabin light, her angular face hard with superiority, pale blue eyes narrowed, one hand on her hip, watches him through a gap, her pale blue eyes tracking his glance at the bottles. Her angular face sharpens. Her thin lips press together. Her navy-clad arm reaches out from behind the partition. Camera pushes in on her hand about to grab him. No dialogue. Audio: small sneakers on cabin carpet, backpack strap shifting, boy's quiet footsteps passing galley, small bottles clinking faintly on the cart, CHARACTER2's sharp breath from behind the partition, fabric reaching. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, predator waiting and innocent passing atmosphere, keep character and background consistent.
 
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, tense exclusion atmosphere, keep character and background consistent.
+Video 15: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-2s: close-up on the ten-year-old Black boy in the navy polo's face inside IMAGE1 as he passes the galley, camera tracking. His big brown eyes move to the tiny bottles arranged on the drink cart, wide and curious, the way a ten-year-old looks at rows of small colorful things. A small smile starts at the corner of his mouth. No dialogue. Transition: hard cut. 2s-5s: close-up on the drink cart inside IMAGE1, camera at the boy's eye level. Rows of tiny bottles in every color, perfectly arranged. Behind them, reflected in the cart's metal surface, the distorted image of CHARACTER2, her navy blazer creased at the elbows, blonde bun still tight, name badge catching the cabin light, her angular face hard with superiority, pale blue eyes narrowed, one hand on her hip, watching from the partition, her angular face hard and waiting. Camera racks focus from the bottles to her reflection. The boy has already passed. His hands never touched anything. No dialogue. Audio: tiny bottles vibrating faintly on the cart, cabin air humming, boy's footsteps moving past, CHARACTER2's reflection distorted in metal, the quiet hum of something about to go wrong. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, childlike curiosity about to be weaponized atmosphere, keep character and background consistent.
 
+Video 16: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-2s: medium shot inside IMAGE1, handheld. CHARACTER2, her navy airline blazer buttoned sharp, gold wing pins on the lapel, white blouse pressed, name badge visible, her highlighted blonde bun tight, her thin pale face twisted with disgust, narrow pale blue eyes glaring, thin lips pulled back, lunges from behind the galley partition. Her hand shoots out and grabs the ten-year-old Black boy in the navy polo's thin wrist hard, her blue-white knuckles visible through the grip. She yanks him around to face the cabin. His small body spins, his gray backpack flying off one shoulder, his clean white sneakers stumbling on the carpet. His big brown eyes go wide with shock. No dialogue. Transition: smash cut. 2s-5s: wide shot of the first class cabin of IMAGE1. Every head turns. CHARACTER2 holds the boy's wrist, her navy blazer pulled tight across her shoulders, her blonde bun rigid, her angular face contorted with manufactured outrage. The boy stands frozen, his wrist in her grip, his navy polo twisted, his small body turned to face twenty watching faces. Camera holds on the full scene: the attendant, the boy, and the silent watching cabin. No dialogue. Audio: sudden lunge, hand grabbing small wrist, boy gasping, backpack hitting cabin floor, sneakers stumbling on carpet, body spun around, cabin passengers collectively inhaling, every conversation stopping at once. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, physical assault on a child atmosphere, keep character and background consistent.
 
---- Video 2 (SRT Lines 5–8 | 00:08 – 00:15 | 3 shots) ---
+Video 17: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: medium shot inside IMAGE1, handheld. CHARACTER2, her navy blazer open at the front, white blouse slightly rumpled, name badge tilted, her blonde bun loosening at the edges, her angular face flushed with righteous fury, pale blue eyes wide and blazing, pointing with one rigid finger, still gripping the ten-year-old Black boy in the navy polo's wrist with one hand, reaches back to the galley counter with the other and snatches a complimentary amenity kit. She holds it up high for the entire cabin to see, her navy blazer sleeve pulling back to show her rigid forearm. Her voice is loud and triumphant. CHARACTER2 – loud, righteous: "Caught this little thief red-handed." Transition: hard cut. 3s-6s: close-up on the amenity kit in CHARACTER2's raised hand inside IMAGE1, static frame. Then camera tilts down to the boy's hands: one wrist locked in CHARACTER2's grip, the other hanging open at his side. His small dark brown hands are empty. His fingers are spread. He holds nothing. Camera racks focus from the amenity kit above to his empty hands below. The kit had never moved from the counter. No dialogue. Audio: CHARACTER2's loud triumphant voice echoing through the cabin, amenity kit snatched from counter, fabric grip on the boy's small wrist, cabin passengers murmuring, the visual proof of empty hands against the accusation. No music. Only human voices, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, false accusation against a child atmosphere, keep character and background consistent.
 
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
+Video 18: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: medium close-up on CHARACTER2 inside IMAGE1, handheld. CHARACTER2, her navy blazer open at the front, white blouse slightly rumpled, name badge tilted, her blonde bun loosening at the edges, her angular face flushed with righteous fury, pale blue eyes wide and blazing, pointing with one rigid finger, still holding the amenity kit high, her angular face flushed with self-righteous fury. She addresses the cabin. CHARACTER2 – loud, sweeping: "These people think they can just take whatever they want." Camera slowly pans from her face across the cabin to the faces of passengers: some looking down, some uncomfortable, one woman pressing her hand over her mouth. Transition: hard cut. 3s-5s: close-up on the ten-year-old Black boy in the navy polo's face, static frame. His big brown eyes are glassy. His lower lip trembles once. His small dark brown hand, the one not being gripped, hangs open at his side, empty. Camera tilts down to show the galley counter behind him: every amenity kit still in place, untouched, arranged exactly as before. Nothing moved. Nothing was taken. No dialogue. Transition: hard cut. 5s-7s: medium shot inside IMAGE1. CHARACTER1, her navy blazer unbuttoned, cream blouse visible, gold chain resting on her collarbone, her dark brown face calm but her dark brown eyes now carrying visible weight, jaw set, locs neat at her shoulders, her tall elegant frame standing straight, sits in seat 2B, her navy blazer open, cream blouse visible, her dark brown face now carrying visible tension, her dark brown eyes locked on CHARACTER2's hand gripping her son's wrist. Her jaw is set. Her gold earrings are still. She does not move yet. But her stillness has changed. No dialogue. Audio: CHARACTER2's loud sweeping accusation echoing, passengers murmuring, boy's trembling breath, amenity kits sitting untouched on counter, CHARACTER1's controlled breathing from her seat, cabin air humming with new tension. No music. Only human voices, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, escalating injustice atmosphere, keep character and background consistent.
 
-0s-2s: medium close-up on character2, slight handheld. character2 gives character1 a slow look up and down, head tilted, eyes narrowed with smug certainty.
+Video 19: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: medium shot inside IMAGE1, handheld. CHARACTER2, her navy blazer open at the front, white blouse slightly rumpled, name badge tilted, her blonde bun loosening at the edges, her angular face flushed with righteous fury, pale blue eyes wide and blazing, pointing with one rigid finger, releases the ten-year-old Black boy in the navy polo's wrist and strides to the galley phone mounted on the wall. She picks up the handset, pressing it to her ear, her navy blazer stretching as she turns her back to the cabin. Camera close-up on her mouth speaking urgently into the phone, her angular face animated with manufactured crisis. No dialogue. Transition: hard cut. 3s-5s: two-shot inside IMAGE1. the ten-year-old Black boy in the navy polo stands alone in the aisle, rubbing his wrist where she gripped it, his navy polo now untucked on one side, his clean white sneakers scuffed at the toes. In seat 2B, CHARACTER1, her navy blazer unbuttoned, cream blouse visible, gold chain resting on her collarbone, her dark brown face calm but her dark brown eyes now carrying visible weight, jaw set, locs neat at her shoulders, her tall elegant frame standing straight, watches the galley, her dark brown face controlled but her dark brown eyes tracking CHARACTER2's every movement with the focus of someone cataloguing evidence. Camera holds on the mother's face. She knows what is coming. No dialogue. Audio: galley phone picked up, urgent whispered voice into handset, boy rubbing his wrist, fabric shifting, cabin air humming, the sound of lies being delivered through a phone. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, manufactured crisis atmosphere, keep character and background consistent.
 
-character2 – smug, belittling:
-"We have standards here."
+Video 20: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: medium-wide shot inside IMAGE1, camera at the front of the cabin. The cabin door opens. A police officer in uniform steps into the first class section, badge visible, hand on belt. He walks down the aisle toward the galley. Every passenger watches him pass. CHARACTER2, her navy blazer open at the front, white blouse slightly rumpled, name badge tilted, her blonde bun loosening at the edges, her angular face flushed with righteous fury, pale blue eyes wide and blazing, pointing with one rigid finger, meets him at the galley entrance, her name badge prominent, her angular face set in righteous authority. the ten-year-old Black boy in the navy polo stands small in the aisle, his navy polo wrinkled, his big brown eyes looking up at the officer. No dialogue. Transition: hard cut. 3s-6s: medium shot at the galley counter inside IMAGE1. The officer looks at the counter. Every amenity kit is in place. Nothing is missing. He turns to CHARACTER2. The officer – calm, direct: "Is anything actually missing?" Camera holds on CHARACTER2's face as the question lands. Her pale blue eyes flick to the counter. Her confidence fractures. No dialogue after. Audio: cabin door opening, heavy police boots on cabin carpet, badge clinking, passengers going silent, officer's calm authoritative voice, CHARACTER2's breath catching, amenity kits sitting untouched on counter. No music. Only human voices, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, authority questioning authority atmosphere, keep character and background consistent.
 
-Audio: distant luggage wheels, brass door turning, low city horn, short radio hiss.
+Video 21: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-2s: close-up on CHARACTER2's face inside IMAGE1, static frame. CHARACTER2, her navy blazer now wrinkled at the shoulders, name badge crooked, her highlighted blonde bun pulling loose, her angular face losing its composure, pale blue eyes darting between faces, thin lips stammering, her composure crumbles. Her pale blue eyes dart between the officer and the untouched counter. Her highlighted blonde bun is pulling loose at one side. She stammers. CHARACTER2 – stammering, desperate: "He was about to take it." Transition: hard cut. 2s-5s: close-up on the officer's face, static frame. His expression does not change. He looks at the counter again, then at the boy. Then back at CHARACTER2. His silence says everything. Behind him, the ten-year-old Black boy in the navy polo stands in the aisle rubbing his wrist. CHARACTER1, her navy blazer unbuttoned, cream blouse visible, gold chain resting on her collarbone, her dark brown face calm but her dark brown eyes now carrying visible weight, jaw set, locs neat at her shoulders, her tall elegant frame standing straight, has risen from seat 2B and stands in the aisle, her navy blazer square, cream blouse bright, her dark brown face calm, her dark brown eyes watching everything. Camera racks focus from the officer's face to CHARACTER1 standing behind him. No dialogue. Audio: CHARACTER2's stammering voice cracking, officer breathing evenly, cabin air humming, cream leather shifting as CHARACTER1 stands, gold chain settling on collarbone, the sound of a lie collapsing in real time. No music. Only human voices, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, accusation disintegrating atmosphere, keep character and background consistent.
 
-Transition: quick cut.
+Video 22: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: medium shot inside IMAGE1, camera at the boy's eye level. the ten-year-old Black boy in the navy polo steps forward into the center of the aisle. His face is set with determination no ten-year-old should need. He reaches for his small gray backpack on the cabin floor, picks it up, and holds it in front of him. His small dark brown hands find the zipper. He pulls it open. No dialogue. Transition: hard cut. 3s-6s: close-up on the backpack as the boy turns it upside down and dumps everything onto the cream leather seat 2A inside IMAGE1. Camera tracks each item falling: a sketchpad tumbling open, colored pencils scattering across the cream leather, a thick book about jet engines landing with a thud, a wrapped granola bar bouncing once. His belongings spread across the seat in the cabin light. His small hands hold the empty backpack open for everyone to see. No dialogue. Audio: backpack zipper pulling open, items tumbling onto cream leather, sketchpad pages fluttering, pencils scattering, heavy book thudding, granola bar bouncing on leather, empty backpack fabric sagging, cabin holding its breath. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, a child proving his innocence atmosphere, keep character and background consistent.
 
-2s-4s: medium shot on character1, static frame. character1 stands without flinching, one hand lightly resting on her handbag, expression calm but firmer now.
+Video 23: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-4s: slow close-up montage inside IMAGE1, each item held for one second. The sketchpad open to a page of careful pencil drawings of airplanes. Cut to: colored pencils scattered across the cream leather, each one sharpened and used. Cut to: a thick book about jet engines, the cover worn from reading, a bookmark halfway through. Cut to: a granola bar in its wrapper, slightly crushed. Each item is a child's dream laid bare under cabin light. No dialogue. Transition: hard cut. 4s-8s: medium shot of the full spread on seat 2A inside IMAGE1, camera pulling back slowly. All of the boy's belongings arranged on the cream leather: sketchpad, pencils, jet engine book, granola bar. And in the center, the last thing that fell out: a small stuffed dog, well-loved, slightly worn at the ears, sitting upright on the leather seat. Camera pushes in on the stuffed dog. the ten-year-old Black boy in the navy polo stands beside the seat, his empty backpack hanging limp in his hands, his big brown eyes looking directly at CHARACTER2. No dialogue. Audio: cabin silence, leather seat holding the weight of small objects, pages settling, pencils rolling to rest, the stuffed dog landing softly, cabin air humming, absolute quiet. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, innocence displayed for the world atmosphere, keep character and background consistent.
 
-character1 – restrained, polite:
-"And I have a reservation."
+Video 24: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: extreme close-up on the stuffed dog sitting on the cream leather seat inside IMAGE1, static frame. Its button eyes catch the warm cabin light. Its small body is worn soft from years of holding. Camera holds on it. Then slow tilt up to the ten-year-old Black boy in the navy polo's face standing beside the seat. His big brown eyes are wet. His lower lip trembles. He looks at CHARACTER2 and whispers. The boy – whispering: "See? I did not take anything." Transition: hard cut. 3s-5s: wide shot of the first class cabin inside IMAGE1, camera static. Absolute silence. Every passenger is looking at the boy standing beside his belongings on the seat, the stuffed dog in the center, the empty backpack in his hands. CHARACTER2, her navy blazer hanging loose, name badge nearly falling off, blonde bun half-collapsed, her angular face drained of all color, pale blue eyes wide and empty, thin lips parted, hands trembling at her sides, stands near the galley, her navy blazer hanging loose, blonde bun collapsing, her angular face losing all color. CHARACTER1, her navy blazer unbuttoned, cream blouse visible, gold chain resting on her collarbone, her dark brown face calm but her dark brown eyes now carrying visible weight, jaw set, locs neat at her shoulders, her tall elegant frame standing straight, stands in the aisle near seat 2B, her navy blazer square, her dark brown face still, her dark brown eyes on her son. The officer stands between them, motionless. Not a breath in the cabin. No dialogue. Audio: boy's whisper barely audible, stuffed dog sitting on leather, empty backpack fabric hanging, absolute cabin silence, no engine sound, no air hum, just the weight of twenty people confronting what they just witnessed. No music. Only human voices, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, devastating innocence atmosphere, keep character and background consistent.
 
-Audio: measured breath, soft hotel lobby air spill, distant conversation, fabric rustle.
+Video 25: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: slow tracking shot across the first class cabin inside IMAGE1, camera at eye level. Face after face: a businesswoman with tears on her cheek. A man staring at his hands in his lap. A woman gripping her armrest, jaw tight. An older man shaking his head slowly. Every face is a mirror of what just happened. No dialogue. Transition: hard cut. 3s-5s: wide shot of the full first class cabin inside IMAGE1, camera static. The ten-year-old Black boy in the navy polo stands at seat 2A with his belongings spread across the cream leather. CHARACTER2, her navy blazer hanging loose, name badge nearly falling off, blonde bun half-collapsed, her angular face drained of all color, pale blue eyes wide and empty, thin lips parted, hands trembling at her sides, stands near the galley, shrinking. CHARACTER1, her navy blazer unbuttoned, cream blouse visible, gold chain resting on her collarbone, her dark brown face calm but her dark brown eyes now carrying visible weight, jaw set, locs neat at her shoulders, her tall elegant frame standing straight, stands in the aisle, still and tall. The officer stands between them. The cabin light is warm and golden but the air is ice. No one moves. The silence has its own weight. No dialogue. Audio: absolute silence, one person swallowing, a single tear hitting a fabric armrest, leather seat creaking under someone's grip, cabin air system cycling but sounding distant, the deafening quiet of collective shame. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, collective reckoning atmosphere, keep character and background consistent.
 
-Transition: smash cut.
+Video 26: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: medium shot inside IMAGE1, handheld. CHARACTER1, her navy blazer square on her shoulders, cream blouse bright in the cabin light, gold earrings catching a glint, her dark brown face absolutely still, her dark brown eyes locked on CHARACTER2 with the quiet force of a woman about to end something with one sentence, takes one step forward in the aisle. Her tan leather flats are silent on the carpet. Her navy blazer sits square on her shoulders. Her cream blouse catches the warm cabin light. Her gold stud earrings glint once. Her dark brown face is absolutely still. Her dark brown eyes are locked on CHARACTER2. She does not yell. She does not raise her voice. She does not need to. Camera tracks her single step forward. No dialogue. Transition: hard cut. 3s-5s: tight close-up on CHARACTER1's face, CHARACTER1, her navy blazer square on her shoulders, cream blouse bright in the cabin light, gold earrings catching a glint, her dark brown face absolutely still, her dark brown eyes locked on CHARACTER2 with the quiet force of a woman about to end something with one sentence, slow push-in. Her dark brown eyes burn with quiet force. Her full lips are closed. Her jaw is set. She is about to say one sentence. Just one. And the way the light catches her steady dark brown eyes, the way her chin lifts by a fraction, says that this single sentence will be enough. Camera holds on her face, pushing in until her eyes fill the frame. No dialogue. Audio: single leather flat stepping on carpet, navy blazer fabric shifting, gold earring catching light with a tiny clink, cabin air humming, CHARACTER2's breathing going rapid in the background, the silence before a detonation. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, the moment before everything changes atmosphere, keep character and background consistent.
 
-4s-7s: close-up on character2, quick push-in. He gives a tight smile that never reaches his eyes, chin lifting with territorial arrogance.
+Video 27: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: medium two-shot inside IMAGE1, camera static. CHARACTER1 faces CHARACTER2 across the narrow aisle. CHARACTER1, her navy blazer square on her shoulders, cream blouse bright in the cabin light, gold earrings catching a glint, her dark brown face absolutely still, her dark brown eyes locked on CHARACTER2 with the quiet force of a woman about to end something with one sentence, stands tall, composed, her navy blazer immaculate, her dark brown eyes steady. CHARACTER2, her navy blazer hanging loose, name badge nearly falling off, blonde bun half-collapsed, her angular face drained of all color, pale blue eyes wide and empty, thin lips parted, hands trembling at her sides, stands by the galley, her navy blazer loose, name badge crooked, blonde bun half-collapsed, her angular face already tightening with dread. CHARACTER1 opens her mouth. She speaks one sentence. Her lips move but no sound reaches the audience. Camera holds on both faces: CHARACTER1 calm, CHARACTER2 receiving the words. No dialogue. Transition: smash cut. 3s-6s: extreme close-up on CHARACTER2's face, CHARACTER2, her navy blazer hanging loose, name badge nearly falling off, blonde bun half-collapsed, her angular face drained of all color, pale blue eyes wide and empty, thin lips parted, hands trembling at her sides, the color draining in real time. Her pale skin goes from flushed to white. Her pale blue eyes widen until the whites show. Her thin lips part. Her whole face collapses inward. Whatever CHARACTER1 said, it has gutted her completely. Camera holds on the destruction spreading across her face like a crack across glass. No dialogue. Audio: CHARACTER1's mouth opening, the sentence delivered in silence the audience cannot hear, CHARACTER2's breath stopping, color draining audible only as a faint ringing, cabin air humming, the sound of a career and a life ending in one sentence. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, one sentence that destroys everything atmosphere, keep character and background consistent.
 
-character2 – cruel, performative:
-"For housekeeping interviews, staffing uses the basement office."
+Video 28: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: close-up on CHARACTER2's hands inside IMAGE1, static frame. CHARACTER2, her navy blazer hanging loose, name badge nearly falling off, blonde bun half-collapsed, her angular face drained of all color, pale blue eyes wide and empty, thin lips parted, hands trembling at her sides, her hands hang at her sides, trembling. Her navy blazer sleeves shake. Her name badge falls from her chest and clatters on the cabin floor. Camera follows the badge as it hits the carpet, the name visible for a moment, then cuts to her face: pale, empty, her thin lips moving without sound. No dialogue. Transition: hard cut. 3s-6s: wide shot of the first class cabin inside IMAGE1, slow pull-out. CHARACTER2 near the galley, broken. CHARACTER1 standing in the aisle, her navy blazer sharp, her dark brown face calm. The ten-year-old Black boy in the navy polo at seat 2A with his belongings on the leather, the stuffed dog watching from the center. The officer standing still. Every passenger silent. Camera pulls back until the entire cabin fits in the frame. The warm cabin light falls on all of them equally. No dialogue. Audio: name badge clattering on cabin carpet, CHARACTER2's shaking breath, cabin air humming, distant engine drone, the quiet sound of twenty people witnessing someone's life unraveling in real time. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting, ultra-realistic cinematic style, aftermath and destruction atmosphere, keep character and background consistent.
 
-Audio: clipped consonants, valet stand printer chirp, faint brakes from an arriving SUV, tense silence beneath.
+Video 29: Reference guide: CHARACTER1 = protagonist, Black woman, late thirties. CHARACTER2 = antagonist, White woman, mid-forties. IMAGE1 = first class airplane cabin, cream leather seats, warm lighting, galley with drink cart, windows showing clouds. 0s-3s: medium shot inside IMAGE1, camera tracking. CHARACTER1, her navy blazer square on her shoulders, cream blouse bright in the cabin light, gold earrings catching a glint, her dark brown face absolutely still, her dark brown eyes locked on CHARACTER2 with the quiet force of a woman about to end something with one sentence, turns from CHARACTER2 and walks back to seat 2B. She sits down beside her son. Her dark brown hand reaches over and gently picks up the small stuffed dog from the seat, brushes it off, and places it in the boy's lap. The boy's small dark brown hands close around it. Camera close-up on their hands: her adult hand placing the stuffed dog, his small hands receiving it. No dialogue. Transition: hard cut. 3s-5s: close-up on the ten-year-old Black boy in the navy polo's face in seat 2A, static frame. His big brown eyes, still wet, look out the window at the clouds and blue sky. The warm cabin light falls on his dark brown skin. His small hands hold the stuffed dog against his navy polo. Camera pushes in until his face fills the frame. His expression is quiet, bruised, but unbroken. No dialogue. Transition: hard cut. 5s-7s: slow push-in on the airplane window from outside, clouds drifting past, blue sky stretching to the horizon. The boy's reflection is faintly visible in the glass, his dark brown face overlaid on the endless sky. Camera holds. No dialogue. Audio: mother sitting down in cream leather, stuffed dog placed gently in small hands, fabric settling, cabin air humming softly, clouds passing outside the window, distant engine drone, the quiet sound of a child still here, still in his seat. No music. No voices, no dialogue. Only ASMR ambient sounds, room tone, ambient airplane cabin sound, subtle ASMR details. Warm cabin overhead lighting fading to window sky light, ultra-realistic cinematic style, powerful quiet cliffhanger atmosphere, keep character and background consistent.
 
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, tense humiliating atmosphere, keep character and background consistent.
-
-
---- Video 3 (SRT Lines 9–11 | 00:15 – 00:20 | 2 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-3s: medium shot. character2 gestures sharply toward the side alley beside the hotel, not even looking at character1 anymore, already dismissing her.
-
-character2 – impatient, entitled:
-"I said around the back."
-
-Audio: shoe pivot on stone, radio click, revolving door swish, distant city wind funneling between buildings.
-
-Transition: quick cut.
-
-3s-5s: medium close-up on character1, static frame. character1 lifts her gaze directly to character2, chin level, voice calm and exact.
-
-character1 – steady, controlled:
-"I think you're making an assumption."
-
-Audio: calm voice, light traffic hum, faint silverware clink from inside restaurant, controlled silence.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, tense poised atmosphere, keep character and background consistent.
-
-
---- Video 4 (SRT Lines 12–14 | 00:20 – 00:25 | 2 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-2s: close-up on character2, thin smile spreading with open condescension. He folds his arms, shoulders widening to dominate the frame.
-
-character2 – mocking, amused:
-"Oh, I made one?"
-
-Audio: amused exhale through nose, jacket sleeve creak, brass door hinge soft behind him.
-
-Transition: hard cut.
-
-2s-5s: medium shot. character2 steps closer, lowering his voice to something colder and more insulting, eyes flicking to her taxi again.
-
-character2 – sneering, dismissive:
-"Guests don't arrive like that. Vendors do."
-
-Audio: taxi pulling away from curb, short heel scrape on stone, radio static pulse, air-conditioned lobby hum.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, contempt-heavy atmosphere, keep character and background consistent.
-
-
---- Video 5 (SRT Lines 15–18 | 00:25 – 00:32 | 3 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-2s: medium shot on character1, soft handheld. character1 reaches calmly into her handbag, expression unchanged, posture non-threatening.
-
-character1 – measured, practical:
-"I can show you my confirmation."
-
-Audio: zipper pull, leather bag shift, lobby piano note drifting outward, distant engine idle.
-
-Transition: quick cut.
-
-2s-5s: tight close-up on character2, aggressive push-in. character2 raises a flat hand inches from her face, cutting her off in front of the hotel guests behind him.
-
-character2 – sharp, demeaning:
-"Don't reach for anything unless I tell you to."
-
-Audio: sleeve snap, earpiece crackle, sharp breath, stone step echo.
-
-Transition: smash cut.
-
-5s-7s: medium shot from slightly below. character2 points toward the side entrance again, body angled to herd her away from the front doors. character1 lowers her hand slowly, eyes sharpening just a fraction.
-
-character2 – final, territorial:
-"You want in, you wait where staff waits."
-
-Audio: pointed finger slicing air, nearby suitcase wheels, distant valet greeting another guest, quiet pressure in the air.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, hostile gatekeeping atmosphere, keep character and background consistent.
-
-
---- Video 6 (SRT Lines 19–21 | 00:32 – 00:38 | 2 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-3s: medium shot, fast handheld. character2 abruptly takes the garment bag from character1's hand without permission and yanks it open halfway, inspecting it like evidence. character1's arm follows the motion but she does not lunge or struggle.
-
-No dialogue.
-
-Audio: sharp fabric tug, zipper rasp, garment bag buckle clack, quick intake of breath from a bystander.
-
-Transition: smash cut.
-
-3s-6s: low angle near the hotel steps. character2 lets the garment bag fall against the stone with deliberate disrespect, then plants himself in front of the entrance again. character1 looks down at the bag, then back up at him, expression now cooler.
-
-No dialogue.
-
-Audio: soft thud of bag on stone, radio murmur, revolving door sweep, city traffic reflected under the awning.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, social humiliation atmosphere, keep character and background consistent.
-
-
---- Video 7 (SRT Lines 22–24 | 00:38 – 00:45 | 2 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-4s: extreme close-up on character1's hand picking up the fallen garment bag slowly and carefully, brushing dust from the edge with deliberate calm. No rush. No panic.
-
-No dialogue.
-
-Audio: fingertips against fabric, faint city breeze, lobby piano muffled by glass, distant murmur of hotel guests.
-
-Transition: hard cut.
-
-4s-7s: medium close-up on character1's face. She straightens, shoulders squared, expression fully controlled, eyes fixed on character2 with clear disappointment rather than anger.
-
-character1 – quiet, precise:
-"You should have let me finish."
-
-Audio: soft controlled voice, heels settling on stone, a valet cart rolling past, silence beneath the words.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, controlled power atmosphere, keep character and background consistent.
-
-
---- Video 8 (SRT Lines 25–27 | 00:45 – 00:50 | 2 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-3s: medium shot from slightly above. character2 gives a small laugh, glancing around to make sure nearby valets hear him too. He enjoys the audience.
-
-character2 – smug, public:
-"Ma'am, you're embarrassing yourself."
-
-Audio: short laugh, footsteps crossing marble inside, a car door closing at curb, low wind under awning.
-
-Transition: hard cut.
-
-3s-5s: close-up on character1. Her expression does not change, but her eyes become more focused, almost evaluative now.
-
-No dialogue.
-
-Audio: measured inhale, faint bracelet-less watch movement against wrist, hotel ambience muted by tension.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, poised silence atmosphere, keep character and background consistent.
-
-
---- Video 9 (SRT Lines 28–31 | 00:50 – 00:58 | 3 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-3s: close-up on character1, framed against the brass hotel doors. She speaks softly, with absolute composure, every word placed carefully.
-
-character1 – calm, absolute:
-"This is your last chance."
-
-Audio: quiet voice carried by the open curbside air, distant luggage wheel, soft revolving door thrum.
-
-Transition: quick cut.
-
-3s-5s: medium shot from character1's perspective. character2 smirks and rolls one shoulder, resting a hand near his radio like a man fully certain of himself.
-
-No dialogue.
-
-Audio: suit fabric shift, earpiece buzz, faint engine idle, silence after.
-
-Transition: hard cut.
-
-5s-8s: medium close-up on character2 standing tall in front of the entrance. He gestures to the side alley without looking at her anymore. Years of getting away with this have made him careless.
-
-character2 – bored, cold:
-"Walk away before I call the police."
-
-Audio: clipped voice, radio button click under thumb, a bellhop cart rattling faintly inside, upscale ambience flattening under tension.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, unchecked arrogance atmosphere, keep character and background consistent.
-
-
---- Video 10 (SRT Lines 32–34 | 00:58 – 01:04 | 2 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-3s: wide establishing shot of the full scene on image1. character1 stands at the base of the hotel steps holding her garment bag and handbag. character2 occupies the center of the entrance like a gatekeeper, screening who belongs. Guests move around the scene without fully understanding it.
-
-No dialogue.
-
-Audio: city traffic layering with hotel curbside sounds, revolving doors, valet greetings, distant cutlery from lobby bar.
-
-Transition: hard cut.
-
-3s-6s: slow push-in on character2's face. Flat certainty. No hesitation. He has done this before and expects no consequences.
-
-No dialogue.
-
-Audio: low wind under awning, radio hiss, leather shoe grinding lightly on stone, muted interior piano.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, casual exclusion atmosphere, keep character and background consistent.
-
-
---- Video 11 (SRT Lines 35–38 | 01:04 – 01:11 | 3 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-2s: medium shot on image1. character2 steps down one stair so he can speak closer to character1's face, invading space while keeping his voice controlled enough for plausible deniability.
-
-No dialogue.
-
-Audio: shoe on stone step, jacket button strain, nearby guest conversation dropping away.
-
-Transition: hard cut.
-
-2s-5s: close-up from character1's eye level. character2 lowers his voice and smiles without warmth.
-
-character2 – private cruelty, polished:
-"People like you always think confidence is a credential."
-
-Audio: close breath, radio murmur, lobby piano phrase ending behind glass.
-
-Transition: quick cut.
-
-5s-7s: extreme close-up on character2's mouth and eyes. His tone turns colder, more certain, more insulting.
-
-character2 – final, superior:
-"But class shows."
-
-Audio: soft consonants, tense silence, distant horn reflection between buildings.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, intimate contempt atmosphere, keep character and background consistent.
-
-
---- Video 12 (SRT Lines 39–41 | 01:11 – 01:17 | 2 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-3s: close-up on character2 from slightly above. He straightens again and signals toward the curb with two fingers, ordering rather than requesting.
-
-character2 – venomous, clipped:
-"Taxi stand is that way."
-
-Audio: dismissive hand flick, faint city bus air brakes in distance, brass door hush.
-
-Transition: smash cut.
-
-3s-6s: wide shot from across the street, framed through a parked car windshield. The full scene visible — character2 controlling the entrance, character1 standing alone at the steps. A hotel employee in the lobby background glances up from a phone, quietly recording the interaction through the glass.
-
-No dialogue.
-
-Audio: muffled traffic through windshield glass, faint phone tap, hotel ambience subdued, nervous breath from the unseen witness.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, witnessing atmosphere, keep character and background consistent.
-
-
---- Video 13 (SRT Lines 42–46 | 01:17 – 01:25 | 3 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-3s: medium shot on image1. character2 notices the dark leather handbag and the discreet embossed initials on the luggage tag. His eyes narrow, not with respect, but with suspicion that she borrowed things above her station.
-
-No dialogue.
-
-Audio: leather bag strap shift, radio hiss, shoes passing on hotel steps, urban air.
-
-Transition: hard cut.
-
-3s-5s: medium close-up on character2 turning back toward character1. He points at her handbag.
-
-character2 – demanding, invasive:
-"Open the bag."
-
-Audio: finger jab through air, short sharp breath, faint traffic rumble, muted lobby hum.
-
-Transition: quick cut.
-
-5s-8s: close-up on character1. Her expression sharpens at last. She lifts her chin slightly and answers with legal precision.
-
-character1 – firm, controlled:
-"No. No cause. No consent."
-
-Audio: crisp measured voice, handbag leather settling, quiet city wind, silence catching after the words.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, rising tension atmosphere, keep character and background consistent.
-
-
---- Video 14 (SRT Lines 47–48 | 01:25 – 01:30 | 2 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-3s: medium shot on character2 standing at the entrance with hands on hips, amused by her refusal. He treats it like a joke, like an employee overstepping.
-
-character2 – mocking, amused:
-"Now you want to sound important."
-
-Audio: light scoff, jacket rustle, rotating door motor, distant glasses clinking inside.
-
-Transition: quick cut.
-
-3s-5s: medium close-up on character2 leaning slightly forward, eyebrow raised, voice dripping with contempt.
-
-character2 – derisive, contemptuous:
-"Everybody gets principles when they get caught."
-
-Audio: nasal half-laugh, shoe scrape on step edge, radio chirp, soft urban wind.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, contemptuous atmosphere, keep character and background consistent.
-
-
---- Video 15 (SRT Lines 49–52 | 01:30 – 01:36 | 2 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-3s: ground-level close-up on character1. She slowly sets the garment bag upright beside her and looks directly at character2 for the first time with unmistakable authority. No anger. Just decision.
-
-No dialogue.
-
-Audio: bag base touching stone, controlled breath, distant elevator chime filtering through lobby.
-
-Transition: hard cut.
-
-3s-6s: same eye-level angle on character1. She speaks clearly, as if entering a detail into record.
-
-character1 – ice-cold, deliberate:
-"Marcus Hale. Security manager. Remember exactly how certain you were."
-
-Audio: measured voice, slight city echo under awning, far-off siren somewhere downtown, silence underneath.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, power-shift atmosphere, keep character and background consistent.
-
-
---- Video 16 (SRT Lines 53–57 | 01:36 – 01:44 | 3 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-2s: close-up on character1, eyes locked on character2. She states the next line like a fact, not a threat.
-
-character1 – certain, unwavering:
-"In one minute, this lobby belongs to the truth."
-
-Audio: calm steady voice, breeze under awning, distant traffic wash, silence around the words.
-
-Transition: quick cut.
-
-2s-5s: medium shot on character2. For the first time, a flicker of annoyance deepens into unease. He taps his radio but does not press it.
-
-character2 – irritated, defensive:
-"What exactly do you think is about to happen?"
-
-Audio: strained voice, thumb against radio plastic, jacket seam tension, ambient hotel hush.
-
-Transition: hard cut.
-
-5s-7s: close-up on character1. A faint knowing stillness settles over her face.
-
-character1 – calm, final:
-"I think accountability just pulled up."
-
-Audio: quiet controlled voice, distant vehicle engine rolling toward the curb, air pressure shifting beneath the awning.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, pressure-building atmosphere, keep character and background consistent.
-
-
---- Video 17 (SRT Lines 58–61 | 01:44 – 01:51 | 2 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-4s: wide shot down the hotel driveway. Three black executive SUVs turn under the cream awning in quiet formation. No sirens, no rush, just money and authority arriving with complete certainty. character2 turns sharply toward the curb. character1 does not move.
-
-No dialogue.
-
-Audio: deep engine hum growing louder, tires easing over stone, valet voices going suddenly quiet, city noise dropping back.
-
-Transition: hard cut.
-
-4s-8s: medium-wide shot. All three SUV doors open in coordinated sequence. Executives and legal staff in dark suits step out with folders, tablets, and earpieces, fanning toward the steps. character2 stiffens. character1 remains composed beside her luggage.
-
-No dialogue.
-
-Audio: multiple car doors, heel strikes on stone, folder snaps, subdued headset clicks, engines idling low.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, power-arrival atmosphere, keep character and background consistent.
-
-
---- Video 18 (SRT Lines 62–66 | 01:51 – 01:59 | 2 shots) ---
-
-Reference guide:
-character2 = antagonist, White male hotel security manager in full suit
-character3 = chief operating officer, Black woman in executive suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-4s: medium-wide shot on image1. Executives and legal staff form a quiet deliberate line across the foot of the steps, effectively surrounding character2 without touching him. character2 looks left, then right. The entrance he controlled a moment ago is no longer his.
-
-No dialogue.
-
-Audio: polished shoes on stone closing in, document folders shifting, earpiece chirps, character2's breathing quickening.
-
-Transition: hard cut.
-
-4s-8s: medium shot. character3 emerges from the center of the arriving group, walking forward with calm unhurried authority. Her posture is perfect, her face unreadable, a corporate access card catching the late sunlight inside her blazer.
-
-No dialogue.
-
-Audio: steady executive footsteps, engines idling, radio silence from the hotel staff, the lobby air going still.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, corporate authority atmosphere, keep character and background consistent.
-
-
---- Video 19 (SRT Lines 67–69 | 01:59 – 02:06 | 3 shots) ---
-
-Reference guide:
-character2 = antagonist, White male hotel security manager in full suit
-character3 = chief operating officer, Black woman in executive suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-3s: medium shot on character3. She stops three feet from character2 and speaks with polished ice, each word carrying full executive authority.
-
-character3 – commanding, zero tolerance:
-"Step away from Ms. Tran. Now."
-
-Audio: sharp authoritative voice at the hotel entrance, total silence from staff, faint engine hum under the awning.
-
-Transition: hard cut.
-
-3s-5s: medium close-up on character2. His territorial reflex kicks in before his judgment does.
-
-character2 – defensive, aggressive:
-"I'm protecting this property."
-
-Audio: strained voice, radio brushing jacket, dry swallow, shallow breath.
-
-Transition: quick cut.
-
-5s-7s: close-up on character3. Her expression does not change.
-
-character3 – cold authority, measured:
-"My name is Danielle Brooks. Chief Operating Officer, Tran Meridian Hospitality."
-
-Audio: clear executive tone, paper folder edge tapping once, distant city air, silence holding.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, confrontation atmosphere, keep character and background consistent.
-
-
---- Video 20 (SRT Lines 70–72 | 02:06 – 02:12 | 2 shots) ---
-
-Reference guide:
-character2 = antagonist, White male hotel security manager in full suit
-character3 = chief operating officer, Black woman in executive suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-4s: medium shot on character3, locked frame. She delivers the next sentence like a formal notice read in public.
-
-character3 – authoritative, devastating:
-"Tran Meridian closed on this hotel at noon today. The woman you blocked owns this property."
-
-Audio: voice carrying cleanly across stone and brass, total stillness from the surrounding staff, distant traffic softened.
-
-Transition: smash cut.
-
-4s-7s: tight close-up on character3, slight push-in. She gives the final clarification with no emotion at all.
-
-character3 – final, crushing:
-"She is your principal."
-
-Audio: two words landing into silence, faint folder edge shifting, engines idling behind, lobby hush.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, identity-reveal devastation atmosphere, keep character and background consistent.
-
-
---- Video 21 (SRT Lines 73–75 | 02:12 – 02:19 | 3 shots) ---
-
-Reference guide:
-character2 = antagonist, White male hotel security manager in full suit
-character3 = chief operating officer, Black woman in executive suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-2s: close-up on character3, steady frame. She adds one final sentence with chilling precision.
-
-character3 – ice-cold, definitive:
-"And you denied her entry to her own front door."
-
-Audio: voice in the softened hotel air, distant city hum, absolute silence from staff.
-
-Transition: smash cut.
-
-2s-5s: close-up on character2's face. The color drains. His mouth opens, then closes. He glances at character1, then at the executives, then at the recording phone inside the lobby.
-
-No dialogue.
-
-Audio: involuntary inhale, jaw tightening loose again, low engine rumble, quiet interior air.
-
-Transition: hard cut.
-
-5s-7s: medium shot on character2 from slightly below. He stands in the center of the executive semicircle, suddenly too exposed, too visible, authority slipping away in real time.
-
-No dialogue.
-
-Audio: shoe sole shifting on stone, faint radio static from his own belt, a distant glass clink inside the bar, stillness.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, devastating realization atmosphere, keep character and background consistent.
-
-
---- Video 22 (SRT Lines 76–78 | 02:19 – 02:24 | 2 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-3s: ground-level shot rising. character1 lifts her garment bag, settles her handbag on her shoulder, and walks up the hotel steps slowly and deliberately. Staff part for her without being asked. character2 remains frozen in soft focus behind.
-
-No dialogue.
-
-Audio: heels on stone steps, leather strap settling, revolving door turning, faint intake of breath from nearby staff.
-
-Transition: hard cut.
-
-3s-5s: medium close-up on character1 now at full height before the brass doors. She pauses and turns just enough to look back at character2. Her face is calm, not triumphant.
-
-No dialogue.
-
-Audio: soft hotel air from opening doors, fabric movement, character2's ragged breathing faint behind her.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, quiet power-reclaimed atmosphere, keep character and background consistent.
-
-
---- Video 23 (SRT Lines 79–82 | 02:24 – 02:31 | 3 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-3s: medium close-up on character1, standing in the threshold of the hotel entrance with golden light behind her. She speaks with calm, devastating clarity.
-
-character1 – calm, devastating:
-"If you had known who I was, you would have opened that door."
-
-Audio: precise measured voice, hotel lobby hush behind her, city noise fading under the awning.
-
-Transition: hard cut.
-
-3s-5s: medium shot on character2, reaction. His hands tremble faintly at his sides. He tries to speak, but nothing forms.
-
-No dialogue.
-
-Audio: shaky breath, radio brushing suit jacket, dry swallow, silence pressing in.
-
-Transition: quick cut.
-
-5s-7s: close-up on character1. Her eyes narrow slightly. She delivers the final line like a verdict.
-
-character1 – absolute, final:
-"That is not professionalism. That's prejudice with a dress code."
-
-Audio: voice landing cleanly in the entrance air, distant elevator chime, nothing after the words but silence.
-
-No music. Only human voices, room tone, ambient hotel entrance sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, verdict atmosphere, keep character and background consistent.
-
-
---- Video 24 (SRT Lines 83–85 | 02:31 – 02:39 | 2 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-4s: slow-motion medium shot on image1. character1 turns and walks through the grand brass doors into the hotel lobby. Behind her, character2 stands motionless under the awning while executives and legal staff close in around him with folders and tablets. The distance between access and exclusion reverses completely.
-
-No dialogue.
-
-Audio: steady heels on marble beyond the doorway, revolving door hum, city wind outside, muffled voices resuming far away.
-
-Transition: hard cut.
-
-4s-8s: medium close-up on character1 walking through the lobby interior just beyond the threshold, camera tracking beside her. Her expression is resolved, analytical, already moving on to what happens next. What she does after this does not just remove one man. It rewrites the culture of the building.
-
-No dialogue.
-
-Audio: polished heel taps on marble, soft lobby piano, distant concierge phone ring, muted hotel air.
-
-No music. Only human voices, room tone, ambient hotel entrance and lobby sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, resolute aftermath atmosphere, keep character and background consistent.
-
-
---- Video 25 (SRT Lines 86–89 | 02:39 – 02:45 | 2 shots) ---
-
-Reference guide:
-character1 = protagonist, Asian woman, late forties, hotel group owner in simple elegant clothes
-character2 = antagonist, White male hotel security manager in full suit
-image1 = grand luxury hotel entrance, late afternoon light, brass doors and valet curb
-
-0s-3s: wide overhead shot of the full scene on image1. The black SUVs. The executive line. character2 standing isolated near the steps. character1 disappearing into the golden-lit hotel interior. The whole power structure at the entrance has shifted.
-
-No dialogue.
-
-Audio: broad urban hotel ambience, wind under the awning, engines idling, faint lobby piano spilling out through opening doors.
-
-Transition: smash cut.
-
-3s-6s: extreme close-up on character1's eyes as reflected briefly in the polished brass door before she disappears fully inside. Sharp. Focused. Already thinking beyond this incident. Part two is coming.
-
-No dialogue.
-
-Audio: one low heartbeat-like thud in ambience, then soft lobby air, then silence.
-
-No music. Only human voices, room tone, ambient hotel entrance and lobby sound, subtle ASMR details. Warm late afternoon light, ultra-realistic cinematic style, cliffhanger atmosphere, keep character and background consistent.
-
-
-==================================================
-FINAL QUALITY CHECK
-==================================================
-
-1. No full-word all-caps used: PASS
-2. Every final shot ends at 8 seconds or earlier: PASS (all 25 verified)
-3. Every video prompt uses exactly 1 background and 2 characters: PASS
-4. Transitions follow scene logic: PASS
-5. Audio present in every shot: PASS
-6. Continuity preserved: PASS
-7. Character names replaced with labels: PASS (dialogue preserves spoken names only)
-8. Background references written as image labels: PASS
-9. Every video unit from validated split: PASS (two-pass check above)
-10. character1, character2, character3 fixed across project: PASS
-11. image1 fixed across project: PASS
-12. No video exceeds 8 seconds: PASS
-13. Total references: 4 (under limit of 10): PASS
-
-All checks: PASS
