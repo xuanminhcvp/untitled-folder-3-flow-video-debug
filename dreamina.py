@@ -719,13 +719,83 @@ def parse_structured_story_input(path: str = PROMPTS_FILE) -> dict:
     if "FULL VIDEO PROMPTS" not in text or "CHARACTER REFERENCE IMAGE PROMPTS" not in text:
         return {"is_structured": False}
 
-    # Parse reference labels toàn cục (ưu tiên lần xuất hiện đầu tiên để giữ bản mô tả đầy đủ).
+    def _extract_reference_candidates_from_zone(zone_text: str) -> dict[str, list[str]]:
+        """
+        Parse candidate reference theo cả 2 định dạng:
+        - CHARACTER1 = ...
+        - CHARACTER1. ...
+        Hỗ trợ mô tả kéo dài nhiều dòng liên tiếp (đến khi gặp dòng trống/marker mới).
+        """
+        out: dict[str, list[str]] = {}
+        if not zone_text:
+            return out
+
+        lines = zone_text.splitlines()
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+            m = re.match(
+                r"^\s*(character\d+|image\d+)\s*(=|\.)\s*(.+?)\s*$",
+                line,
+                flags=re.IGNORECASE,
+            )
+            if not m:
+                i += 1
+                continue
+
+            label = m.group(1).strip().lower()
+            chunk = [m.group(3).strip()]
+            i += 1
+            while i < len(lines):
+                nxt = lines[i]
+                nxt_strip = nxt.strip()
+                # Dừng khi gặp block mới hoặc marker section.
+                if not nxt_strip:
+                    break
+                if re.match(r"^\s*(character\d+|image\d+)\s*(=|\.)\s*", nxt, flags=re.IGNORECASE):
+                    break
+                if nxt_strip.startswith("===") or re.match(r"(?i)^video\s+\d+\s*:", nxt_strip):
+                    break
+                # Bỏ marker mapping để tránh dính phần "CHARACTER1 = Patricia..."
+                if re.match(r"(?i)^(character mapping|background mapping)\s*:", nxt_strip):
+                    break
+                chunk.append(nxt_strip)
+                i += 1
+
+            value = " ".join([c for c in chunk if c]).strip()
+            if value:
+                out.setdefault(label, []).append(value)
+            # Bỏ qua các dòng trống giữa 2 block reference.
+            while i < len(lines) and not lines[i].strip():
+                i += 1
+        return out
+
+    # Parse reference labels toàn cục:
+    # 1) Ưu tiên vùng mô tả reference chi tiết ở đầu file (trước FIXED MAPPING/FULL VIDEO).
+    # 2) Fallback lấy từ toàn vùng trước FULL VIDEO để vẫn tương thích format cũ.
     references: dict[str, str] = {}
-    for m in re.finditer(r"^\s*(character\d+|image\d+)\s*=\s*(.+?)\s*$", text, flags=re.IGNORECASE | re.MULTILINE):
-        label = m.group(1).strip().lower()
-        value = m.group(2).strip()
-        if label not in references and value:
-            references[label] = value
+    full_marker = "FULL VIDEO PROMPTS"
+    full_idx = text.find(full_marker)
+    pre_full_zone = text[:full_idx] if full_idx >= 0 else text
+
+    fixed_mapping_marker = "FIXED CHARACTER AND BACKGROUND MAPPING"
+    mapping_idx = pre_full_zone.find(fixed_mapping_marker)
+    rich_reference_zone = pre_full_zone[:mapping_idx] if mapping_idx >= 0 else pre_full_zone
+
+    rich_candidates = _extract_reference_candidates_from_zone(rich_reference_zone)
+    fallback_candidates = _extract_reference_candidates_from_zone(pre_full_zone)
+
+    all_labels = sorted(set(list(rich_candidates.keys()) + list(fallback_candidates.keys())))
+    for label in all_labels:
+        cands = (rich_candidates.get(label, []) or []) + (fallback_candidates.get(label, []) or [])
+        # Ưu tiên candidate dài nhất (thường là mô tả đầy đủ hơn mapping ngắn).
+        best = ""
+        for c in cands:
+            t = (c or "").strip()
+            if len(t) > len(best):
+                best = t
+        if best:
+            references[label] = best
 
     # Parse từng block Video N.
     video_prompts: list[str] = []
@@ -5297,11 +5367,10 @@ async def _run_google_flow_video_scheduler_no_reload(page, prompts: list[str]) -
 
                 if unusual_window_attempts >= 3 and saved_total <= unusual_window_baseline_saved:
                     log(
-                        "Unusual toàn phần 3 lần liên tiếp không tạo được video mới. TẮT WORKER DO BỊ CHẶN.",
-                        "ERROR",
+                        "Unusual toàn phần 3 lần liên tiếp không tạo được video mới. "
+                        "KHÔNG tắt worker theo cấu hình hiện tại; tiếp tục chạy.",
+                        "WARN",
                     )
-                    return -1
-
             next_send_ts = max(next_send_ts, time.time() + _pick_flow_video_send_interval_sec(stall_rounds_without_ready))
             continue
 

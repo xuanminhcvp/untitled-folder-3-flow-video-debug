@@ -371,10 +371,16 @@ def build_worker_env(worker_id: str, worker_index: int) -> dict:
     env.setdefault("FLOW_SOFT_PAUSE_MIN_SEC", "2.5")
     env.setdefault("FLOW_SOFT_PAUSE_MAX_SEC", "5.0")
 
-    # Video: thời gian "suy nghĩ" trước khi gửi và poll lệch nhẹ quanh 10s.
-    env.setdefault("FLOW_VIDEO_PRE_SEND_BASE_SEC", "1.2")
+    # Video: giảm thời gian giữa các lần gửi prompt để chạy nhanh hơn,
+    # nhưng vẫn giữ chút jitter để tránh nhịp máy quá đều.
+    env.setdefault("FLOW_VIDEO_PRE_SEND_BASE_SEC", "0.45")
     env.setdefault("FLOW_VIDEO_POLL_BASE_SEC", "10.0")
     env.setdefault("FLOW_VIDEO_POLL_JITTER_SEC", "2.0")
+    env.setdefault("FLOW_VIDEO_SEND_INTERVAL_FAST_MIN_SEC", "18")
+    env.setdefault("FLOW_VIDEO_SEND_INTERVAL_FAST_MAX_SEC", "30")
+    env.setdefault("FLOW_VIDEO_SEND_INTERVAL_SLOW_MIN_SEC", "30")
+    env.setdefault("FLOW_VIDEO_SEND_INTERVAL_SLOW_MAX_SEC", "50")
+    env.setdefault("FLOW_VIDEO_UNUSUAL_COOLDOWN_SEC", "45")
     # Upload reference: lần đầu + retry thêm 2 lần.
     env.setdefault("GOOGLE_FLOW_VIDEO_PRELOAD_MAX_ATTEMPTS", "3")
     # Bật strict reference: thiếu/attach fail token nào thì không gửi prompt video.
