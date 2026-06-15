@@ -9,8 +9,9 @@ Flow:
   1. Đọc config/video_workers.json
   2. Chrome IMAGE: tạo ảnh reference cho TỪNG kịch bản (tuần tự)
      - Kịch bản nào xong ảnh → unlock Chrome Video tương ứng chạy ngay (pipeline)
-  3. Chrome VIDEO (N workers): mỗi worker chạy 1 kịch bản song song
-     - Đọc scenarios/<ten_kich_ban>/prompts.txt
+  3. Chrome IMAGE worker: chạy từng kịch bản, tạo ảnh nhân vật + ảnh cảnh
+     - Đọc scenarios/<ten_kich_ban>/prompt_character.txt (nhân vật)
+     - Đọc scenarios/<ten_kich_ban>/prompt_image.txt (ảnh cảnh)
      - Output vào scenarios/<ten_kich_ban>/output/
 
 Cách dùng:
@@ -47,6 +48,10 @@ _SCRIPT_DIR      = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH      = os.path.join(_SCRIPT_DIR, "config", "video_workers.json")
 GOOGLE_FLOW_HOME = "https://labs.google/fx/vi/tools/flow"
 VIEWPORT         = {"width": 1920, "height": 1080}
+# Chế độ chạy ẩn Chrome:
+# - 0/false/no: hiện UI như cũ
+# - 1/true/yes: chạy headless để bạn tiếp tục làm việc khác
+GOOGLE_FLOW_HEADLESS = os.environ.get("GOOGLE_FLOW_HEADLESS", "0").strip().lower() in {"1", "true", "yes"}
 
 # Stagger delay giữa các Chrome Video để tránh khởi động đồng loạt (giây)
 WORKER_STAGGER_SEC = 5
@@ -339,15 +344,30 @@ def expand_path(p: str) -> str:
 
 def load_scenario_prompts(scenario_dir: str) -> list[str]:
     """
-    Đọc prompts.txt trong thư mục kịch bản.
-    Trả về danh sách prompt (mỗi dòng 1 prompt), bỏ dòng trống và comment #.
+    Đọc prompt ảnh cảnh từ prompt_image.txt trong thư mục kịch bản.
+    Format: "Video 1: ..." mỗi block là 1 prompt.
+    Trả về danh sách nội dung prompt (đã bỏ prefix "Video X:").
+    Fallback về prompts.txt cũ nếu prompt_image.txt không có.
     """
-    prompts_path = os.path.join(scenario_dir, "prompts.txt")
-    if not os.path.exists(prompts_path):
-        log(f"Không tìm thấy: {prompts_path}", "WARN")
-        return []
-    with open(prompts_path, "r", encoding="utf-8") as f:
-        return [ln.strip() for ln in f if ln.strip() and not ln.strip().startswith("#")]
+    from services.prompt_service import parse_image_prompts_file, SCENARIO_IMAGE_FILE
+
+    # Ưu tiên file mới
+    image_path = os.path.join(scenario_dir, SCENARIO_IMAGE_FILE)
+    if os.path.exists(image_path):
+        prompts = parse_image_prompts_file(image_path)
+        if prompts:
+            return prompts
+        log(f"prompt_image.txt rỗng tại: {scenario_dir}", "WARN")
+
+    # Fallback: đọc prompts.txt cũ nếu còn tồn tại
+    legacy_path = os.path.join(scenario_dir, "prompts.txt")
+    if os.path.exists(legacy_path):
+        log(f"Dùng prompts.txt cũ (fallback): {legacy_path}", "WARN")
+        with open(legacy_path, "r", encoding="utf-8") as f:
+            return [ln.strip() for ln in f if ln.strip() and not ln.strip().startswith("#")]
+
+    log(f"Không tìm thấy prompt_image.txt tại: {scenario_dir}", "WARN")
+    return []
 
 
 def build_worker_env(worker_id: str, worker_index: int) -> dict:
@@ -542,7 +562,7 @@ async def launch_browser(p, profile_dir: str, proxy_str: str | None, har_path: s
 
     kwargs = {
         "user_data_dir"   : profile_dir,
-        "headless"        : False,       # Hiện giao diện để bạn nhìn thấy
+        "headless"        : GOOGLE_FLOW_HEADLESS,
         "channel"         : "chrome",
         "args"            : [
             "--start-maximized",
@@ -629,7 +649,7 @@ async def launch_browser_with_fallback(p, worker: dict, profile_dir: str, har_pa
             Path(profile_dir).mkdir(parents=True, exist_ok=True)
             kwargs = {
                 "user_data_dir": profile_dir,
-                "headless": False,
+                "headless": GOOGLE_FLOW_HEADLESS,
                 "channel": "chrome",
                 "args": [
                     "--start-maximized",
@@ -670,31 +690,62 @@ async def run_image_step_for_scenario(
     scenario_name: str,
 ):
     """
-    Dùng Chrome IMAGE (đã mở sẵn) để tạo ảnh reference cho 1 kịch bản.
+    Dùng Chrome IMAGE (đã mở sẵn) để tạo ảnh reference + ảnh cảnh cho 1 kịch bản.
 
-    Thay vì import dreamina.py trực tiếp (sẽ gây conflict global state),
-    gọi dreamina.py qua subprocess với env vars đúng.
+    Flow mới (2 file):
+      1. Đọc prompt_character.txt → tạo ảnh nhân vật → lưu NHAN_VAT.png
+      2. Đọc prompt_image.txt    → tạo ảnh cảnh     → lưu image_001.png...
+
+    Không còn bước tạo video.
     """
+    from services.prompt_service import parse_scenario_two_files, SCENARIO_CHARACTER_FILE, SCENARIO_IMAGE_FILE
+
     output_dir = os.path.join(scenario_dir, "output")
-    prompts_path = os.path.join(scenario_dir, "prompts.txt")
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-    # Kiểm tra prompts.txt có tồn tại không
-    if not os.path.exists(prompts_path):
-        log(f"Không tìm thấy {prompts_path}, bỏ qua.", "WARN", scenario_name)
-        return False
+    char_path  = os.path.join(scenario_dir, SCENARIO_CHARACTER_FILE)
+    image_path = os.path.join(scenario_dir, SCENARIO_IMAGE_FILE)
 
-    # Kiểm tra prompts.txt có phải dạng structured không (nhanh, check text)
-    text = Path(prompts_path).read_text(encoding="utf-8")
-    if "FULL VIDEO PROMPTS" not in text or "CHARACTER REFERENCE IMAGE PROMPTS" not in text:
-        log(f"File prompts không ở dạng structured, bỏ qua bước ảnh.", "WARN", scenario_name)
-        return False
+    # Kiểm tra ít nhất prompt_character.txt tồn tại
+    if not os.path.exists(char_path):
+        # Fallback: thử prompts.txt cũ nếu vẫn còn
+        legacy_path = os.path.join(scenario_dir, "prompts.txt")
+        if os.path.exists(legacy_path):
+            log(f"Không có {SCENARIO_CHARACTER_FILE}, fallback sang prompts.txt cũ.", "WARN", scenario_name)
+        else:
+            log(f"Không tìm thấy {char_path}, bỏ qua kịch bản.", "WARN", scenario_name)
+            return False
 
-    log(f"Tạo ảnh reference cho '{scenario_dir}'...", "STEP", scenario_name)
+    # Parse 2 file: nhân vật + cảnh
+    plan = parse_scenario_two_files(scenario_dir)
+    if not plan.get("is_structured"):
+        # Nếu parse 2-file thất bại → fallback sang parse 1-file cũ
+        legacy_path = os.path.join(scenario_dir, "prompts.txt")
+        log(f"parse_scenario_two_files thất bại, thử prompts.txt cũ.", "WARN", scenario_name)
+        if not os.path.exists(legacy_path):
+            log(f"Không có cả 2 nguồn, bỏ qua.", "ERR", scenario_name)
+            return False
+        # Sử dụng đường dẫn legacy để import dreamina parse
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("dreamina_img", os.path.join(_SCRIPT_DIR, "dreamina.py"))
+        dreamina = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(dreamina)
+        dreamina.OUTPUT_DIR = os.path.abspath(output_dir)
+        plan = dreamina.parse_structured_story_input(legacy_path)
+        if not plan.get("is_structured"):
+            log(f"Cả 2 parse đều thất bại, bỏ qua.", "ERR", scenario_name)
+            return False
+
+    log(
+        f"Kịch bản '{scenario_name}': "
+        f"{len(plan.get('characters', {}))} nhân vật, "
+        f"{len(plan.get('image_prompts', []))} ảnh cảnh.",
+        "STEP",
+        scenario_name,
+    )
 
     try:
-        # Import dreamina để dùng các hàm core
-        # LƯU Ý: import ở đây an toàn vì image step chạy tuần tự (không song song)
+        # Import dreamina
         import importlib.util
         spec = importlib.util.spec_from_file_location(
             "dreamina_img",
@@ -702,28 +753,64 @@ async def run_image_step_for_scenario(
         )
         dreamina = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(dreamina)
-
-        # Override OUTPUT_DIR cho kịch bản này
         dreamina.OUTPUT_DIR = os.path.abspath(output_dir)
 
-        # Parse structured để lấy reference prompts
-        structured_plan = dreamina.parse_structured_story_input(prompts_path)
-        if not structured_plan.get("is_structured"):
-            log(f"Parse structured thất bại, bỏ qua.", "WARN", scenario_name)
-            return False
+        # ── BƯỚC 1: Tạo ảnh nhân vật ──────────────────────────────
+        ref_prompts   = plan.get("reference_generation_prompts", []) or []
+        scene_to_label = plan.get("reference_scene_to_label", {}) or {}
 
-        ok = await _generate_reference_images_with_retry(
-            browser_ctx=browser_ctx,
-            dreamina=dreamina,
-            structured_plan=structured_plan,
-            scenario_name=scenario_name,
-            output_dir=output_dir,
-            max_attempts=IMAGE_REFERENCE_MAX_ATTEMPTS,
-        )
-        return ok
+        char_ok = True
+        if ref_prompts:
+            log(f"Bước 1: tạo {len(ref_prompts)} ảnh nhân vật...", "INFO", scenario_name)
+            char_ok = await _generate_reference_images_with_retry(
+                browser_ctx=browser_ctx,
+                dreamina=dreamina,
+                structured_plan=plan,
+                scenario_name=scenario_name,
+                output_dir=output_dir,
+                max_attempts=IMAGE_REFERENCE_MAX_ATTEMPTS,
+            )
+            if not char_ok:
+                log("Tạo ảnh nhân vật thất bại.", "ERR", scenario_name)
+        else:
+            log("Không có prompt nhân vật, bỏ qua bước 1.", "WARN", scenario_name)
+
+        # ── BƯỚC 2: Tạo ảnh cảnh từ prompt_image.txt ─────────────
+        image_prompts = plan.get("image_prompts", []) or []
+        if image_prompts:
+            log(f"Bước 2: tạo {len(image_prompts)} ảnh cảnh...", "INFO", scenario_name)
+            # Gửi từng image prompt, lưu kết quả ra output/image_001.png...
+            dreamina._init_debug_session()
+            dreamina.setup_image_network_debug(page if False else None)  # sẽ setup trong hàm
+
+            # Tạo page mới để gửi image prompts
+            page = await browser_ctx.new_page()
+            try:
+                dreamina.setup_image_network_debug(page)
+                saved = await dreamina.run_google_flow_auto_request_response(
+                    page, image_prompts
+                )
+                log(f"Đã tạo {saved} ảnh cảnh.", "OK", scenario_name)
+
+                # Đổi tên file ảnh cảnh: canh_001.png → image_001.png
+                import glob as _glob
+                for i, _ in enumerate(image_prompts, start=1):
+                    src = os.path.join(output_dir, f"canh_{i:03d}.png")
+                    dst = os.path.join(output_dir, f"image_{i:03d}.png")
+                    if os.path.exists(src) and not os.path.exists(dst):
+                        os.replace(src, dst)
+                        log(f"  Đổi tên: canh_{i:03d}.png → image_{i:03d}.png", "INFO", scenario_name)
+            except Exception as e:
+                log(f"Lỗi tạo ảnh cảnh bước 2: {e}", "ERR", scenario_name)
+            finally:
+                await page.close()
+        else:
+            log("Không có prompt ảnh cảnh, bỏ qua bước 2.", "WARN", scenario_name)
+
+        return char_ok
 
     except Exception as e:
-        log(f"Lỗi tạo ảnh reference: {e}", "ERR", scenario_name)
+        log(f"Lỗi run_image_step_for_scenario: {e}", "ERR", scenario_name)
         import traceback
         traceback.print_exc()
         return False
@@ -766,15 +853,27 @@ def _run_video_worker_subprocess(
         # Khởi tạo debug session riêng cho worker này
         dreamina._init_debug_session()
 
-        # Parse prompt của kịch bản
-        prompts_path = os.path.join(scenario_dir, "prompts.txt")
-        structured_plan = dreamina.parse_structured_story_input(prompts_path)
-        if structured_plan.get("is_structured"):
-            video_prompts = structured_plan.get("video_prompts", [])
+        # Parse prompt ảnh cảnh từ 2 file mới
+        # Ưu tiên: prompt_image.txt → fallback prompts.txt cũ
+        from services.prompt_service import parse_scenario_two_files, SCENARIO_IMAGE_FILE, parse_image_prompts_file
+
+        image_path = os.path.join(scenario_dir, SCENARIO_IMAGE_FILE)
+        if os.path.exists(image_path):
+            # Format mới: đọc Video 1: "..." từ prompt_image.txt
+            plan_new = parse_scenario_two_files(scenario_dir)
+            video_prompts = plan_new.get("image_prompts", []) or []
         else:
-            # Fallback: đọc từng dòng
-            if os.path.exists(prompts_path):
-                with open(prompts_path, "r", encoding="utf-8") as f:
+            # Fallback: dùng prompts.txt cũ
+            legacy_path = os.path.join(scenario_dir, "prompts.txt")
+            structured_plan = dreamina.parse_structured_story_input(
+                legacy_path if os.path.exists(legacy_path) else ""
+            )
+            if structured_plan.get("is_structured"):
+                # Nếu structured cũ, lấy video_prompts
+                video_prompts = structured_plan.get("video_prompts", [])
+            elif os.path.exists(legacy_path):
+                # Fallback: đọc từng dòng thô
+                with open(legacy_path, "r", encoding="utf-8") as f:
                     video_prompts = [ln.strip() for ln in f if ln.strip() and not ln.strip().startswith("#")]
             else:
                 video_prompts = []

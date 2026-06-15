@@ -1,0 +1,5 @@
+2026/04/15-17:07:20.626 126a2d Reusing MANIFEST /Users/may1/Desktop/untitled-folder-3-flow-video-debug/~/dreamina_playwright_profile_video_4/Default/IndexedDB/https_labs.google_0.indexeddb.leveldb/MANIFEST-000001
+2026/04/15-17:07:20.626 126a2d Recovering log #10
+2026/04/15-17:07:20.627 126a2d Reusing old log /Users/may1/Desktop/untitled-folder-3-flow-video-debug/~/dreamina_playwright_profile_video_4/Default/IndexedDB/https_labs.google_0.indexeddb.leveldb/000010.log 
+2026/04/15-17:07:20.627 126a2d Delete type=2 #8
+2026/04/15-17:07:20.641 126a38 Manual compaction at level-0 from '\x00\x08\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x09\x00\x00\x00' @ 0 : 0; will stop at (end)

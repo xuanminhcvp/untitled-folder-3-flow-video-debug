@@ -47,9 +47,26 @@ from flow_reference_service import (
     count_reference_thumbs_in_composer,
     clear_reference_attachments_in_composer,
 )
+from services.prompt_service import (
+    build_auto_test_prompts,
+    extract_scene_number,
+    load_prompts_from_file,
+    parse_structured_story_input,
+    pick_random_prompts,
+    safe_filename,
+    save_generated_prompts,
+    save_prompts_to_prompts_folder,
+    save_selected_prompts_for_session,
+    take_prompts_from_pool,
+    write_prompts_file,
+)
+from services import debug_report_service as debug_report
+from services import network_debug_service
 
 # ───────────────────────────────────────────────
-PROMPTS_FILE   = "prompts.txt"
+PROMPTS_FILE   = "prompts.txt"          # file cũ (giữ để backward compat)
+CHARACTER_FILE = "prompt_character.txt"  # file mới: prompt nhân vật (format [TÊN])
+IMAGE_FILE     = "prompt_image.txt"      # file mới: prompt ảnh cảnh (format Video X: "...")
 PROMPTS_DIR    = "prompts"
 PROMPT_POOL_FILE = os.path.join(PROMPTS_DIR, "prompt_pool_1000.txt")
 PROMPT_POOL_STATE_FILE = os.path.join(PROMPTS_DIR, "prompt_pool_state.json")
@@ -212,6 +229,10 @@ GOOGLE_FLOW_API_MAP_TIMEOUT_SEC = int(os.environ.get("GOOGLE_FLOW_API_MAP_TIMEOU
 GOOGLE_FLOW_WAIT_FOR_READY_ENTER = os.environ.get("GOOGLE_FLOW_WAIT_FOR_READY_ENTER", "0").strip() in {"1", "true", "yes"}
 # Giữ Chrome mở sau khi chạy xong để user kiểm tra trực quan.
 GOOGLE_FLOW_KEEP_BROWSER_OPEN = os.environ.get("GOOGLE_FLOW_KEEP_BROWSER_OPEN", "1").strip() in {"1", "true", "yes"}
+# Chế độ chạy ẩn Chrome:
+# - 0/false/no: mở cửa sổ để quan sát thao tác
+# - 1/true/yes: chạy headless, không hiện giao diện
+GOOGLE_FLOW_HEADLESS = os.environ.get("GOOGLE_FLOW_HEADLESS", "0").strip() in {"1", "true", "yes"}
 PROFILE_DIR    = os.path.expanduser("~/dreamina_playwright_profile")
 # Profile riêng cho bước tạo ảnh reference (step 1).
 # Mặc định tách hẳn để không dính session với bước video.
@@ -673,319 +694,6 @@ def get_target_home_url() -> str:
         return GOOGLE_FLOW_HOME
     return DREAMINA_HOME
 
-
-def load_prompts_from_file(path: str = PROMPTS_FILE) -> list[str]:
-    """
-    Đọc danh sách prompt từ file text.
-    Mỗi dòng là 1 prompt, bỏ dòng trống.
-    """
-    if not os.path.exists(path):
-        return []
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return [ln.strip() for ln in f if ln.strip()]
-    except Exception:
-        return []
-
-
-def parse_structured_story_input(path: str = PROMPTS_FILE) -> dict:
-    """
-    Parse file prompt dạng "FULL VIDEO PROMPTS" + "characterX/imageX".
-
-    Mục tiêu:
-    - Đọc được prompt reference ảnh nhân vật/background (step 1).
-    - Đọc được từng block Video N để dựng prompt video (step 2).
-    - Mỗi video prompt sẽ tự chèn tham chiếu đúng label xuất hiện trong "Reference guide".
-
-    Trả về:
-    {
-      "is_structured": bool,
-      "references": {label: prompt_reference_gốc},
-      "reference_generation_prompts": [ "CẢNH 901: ...", ... ],
-      "reference_scene_to_label": {901: "character1", ...},
-      "video_prompts": [ "CẢNH 001: ...", ... ],
-      "video_count": int,
-    }
-    """
-    if not os.path.exists(path):
-        return {"is_structured": False}
-
-    try:
-        text = Path(path).read_text(encoding="utf-8")
-    except Exception:
-        return {"is_structured": False}
-
-    # Chỉ coi là structured khi có marker rõ ràng của bộ prompt đầy đủ.
-    if "FULL VIDEO PROMPTS" not in text or "CHARACTER REFERENCE IMAGE PROMPTS" not in text:
-        return {"is_structured": False}
-
-    def _extract_reference_candidates_from_zone(zone_text: str) -> dict[str, list[str]]:
-        """
-        Parse candidate reference theo cả 2 định dạng:
-        - CHARACTER1 = ...
-        - CHARACTER1. ...
-        Hỗ trợ mô tả kéo dài nhiều dòng liên tiếp (đến khi gặp dòng trống/marker mới).
-        """
-        out: dict[str, list[str]] = {}
-        if not zone_text:
-            return out
-
-        lines = zone_text.splitlines()
-        i = 0
-        while i < len(lines):
-            line = lines[i]
-            m = re.match(
-                r"^\s*(character\d+|image\d+)\s*(=|\.)\s*(.+?)\s*$",
-                line,
-                flags=re.IGNORECASE,
-            )
-            if not m:
-                i += 1
-                continue
-
-            label = m.group(1).strip().lower()
-            chunk = [m.group(3).strip()]
-            i += 1
-            while i < len(lines):
-                nxt = lines[i]
-                nxt_strip = nxt.strip()
-                # Dừng khi gặp block mới hoặc marker section.
-                if not nxt_strip:
-                    break
-                if re.match(r"^\s*(character\d+|image\d+)\s*(=|\.)\s*", nxt, flags=re.IGNORECASE):
-                    break
-                if nxt_strip.startswith("===") or re.match(r"(?i)^video\s+\d+\s*:", nxt_strip):
-                    break
-                # Bỏ marker mapping để tránh dính phần "CHARACTER1 = Patricia..."
-                if re.match(r"(?i)^(character mapping|background mapping)\s*:", nxt_strip):
-                    break
-                chunk.append(nxt_strip)
-                i += 1
-
-            value = " ".join([c for c in chunk if c]).strip()
-            if value:
-                out.setdefault(label, []).append(value)
-            # Bỏ qua các dòng trống giữa 2 block reference.
-            while i < len(lines) and not lines[i].strip():
-                i += 1
-        return out
-
-    # Parse reference labels toàn cục:
-    # 1) Ưu tiên vùng mô tả reference chi tiết ở đầu file (trước FIXED MAPPING/FULL VIDEO).
-    # 2) Fallback lấy từ toàn vùng trước FULL VIDEO để vẫn tương thích format cũ.
-    references: dict[str, str] = {}
-    full_marker = "FULL VIDEO PROMPTS"
-    full_idx = text.find(full_marker)
-    pre_full_zone = text[:full_idx] if full_idx >= 0 else text
-
-    fixed_mapping_marker = "FIXED CHARACTER AND BACKGROUND MAPPING"
-    mapping_idx = pre_full_zone.find(fixed_mapping_marker)
-    rich_reference_zone = pre_full_zone[:mapping_idx] if mapping_idx >= 0 else pre_full_zone
-
-    rich_candidates = _extract_reference_candidates_from_zone(rich_reference_zone)
-    fallback_candidates = _extract_reference_candidates_from_zone(pre_full_zone)
-
-    all_labels = sorted(set(list(rich_candidates.keys()) + list(fallback_candidates.keys())))
-    for label in all_labels:
-        cands = (rich_candidates.get(label, []) or []) + (fallback_candidates.get(label, []) or [])
-        # Ưu tiên candidate dài nhất (thường là mô tả đầy đủ hơn mapping ngắn).
-        best = ""
-        for c in cands:
-            t = (c or "").strip()
-            if len(t) > len(best):
-                best = t
-        if best:
-            references[label] = best
-
-    # Parse từng block Video N.
-    video_prompts: list[str] = []
-    block_pattern = re.compile(
-        r"---\s*Video\s+(\d+)\s*\([^\n]*\)\s*---\s*(.*?)(?=\n---\s*Video\s+\d+\s*\(|\n={10,}\nFINAL QUALITY CHECK|\Z)",
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-
-    for block in block_pattern.finditer(text):
-        video_no = int(block.group(1))
-        body = (block.group(2) or "").strip()
-        if not body:
-            continue
-
-        # Tách phần "Reference guide" để biết video này dùng label nào.
-        used_labels: list[str] = []
-        ref_guide_match = re.search(
-            r"Reference guide:\s*(.*?)(?:\n\s*\n|^0s-\d+s:)",
-            body,
-            flags=re.IGNORECASE | re.DOTALL | re.MULTILINE,
-        )
-        if ref_guide_match:
-            ref_guide_text = ref_guide_match.group(1)
-            for lm in re.finditer(r"^\s*(character\d+|image\d+)\s*=", ref_guide_text, flags=re.IGNORECASE | re.MULTILINE):
-                lb = lm.group(1).strip().lower()
-                if lb not in used_labels:
-                    used_labels.append(lb)
-
-        # Chuẩn hoá nội dung block: bỏ phần "Reference guide" khỏi body để đỡ trùng.
-        body_without_ref = re.sub(
-            r"Reference guide:\s*.*?(?:\n\s*\n|^0s-\d+s:)",
-            "\n",
-            body,
-            flags=re.IGNORECASE | re.DOTALL | re.MULTILINE,
-        ).strip()
-
-        # Nếu không parse được label ở block, fallback dùng mọi label global.
-        if not used_labels:
-            used_labels = sorted(references.keys())
-
-        # Dựng prompt video có phần tham chiếu rõ ràng theo label.
-        lines = [f"CẢNH {video_no:03d}: VIDEO UNIT {video_no}"]
-        lines.append("Reference labels phải giữ cố định:")
-        for lb in used_labels:
-            ref_text = references.get(lb, "")
-            if ref_text:
-                lines.append(f"- {lb}: {ref_text}")
-            else:
-                lines.append(f"- {lb}: (không tìm thấy mô tả reference)")
-        lines.append("")
-        lines.append("Nội dung shot/video cần tạo:")
-        lines.append(body_without_ref)
-        lines.append("")
-        lines.append("Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.")
-        video_prompts.append("\n".join(lines).strip())
-
-    # ── Fallback parser cho format mới: "Video 1: Reference guide: ..." ──
-    # Mục tiêu:
-    # - Không phá format cũ đã chạy ổn định.
-    # - Nếu format cũ không bắt được block nào, tự động parse theo format mới.
-    if not video_prompts:
-        full_marker = "FULL VIDEO PROMPTS"
-        full_idx = text.find(full_marker)
-        video_zone = text[full_idx + len(full_marker):] if full_idx >= 0 else text
-
-        # Bắt đầu của từng block video theo kiểu:
-        #   Video 1:
-        #   Video 12:
-        # Cho phép có/không có khoảng trắng đầu dòng.
-        video_headers = list(re.finditer(r"(?im)^\s*video\s+(\d+)\s*:\s*", video_zone))
-        for i, h in enumerate(video_headers):
-            video_no = int(h.group(1))
-            body_start = h.end()
-            body_end = video_headers[i + 1].start() if i + 1 < len(video_headers) else len(video_zone)
-            body = (video_zone[body_start:body_end] or "").strip()
-            if not body:
-                continue
-
-            # Parse label reference dùng trong block:
-            # - CHARACTER1 = ...
-            # - IMAGE2 = ...
-            used_labels: list[str] = []
-            for lm in re.finditer(r"\b(character\d+|image\d+)\b\s*=", body, flags=re.IGNORECASE):
-                lb = lm.group(1).strip().lower()
-                if lb not in used_labels:
-                    used_labels.append(lb)
-
-            # Cố gắng bỏ phần "Reference guide: ..." để prompt ngắn gọn hơn.
-            body_without_ref = re.sub(
-                r"^\s*reference\s+guide\s*:\s*",
-                "",
-                body,
-                flags=re.IGNORECASE,
-            ).strip()
-
-            # Nếu có mốc shot đầu tiên (0s-3s:), ưu tiên lấy từ đó trở đi
-            # để tránh lặp phần định nghĩa reference ở đầu.
-            shot_anchor = re.search(r"\b0s\s*-\s*\d+s\s*:", body_without_ref, flags=re.IGNORECASE)
-            if shot_anchor:
-                body_without_ref = body_without_ref[shot_anchor.start():].strip()
-
-            # Nếu không thấy label trong block, fallback dùng toàn bộ reference global.
-            if not used_labels:
-                used_labels = sorted(references.keys())
-
-            lines = [f"CẢNH {video_no:03d}: VIDEO UNIT {video_no}"]
-            lines.append("Reference labels phải giữ cố định:")
-            for lb in used_labels:
-                ref_text = references.get(lb, "")
-                if ref_text:
-                    lines.append(f"- {lb}: {ref_text}")
-                else:
-                    lines.append(f"- {lb}: (không tìm thấy mô tả reference)")
-            lines.append("")
-            lines.append("Nội dung shot/video cần tạo:")
-            lines.append(body_without_ref)
-            lines.append("")
-            lines.append("Ràng buộc: giữ continuity nhân vật/background, ánh sáng sáng sớm, cinematic realism.")
-            video_prompts.append("\n".join(lines).strip())
-
-    # Dựng prompt step 1 để tạo ảnh reference.
-    # Không dùng prefix "CẢNH 9xx" và cũng không lộ nhãn character/image
-    # để giảm bias sinh ảnh sai ngữ cảnh.
-    # Dùng ID trung tính: ref_01, ref_02, ...
-    reference_generation_prompts: list[str] = []
-    reference_scene_to_label: dict[int, str] = {}
-    ref_index = 0
-    # Ưu tiên character trước rồi image để output dễ đọc.
-    ordered_labels = sorted(references.keys(), key=lambda x: (0 if x.startswith("character") else 1, x))
-    for label in ordered_labels:
-        ref_index += 1
-        # Dùng index tuần tự làm scene id nội bộ của bước reference.
-        # Vì prompt không còn "CẢNH xxx", hàm extract_scene_number sẽ fallback theo index này.
-        scene_no = ref_index
-        reference_scene_to_label[scene_no] = label
-        ref_id = f"ref_{ref_index:02d}"
-        reference_generation_prompts.append(f"{ref_id}: {references[label]}")
-
-    return {
-        "is_structured": True,
-        "references": references,
-        "reference_generation_prompts": reference_generation_prompts,
-        "reference_scene_to_label": reference_scene_to_label,
-        "video_prompts": video_prompts,
-        "video_count": len(video_prompts),
-    }
-
-
-def pick_random_prompts(prompts: list[str], count: int) -> list[str]:
-    """
-    Chọn ngẫu nhiên `count` prompt không trùng nhau.
-    Nếu danh sách đầu vào ít hơn `count` thì trả về toàn bộ.
-    """
-    if not prompts:
-        return []
-    n = max(1, int(count))
-    if len(prompts) <= n:
-        return prompts[:]
-    return random.sample(prompts, n)
-
-
-def save_selected_prompts_for_session(prompts: list[str], filename: str = "selected_prompts_google_flow.txt") -> str:
-    """
-    Lưu danh sách prompt đã chọn trong session hiện tại để debug đối chiếu.
-    """
-    if not _debug_session_dir:
-        return ""
-    path = os.path.join(_debug_session_dir, filename)
-    try:
-        with open(path, "w", encoding="utf-8") as f:
-            for i, p in enumerate(prompts, start=1):
-                f.write(f"{i:03d}. {p}\n")
-        return path
-    except Exception:
-        return ""
-
-
-def save_prompts_to_prompts_folder(prompts: list[str], filename: str) -> str:
-    """
-    Ghi danh sách prompt vào folder `prompts/` để dễ kiểm tra lại.
-    """
-    Path(PROMPTS_DIR).mkdir(parents=True, exist_ok=True)
-    out = os.path.join(PROMPTS_DIR, filename)
-    try:
-        with open(out, "w", encoding="utf-8") as f:
-            for i, p in enumerate(prompts, start=1):
-                f.write(f"### PROMPT {i:03d}\n{p}\n\n")
-        return os.path.abspath(out)
-    except Exception:
-        return ""
 
 
 def rename_reference_scene_images(scene_to_label: dict[int, str]) -> dict:
@@ -1675,635 +1383,97 @@ async def wait_pending_api_tasks(timeout_sec: float = 4.0):
 
 def setup_image_network_debug(page):
     """
-    Bắt request/response/failure liên quan ảnh để biết:
-    - tải bằng URL nào
-    - status trả về ra sao
-    - mất bao lâu
+    Đăng ký listener network qua service để tách gọn file chính.
+    Logic parse request/response giữ nguyên, chỉ đổi nơi đặt code.
     """
-    async def handle_api_response(response):
-        """Xử lý response fetch/xhr để trích task_id + image urls."""
-        request = response.request
-        req_id = id(request)
-        meta = _api_req_meta.get(req_id, {})
-        url = request.url
-        ts = time.time()
-
-        if request.resource_type not in {"fetch", "xhr"}:
-            return
-        if not (_looks_like_api_url(url) or _is_upscale_api_url(url) or meta.get("scene_numbers")):
-            return
-
-        content_type = ""
-        try:
-            content_type = response.headers.get("content-type", "")
-        except Exception:
-            pass
-
-        body_text = ""
-        body_sample = ""
-        body_json = None
-        try:
-            # Chỉ đọc body cho API text/json để tránh nặng.
-            if "json" in (content_type or "").lower() or "text" in (content_type or "").lower():
-                body_text = await response.text()
-                body_sample = body_text[:30000] + ("...<truncated>" if len(body_text) > 30000 else "")
-                try:
-                    body_json = json.loads(body_text)
-                except Exception:
-                    body_json = None
-        except Exception:
-            body_text = ""
-            body_sample = ""
-            body_json = None
-
-        task_ids = []
-        image_urls = []
-        video_urls = []
-        video_media_updates = []
-        backend_error_messages = []
-        parser_hits = []
-        if body_json is not None:
-            _collect_task_ids_from_obj(body_json, task_ids)
-            _collect_urls_from_obj(body_json, image_urls)
-            _collect_video_urls_from_obj(body_json, video_urls)
-            _collect_error_messages_from_obj(body_json, backend_error_messages)
-
-            # Parse riêng cho Flow generate: lấy mediaId để upscale 2K sau đó.
-            if "flowmedia:batchgenerateimages" in (url or "").lower():
-                parser_hits.append("flowmedia:batchgenerateimages")
-                try:
-                    media = (body_json or {}).get("media", []) or []
-                    scenes_local = meta.get("scene_numbers", []) or []
-                    for idx, item in enumerate(media):
-                        if not isinstance(item, dict):
-                            continue
-                        media_id = str(item.get("name", "") or "")
-                        if not media_id:
-                            continue
-
-                        scene_no = 0
-                        # Ưu tiên map từ request scene_numbers.
-                        if len(scenes_local) == 1:
-                            scene_no = scenes_local[0]
-                        elif idx < len(scenes_local):
-                            scene_no = scenes_local[idx]
-
-                        # Fallback: parse scene từ prompt trong response.
-                        if not scene_no:
-                            prompt_text = str(
-                                (((item.get("image", {}) or {}).get("generatedImage", {}) or {}).get("prompt", ""))
-                                or ""
-                            )
-                            scene_no = _extract_scene_number_from_any_text(prompt_text, 0)
-
-                        if scene_no:
-                            _append_unique_dict_list(_scene_to_media_ids, scene_no, [media_id])
-                except Exception:
-                    pass
-
-            # Parse riêng cho Flow generate VIDEO: scene -> video mediaId.
-            if _is_flow_video_generate_api_url(url):
-                parser_hits.append("flow_video_generate")
-                try:
-                    media = (body_json or {}).get("media", []) or []
-                    # Format mới có thể không để media ở root.
-                    if not media:
-                        media = []
-                        _collect_video_media_items_from_obj(body_json, media)
-                        dedup_media = []
-                        seen_mid = set()
-                        for it in media:
-                            if not isinstance(it, dict):
-                                continue
-                            mid = str(it.get("name", "") or "")
-                            if not mid or mid in seen_mid:
-                                continue
-                            seen_mid.add(mid)
-                            dedup_media.append(it)
-                        media = dedup_media
-                    scenes_local = meta.get("scene_numbers", []) or []
-                    operations = (body_json or {}).get("operations", []) or []
-                    default_status = ""
-                    # Chỉ lấy default_status nếu response thật sự chỉ có 1 media và 1 operation đi chung
-                    if len(operations) == 1 and len(media) == 1 and isinstance(operations[0], dict):
-                        default_status = _normalize_media_status_text(operations[0].get("status", ""))
-                    for idx, item in enumerate(media):
-                        if not isinstance(item, dict):
-                            continue
-                        media_id = str(item.get("name", "") or "")
-                        if not media_id:
-                            continue
-
-                        scene_no = 0
-                        if len(scenes_local) == 1:
-                            scene_no = scenes_local[0]
-                        elif idx < len(scenes_local):
-                            scene_no = scenes_local[idx]
-
-                        if not scene_no:
-                            video_obj = item.get("video", {}) or {}
-                            generated_video = video_obj.get("generatedVideo", {}) or {}
-                            prompt_text = str(generated_video.get("prompt", "") or "")
-                            if not prompt_text:
-                                media_meta = (item.get("mediaMetadata", {}) or {})
-                                prompt_text = str(media_meta.get("mediaTitle", "") or "")
-                            scene_no = _extract_scene_number_from_any_text(prompt_text, 0)
-                        if not scene_no:
-                            # Thay vì gán mù, tìm xem ID này đã được map lúc PENDING (từ generate) hay chưa
-                            for s_no, media_dict in _video_media_state.items():
-                                if media_id in media_dict:
-                                    scene_no = s_no
-                                    break
-                            
-                            # Nếu VẪN không tìm thấy scene, bỏ qua (đây có thể là ảnh reference từ STEP 1)
-                            if not scene_no:
-                                _register_orphan_video_media(media_id, status="")
-                                continue
-
-                        if scene_no:
-                            status = _extract_video_media_status(item, default_status=default_status)
-                            _register_scene_video_media(scene_no, media_id, status)
-                            video_media_updates.append({
-                                "scene": scene_no,
-                                "media_id": media_id,
-                                "status": status,
-                            })
-                except Exception:
-                    pass
-
-            # Parse projectInitialData để cập nhật scene -> video mediaId khi job cập nhật trạng thái.
-            # FIX: Video media nằm ở CẢ 2 vị trí:
-            #   1. data_json.media[]  (root level — format cũ)
-            #   2. data_json.projectContents.media[]  (format mới của Flow — chứa video thực tế)
-            #   3. data_json.projectContents.workflows[].metadata.primaryMediaId  (mapping workflow -> media)
-            if "flow.projectinitialdata" in (url or "").lower():
-                parser_hits.append("flow.projectinitialdata")
-                try:
-                    data_json = ((((body_json or {}).get("result", {}) or {}).get("data", {}) or {}).get("json", {}) or {})
-                    # Gom media từ cả root level VÀ projectContents.media[]
-                    media_root = (data_json.get("media", []) or [])
-                    project_contents = (data_json.get("projectContents", {}) or {})
-                    media_pc = (project_contents.get("media", []) or [])
-                    # Gộp cả 2 nguồn, dedupe theo name (mediaId)
-                    seen_ids = set()
-                    all_media = []
-                    for item in media_pc + media_root:
-                        if not isinstance(item, dict):
-                            continue
-                        mid = str(item.get("name", "") or "")
-                        if mid and mid not in seen_ids:
-                            seen_ids.add(mid)
-                            all_media.append(item)
-                    for item in all_media:
-                        media_id = str(item.get("name", "") or "")
-                        if not media_id:
-                            continue
-                        video_obj = item.get("video", {}) or {}
-                        generated_video = video_obj.get("generatedVideo", {}) or {}
-                        prompt_text = str(generated_video.get("prompt", "") or "")
-                        if not prompt_text:
-                            prompt_text = str(((item.get("mediaMetadata", {}) or {}).get("mediaTitle", "")) or "")
-                        scene_no = _extract_scene_number_from_any_text(prompt_text, 0)
-                        if scene_no:
-                            status = _extract_video_media_status(item, default_status="")
-                            _register_scene_video_media(scene_no, media_id, status)
-                            video_media_updates.append({
-                                "scene": scene_no,
-                                "media_id": media_id,
-                                "status": status,
-                            })
-                    # Parse thêm workflows[].metadata.primaryMediaId để backup mapping
-                    workflows = (project_contents.get("workflows", []) or [])
-                    for wf in workflows:
-                        if not isinstance(wf, dict):
-                            continue
-                        wf_meta = (wf.get("metadata", {}) or {})
-                        primary_mid = str(wf_meta.get("primaryMediaId", "") or "")
-                        display_name = str(wf_meta.get("displayName", "") or "")
-                        if primary_mid and display_name:
-                            scene_no = _extract_scene_number_from_any_text(display_name, 0)
-                            if scene_no:
-                                # Workflow thường là nguồn map scene chính xác nhất.
-                                _register_scene_video_media(scene_no, primary_mid, "")
-                                video_media_updates.append({
-                                    "scene": scene_no,
-                                    "media_id": primary_mid,
-                                    "status": "",
-                                })
-                except Exception:
-                    pass
-
-            # Parse chuyên biệt cho get_history_by_ids (scene -> cover_url)
-            if "/get_history_by_ids" in url:
-                parser_hits.append("get_history_by_ids")
-                scene_cover_map, submit_scene_map = _extract_scene_cover_and_submit_map_from_history_json(
-                    body_json,
-                    trusted_submit_ids=_trusted_submit_ids,
-                    run_started_ts=_run_started_ts,
-                    max_age_sec=API_HISTORY_MAX_AGE_SEC,
-                )
-                for sc, urls in scene_cover_map.items():
-                    _append_unique_dict_list(_scene_to_image_urls, sc, urls)
-                for submit_id, sc in submit_scene_map.items():
-                    _submit_to_scene[str(submit_id)] = sc
-
-            # Parse generate response để map submit_id -> scene nhanh hơn
-            if "/aigc_draft/generate" in url:
-                parser_hits.append("aigc_draft/generate")
-                try:
-                    aigc = ((body_json or {}).get("data") or {}).get("aigc_data") or {}
-                    task_obj = aigc.get("task", {}) or {}
-                    submit_id = str(task_obj.get("submit_id", "") or "")
-                    history_record_id = str(aigc.get("history_record_id", "") or "")
-                    scenes_local = meta.get("scene_numbers", []) or []
-                    if scenes_local:
-                        sc = scenes_local[0]
-                        if submit_id:
-                            _trusted_submit_ids.add(submit_id)
-                            _submit_to_scene[submit_id] = sc
-                        if history_record_id:
-                            _append_unique_dict_list(_scene_to_task_ids, sc, [history_record_id])
-                except Exception:
-                    pass
-
-        # dedupe
-        task_ids = list(dict.fromkeys(task_ids))
-        image_urls = list(dict.fromkeys(image_urls))
-
-        is_upscale = _is_upscale_api_url(url)
-        request_post_data = (meta.get("post_data", "") or "")
-        upscale_media_id = _extract_media_id_from_upscale_post_data(request_post_data) if is_upscale else ""
-        encoded_image = ""
-        if is_upscale and isinstance(body_json, dict):
-            encoded_image = str((body_json or {}).get("encodedImage", "") or "")
-        _api_events.append({
-            "type": "api_response",
-            "ts": ts,
-            "url": url,
-            "status": response.status,
-            "resource_type": request.resource_type,
-            "is_upscale": is_upscale,
-            "upscale_media_id": upscale_media_id,
-            "scene_numbers": meta.get("scene_numbers", []),
-            "task_ids": task_ids,
-            "image_urls_count": len(image_urls),
-            "image_urls_sample": image_urls[:12],
-            "video_urls_count": len(video_urls),
-            "video_urls_sample": video_urls[:12],
-            "video_media_updates_count": len(video_media_updates),
-            "video_media_updates_sample": video_media_updates[:10],
-            "backend_error_messages": list(dict.fromkeys(backend_error_messages))[:10],
-            "parser_hits": parser_hits,
-            "request_post_data_sample": request_post_data[:3000],
-            "response_body_sample": body_sample[:3000] if body_sample else "",
-        })
-
-        # DEBUG mapping: in log endpoint thật + parser có hit hay không.
-        # Mục tiêu: nếu UI có video mà không tải được, nhìn log sẽ biết parser miss ở đâu.
-        if _looks_like_flow_video_api_url(url) or video_media_updates:
-            endpoint = (url or "").split("/trpc/", 1)[-1] if "/trpc/" in (url or "") else (url or "")
-            if len(endpoint) > 120:
-                endpoint = endpoint[:120] + "...(cut)"
-            status_sample = []
-            for row in video_media_updates[:3]:
-                st = str(row.get("status", "") or "")
-                if st:
-                    status_sample.append(st)
-            err_sample = (list(dict.fromkeys(backend_error_messages))[:2] if backend_error_messages else [])
-            log(
-                "[FLOW-NET] "
-                f"status={response.status} "
-                f"endpoint={endpoint} "
-                f"scene={meta.get('scene_numbers', [])} "
-                f"video_updates={len(video_media_updates)} "
-                f"video_urls={len(video_urls)} "
-                f"status_sample={status_sample} "
-                f"errors={err_sample} "
-                f"parser_hits={parser_hits}",
-                "DBG",
-            )
-
-        # Nếu response upscale có encodedImage thì giữ lại trong RAM để lưu file 2K theo scene.
-        if is_upscale and upscale_media_id and encoded_image:
-            _upscale_success_by_media[upscale_media_id] = {
-                "encoded_image": encoded_image,
-                "status": int(response.status),
-                "url": url,
-                "ts": ts,
-                "media_id": upscale_media_id,
-                "size_base64": len(encoded_image),
-            }
-
-        # Log riêng cho upscale để phân tích logic 2K.
-        if is_upscale:
-            _upscale_events.append({
-                "type": "upscale_response",
-                "ts": ts,
-                "url": url,
-                "status": response.status,
-                "resource_type": request.resource_type,
-                "media_id": upscale_media_id,
-                "request_post_data_sample": request_post_data[:20000],
-                "response_body_sample": body_sample[:20000] if body_sample else "",
-                "has_encoded_image": bool(encoded_image),
-                "encoded_image_size": len(encoded_image) if encoded_image else 0,
-                "task_ids": task_ids,
-                "image_urls_sample": image_urls[:20],
-            })
-
-        # Map scene -> task
-        scenes = meta.get("scene_numbers", []) or []
-        if scenes and task_ids:
-            # Nếu 1 scene thì map scene đó với tất cả task_id thấy được.
-            if len(scenes) == 1:
-                _append_unique_dict_list(_scene_to_task_ids, scenes[0], task_ids)
-            else:
-                # nhiều scene: map theo vị trí tối thiểu
-                for i, sc in enumerate(scenes):
-                    if i < len(task_ids):
-                        _append_unique_dict_list(_scene_to_task_ids, sc, [task_ids[i]])
-
-        # Map task -> urls
-        if task_ids and image_urls:
-            for tid in task_ids:
-                _append_unique_dict_list(_task_to_image_urls, tid, image_urls)
-
-        # Một số API trả thẳng ảnh theo prompt/request scene mà không có task_id
-        if scenes and image_urls and not task_ids:
-            for sc in scenes:
-                _append_unique_dict_list(_scene_to_image_urls, sc, image_urls)
-
-        # Với get_history_by_ids: map submit_id (key data) -> scene đã biết -> cover/image urls
-        if "/get_history_by_ids" in url and body_json is not None:
-            try:
-                data = (body_json or {}).get("data") or {}
-                if isinstance(data, dict):
-                    for submit_id, rec in data.items():
-                        sc = _submit_to_scene.get(str(submit_id))
-                        if not sc:
-                            continue
-                        if isinstance(rec, dict):
-                            items = rec.get("item_list", []) or []
-                            for it in items:
-                                if not isinstance(it, dict):
-                                    continue
-                                common = it.get("common_attr", {}) or {}
-                                cover = str(common.get("cover_url", "") or "")
-                                if cover:
-                                    _append_unique_dict_list(_scene_to_image_urls, sc, [cover])
-                                cover_map = common.get("cover_url_map", {}) or {}
-                                if isinstance(cover_map, dict):
-                                    vals = [v for v in cover_map.values() if isinstance(v, str) and v.startswith("http")]
-                                    if vals:
-                                        _append_unique_dict_list(_scene_to_image_urls, sc, vals)
-            except Exception:
-                pass
-
-    async def handle_media_playback_response(response):
-        """
-        Bắt chi tiết response media của Flow player:
-        - status
-        - content-type
-        - body preview (nếu nhỏ/text)
-        Mục tiêu: truy vết lỗi 'tải nội dung nghe nhìn'.
-        """
-        request = response.request
-        url = request.url
-        if not _looks_like_flow_media_url(url):
-            return
-        ts = time.time()
-        content_type = ""
-        content_length = ""
-        try:
-            content_type = response.headers.get("content-type", "")
-            content_length = response.headers.get("content-length", "")
-        except Exception:
-            pass
-
-        body_size = 0
-        body_preview = ""
-        should_read_body = False
-        low_ct = str(content_type or "").lower()
-        if response.status >= 400:
-            should_read_body = True
-        if "text" in low_ct or "json" in low_ct or "xml" in low_ct or "html" in low_ct:
-            should_read_body = True
-        if not content_length:
-            should_read_body = True
-        else:
-            try:
-                if int(content_length) <= 4096:
-                    should_read_body = True
-            except Exception:
-                pass
-
-        if should_read_body:
-            try:
-                body = await response.body()
-                body_size = len(body)
-                body_preview = _safe_decode_bytes_preview(body, max_len=280)
-            except Exception:
-                body_size = 0
-                body_preview = ""
-
-        _network_events.append({
-            "type": "media_response",
-            "ts": ts,
-            "status": response.status,
-            "resource_type": request.resource_type,
-            "url": url,
-            "content_type": content_type,
-            "content_length": content_length,
-            "body_size": body_size,
-            "body_preview": body_preview,
-        })
-
-    def on_request(request):
-        req_id = id(request)
-        ts = time.time()
-        _network_req_start[req_id] = ts
-        # Bắt media_id từ redirect request để map scene dù generate response thiếu scene/media.
-        _register_video_media_from_redirect_request(request.url, ts)
-        is_image_or_media = (
-            request.resource_type == "image"
-            or _looks_like_image_url(request.url)
-            or _looks_like_flow_media_url(request.url)
-            or request.resource_type == "media"
-        )
-        if is_image_or_media:
-            _network_events.append({
-                "type": "request",
-                "ts": ts,
-                "method": request.method,
-                "resource_type": request.resource_type,
-                "url": request.url,
-            })
-        # Log request API để map prompt -> task
-        if request.resource_type in {"fetch", "xhr"} and (_looks_like_api_url(request.url) or _is_upscale_api_url(request.url)):
-            post_data = ""
-            try:
-                post_data = request.post_data or ""
-            except Exception:
-                post_data = ""
-            scenes = _extract_scene_numbers_from_text(post_data)
-            media_id = _extract_media_id_from_upscale_post_data(post_data) if _is_upscale_api_url(request.url) else ""
-            _api_req_meta[req_id] = {
-                "ts": ts,
-                "url": request.url,
-                "method": request.method,
-                "post_data": post_data,
-                "scene_numbers": scenes,
-                "media_id": media_id,
-            }
-            _api_events.append({
-                "type": "api_request",
-                "ts": ts,
-                "url": request.url,
-                "method": request.method,
-                "resource_type": request.resource_type,
-                "is_upscale": _is_upscale_api_url(request.url),
-                "upscale_media_id": media_id,
-                "scene_numbers": scenes,
-                "post_data_sample": post_data[:3000],
-            })
-
-            # Lưu clientContext gần nhất từ request generate của Flow để gọi upsample API.
-            if "flowmedia:batchgenerateimages" in (request.url or "").lower() and post_data:
-                try:
-                    body_json = json.loads(post_data)
-                    cc = (body_json or {}).get("clientContext", {}) or {}
-                    if isinstance(cc, dict) and cc:
-                        _last_flow_client_context.clear()
-                        _last_flow_client_context.update(cc)
-                except Exception:
-                    pass
-
-            if _is_upscale_api_url(request.url):
-                _upscale_events.append({
-                    "type": "upscale_request",
-                    "ts": ts,
-                    "url": request.url,
-                    "method": request.method,
-                    "resource_type": request.resource_type,
-                    "media_id": media_id,
-                    "request_post_data_sample": post_data[:20000],
-                })
-
-    def on_response(response):
-        request = response.request
-        req_id = id(request)
-        ts = time.time()
-        started = _network_req_start.get(req_id, ts)
-        elapsed_ms = int((ts - started) * 1000)
-        content_type = ""
-        content_length = ""
-        try:
-            content_type = response.headers.get("content-type", "")
-            content_length = response.headers.get("content-length", "")
-        except Exception:
-            pass
-
-        is_image_or_media = (
-            request.resource_type == "image"
-            or _looks_like_image_url(request.url)
-            or _looks_like_flow_media_url(request.url)
-            or request.resource_type == "media"
-            or "image" in (content_type or "").lower()
-            or "video" in (content_type or "").lower()
-            or "audio" in (content_type or "").lower()
-        )
-        if is_image_or_media:
-            _network_events.append({
-                "type": "response",
-                "ts": ts,
-                "status": response.status,
-                "resource_type": request.resource_type,
-                "url": request.url,
-                "content_type": content_type,
-                "content_length": content_length,
-                "elapsed_ms": elapsed_ms,
-            })
-        # API response xử lý async để có body/json
-        if request.resource_type in {"fetch", "xhr"}:
-            try:
-                t = asyncio.create_task(handle_api_response(response))
-                _pending_api_tasks.append(t)
-            except Exception:
-                pass
-        # Media response xử lý async để đọc body nhỏ/lỗi.
-        if _looks_like_flow_media_url(request.url) or request.resource_type == "media":
-            try:
-                t2 = asyncio.create_task(handle_media_playback_response(response))
-                _pending_api_tasks.append(t2)
-            except Exception:
-                pass
-
-    def on_request_failed(request):
-        ts = time.time()
-        if (
-            request.resource_type == "image"
-            or _looks_like_image_url(request.url)
-            or _looks_like_flow_media_url(request.url)
-            or request.resource_type == "media"
-        ):
-            failure = ""
-            try:
-                failure = request.failure or ""
-            except Exception:
-                pass
-            _network_events.append({
-                "type": "request_failed",
-                "ts": ts,
-                "resource_type": request.resource_type,
-                "url": request.url,
-                "failure": str(failure),
-            })
-
-    page.on("request", on_request)
-    page.on("response", on_response)
-    page.on("requestfailed", on_request_failed)
-
+    network_debug_service.setup_image_network_debug(
+        page=page,
+        state={
+            "_api_req_meta": _api_req_meta,
+            "_api_events": _api_events,
+            "_scene_to_media_ids": _scene_to_media_ids,
+            "_scene_to_video_media_ids": _scene_to_video_media_ids,
+            "_scene_to_video_ready_media_ids": _scene_to_video_ready_media_ids,
+            "_scene_to_video_failed_media_ids": _scene_to_video_failed_media_ids,
+            "_video_media_status_by_id": _video_media_status_by_id,
+            "_video_download_events": _video_download_events,
+            "_flow_ui_error_events": _flow_ui_error_events,
+            "_upscale_success_by_media": _upscale_success_by_media,
+            "_upscale_events": _upscale_events,
+            "_last_flow_client_context": _last_flow_client_context,
+            "_submit_to_scene": _submit_to_scene,
+            "_trusted_submit_ids": _trusted_submit_ids,
+            "_scene_to_image_urls": _scene_to_image_urls,
+            "_scene_to_task_ids": _scene_to_task_ids,
+            "_task_to_image_urls": _task_to_image_urls,
+            "_network_events": _network_events,
+            "_network_req_start": _network_req_start,
+            "_pending_api_tasks": _pending_api_tasks,
+            "_video_media_state": _video_media_state,
+        },
+        helpers={
+            "_looks_like_api_url": _looks_like_api_url,
+            "_is_upscale_api_url": _is_upscale_api_url,
+            "_is_flow_video_generate_api_url": _is_flow_video_generate_api_url,
+            "_looks_like_flow_video_api_url": _looks_like_flow_video_api_url,
+            "_collect_task_ids_from_obj": _collect_task_ids_from_obj,
+            "_collect_urls_from_obj": _collect_urls_from_obj,
+            "_collect_video_urls_from_obj": _collect_video_urls_from_obj,
+            "_collect_error_messages_from_obj": _collect_error_messages_from_obj,
+            "_collect_video_media_items_from_obj": _collect_video_media_items_from_obj,
+            "_extract_scene_number_from_any_text": _extract_scene_number_from_any_text,
+            "_append_unique_dict_list": _append_unique_dict_list,
+            "_normalize_media_status_text": _normalize_media_status_text,
+            "_extract_video_media_status": _extract_video_media_status,
+            "_register_scene_video_media": _register_scene_video_media,
+            "_register_orphan_video_media": _register_orphan_video_media,
+            "_extract_scene_cover_and_submit_map_from_history_json": _extract_scene_cover_and_submit_map_from_history_json,
+            "_extract_media_id_from_upscale_post_data": _extract_media_id_from_upscale_post_data,
+            "_extract_scene_numbers_from_text": _extract_scene_numbers_from_text,
+            "_looks_like_flow_media_url": _looks_like_flow_media_url,
+            "_register_video_media_from_redirect_request": _register_video_media_from_redirect_request,
+            "_looks_like_image_url": _looks_like_image_url,
+            "_safe_decode_bytes_preview": _safe_decode_bytes_preview,
+            "log": log,
+        },
+        config={
+            "_run_started_ts": _run_started_ts,
+            "API_HISTORY_MAX_AGE_SEC": API_HISTORY_MAX_AGE_SEC,
+        },
+    )
 
 def save_network_debug() -> str:
     """Ghi log network ảnh ra file JSON để soi lỗi tải chi tiết."""
-    if not _debug_session_dir:
-        return ""
-    path = os.path.join(_debug_session_dir, "network_images_debug.json")
-    try:
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(_network_events, f, ensure_ascii=False, indent=2)
-        return path
-    except Exception:
-        return ""
+    return debug_report.write_json_report(
+        debug_session_dir=_debug_session_dir,
+        filename="network_images_debug.json",
+        payload=_network_events,
+    )
 
 
 def save_api_debug() -> str:
     """Lưu debug API chi tiết để soi mapping scene -> task -> image."""
-    if not _debug_session_dir:
-        return ""
-    path = os.path.join(_debug_session_dir, "network_api_debug.json")
-    payload = {
-        "events": _api_events,
-        "scene_to_task_ids": _scene_to_task_ids,
-        "task_to_image_urls": _task_to_image_urls,
-        "scene_to_image_urls": _scene_to_image_urls,
-        "scene_to_media_ids": _scene_to_media_ids,
-        "scene_to_video_media_ids": _scene_to_video_media_ids,
-        "scene_to_video_ready_media_ids": _scene_to_video_ready_media_ids,
-        "scene_to_video_failed_media_ids": _scene_to_video_failed_media_ids,
-        "video_media_status_by_id": _video_media_status_by_id,
-        "video_download_events_count": len(_video_download_events),
-        "flow_ui_error_events_count": len(_flow_ui_error_events),
-        "upscale_success_media_ids": sorted(list(_upscale_success_by_media.keys())),
-        "last_flow_client_context_exists": bool(_last_flow_client_context),
-        "submit_to_scene": _submit_to_scene,
-    }
-    try:
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False, indent=2)
-        return path
-    except Exception:
-        return ""
+    payload = debug_report.build_api_debug_payload(
+        api_events=_api_events,
+        scene_to_task_ids=_scene_to_task_ids,
+        task_to_image_urls=_task_to_image_urls,
+        scene_to_image_urls=_scene_to_image_urls,
+        scene_to_media_ids=_scene_to_media_ids,
+        scene_to_video_media_ids=_scene_to_video_media_ids,
+        scene_to_video_ready_media_ids=_scene_to_video_ready_media_ids,
+        scene_to_video_failed_media_ids=_scene_to_video_failed_media_ids,
+        video_media_status_by_id=_video_media_status_by_id,
+        video_download_events=_video_download_events,
+        flow_ui_error_events=_flow_ui_error_events,
+        upscale_success_by_media=_upscale_success_by_media,
+        last_flow_client_context=_last_flow_client_context,
+        submit_to_scene=_submit_to_scene,
+    )
+    return debug_report.write_json_report(
+        debug_session_dir=_debug_session_dir,
+        filename="network_api_debug.json",
+        payload=payload,
+    )
 
 
 def save_upscale_debug() -> str:
@@ -2313,21 +1483,15 @@ def save_upscale_debug() -> str:
     - request gửi gì khi bấm upscale
     - response trả gì, có URL ảnh 2K hay job id hay không
     """
-    if not _debug_session_dir:
-        return ""
-    path = os.path.join(_debug_session_dir, "upscale_2k_debug.json")
-    payload = {
-        "generated_at": datetime.now().isoformat(),
-        "events_count": len(_upscale_events),
-        "events": _upscale_events,
-        "success_media_ids": sorted(list(_upscale_success_by_media.keys())),
-    }
-    try:
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False, indent=2)
-        return path
-    except Exception:
-        return ""
+    payload = debug_report.build_upscale_debug_payload(
+        upscale_events=_upscale_events,
+        upscale_success_by_media=_upscale_success_by_media,
+    )
+    return debug_report.write_json_report(
+        debug_session_dir=_debug_session_dir,
+        filename="upscale_2k_debug.json",
+        payload=payload,
+    )
 
 
 def save_video_error_debug() -> str:
@@ -2336,53 +1500,19 @@ def save_video_error_debug() -> str:
     - UI báo lỗi gì.
     - Mỗi attempt tải video nhận status/content-type/body ra sao.
     """
-    if not _debug_session_dir:
-        return ""
-    path = os.path.join(_debug_session_dir, "video_error_debug.json")
-    ui_messages = []
-    for ev in _flow_ui_error_events:
-        ui_messages.extend(ev.get("messages", []) or [])
-    is_rate_limit = _has_rate_limit_ui_error(ui_messages)
-    is_audiovisual_load = _has_audiovisual_load_ui_error(ui_messages)
-
-    media_error_events = []
-    for ev in _network_events:
-        if ev.get("type") not in {"media_response", "request_failed"}:
-            continue
-        if not _looks_like_flow_media_url(ev.get("url", "")):
-            continue
-        status = int(ev.get("status", 0) or 0) if str(ev.get("status", "")).isdigit() else 0
-        body_size = int(ev.get("body_size", 0) or 0) if str(ev.get("body_size", "")).isdigit() else 0
-        ct = str(ev.get("content_type", "") or "").lower()
-        is_error_like = False
-        if ev.get("type") == "request_failed":
-            is_error_like = True
-        elif status >= 400:
-            is_error_like = True
-        elif body_size and body_size < 1024 and ("text" in ct or "json" in ct or "xml" in ct or "html" in ct):
-            is_error_like = True
-        if is_error_like:
-            media_error_events.append(ev)
-
-    payload = {
-        "generated_at": datetime.now().isoformat(),
-        "error_classifier": {
-            "has_rate_limit_ui_error": is_rate_limit,
-            "has_audiovisual_load_ui_error": is_audiovisual_load,
-        },
-        "ui_error_events_count": len(_flow_ui_error_events),
-        "ui_error_events": _flow_ui_error_events,
-        "video_download_events_count": len(_video_download_events),
-        "video_download_events": _video_download_events,
-        "media_error_events_count": len(media_error_events),
-        "media_error_events": media_error_events,
-    }
-    try:
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False, indent=2)
-        return path
-    except Exception:
-        return ""
+    payload = debug_report.build_video_error_debug_payload(
+        network_events=_network_events,
+        flow_ui_error_events=_flow_ui_error_events,
+        video_download_events=_video_download_events,
+        has_rate_limit_ui_error=_has_rate_limit_ui_error,
+        has_audiovisual_load_ui_error=_has_audiovisual_load_ui_error,
+        looks_like_flow_media_url=_looks_like_flow_media_url,
+    )
+    return debug_report.write_json_report(
+        debug_session_dir=_debug_session_dir,
+        filename="video_error_debug.json",
+        payload=payload,
+    )
 
 
 def save_flow_video_scene_report(prompts: list[str]) -> str:
@@ -2392,94 +1522,24 @@ def save_flow_video_scene_report(prompts: list[str]) -> str:
     - MediaId nào tải được / chưa tải được.
     - Gợi ý nguyên nhân chính (rate limit, audiovisual, pending lâu...).
     """
-    if not _debug_session_dir:
-        return ""
-    path = os.path.join(_debug_session_dir, "flow_video_scene_report.json")
-
-    # Map scene -> danh sách file video tải thành công để biết 1 prompt đã ra mấy video.
-    success_by_scene = {}
-    for row in _download_hash_records:
-        if not isinstance(row, dict):
-            continue
-        fname = str(row.get("filename", "") or "")
-        if not fname.lower().endswith(".mp4"):
-            continue
-        scene_no = int(row.get("prompt_num", 0) or 0)
-        if scene_no > 0:
-            success_by_scene.setdefault(scene_no, []).append(row)
-
-    ui_messages = []
-    for ev in _flow_ui_error_events:
-        ui_messages.extend(ev.get("messages", []) or [])
-    has_rate_limit = _has_rate_limit_ui_error(ui_messages)
-    has_audiovisual = _has_audiovisual_load_ui_error(ui_messages)
-
-    scenes = []
-    prompt_scene_order = [extract_scene_number(p, i + 1) for i, p in enumerate(prompts or [])]
-    scene_prompt_preview = {}
-    for i, p in enumerate(prompts or []):
-        sc = extract_scene_number(p, i + 1)
-        if sc not in scene_prompt_preview:
-            scene_prompt_preview[sc] = p[:180]
-    for scene_no in prompt_scene_order:
-        media_ids = _scene_to_video_media_ids.get(scene_no, []) or []
-        ready_ids = _scene_to_video_ready_media_ids.get(scene_no, []) or []
-        failed_ids = _scene_to_video_failed_media_ids.get(scene_no, []) or []
-        attempts = [ev for ev in _video_download_events if int(ev.get("scene_no", 0) or 0) == scene_no]
-        small_count = sum(1 for ev in attempts if str(ev.get("phase", "")) == "gcs_body_too_small")
-        ok_count = sum(1 for ev in attempts if str(ev.get("phase", "")).startswith("download_ok"))
-        success_records = success_by_scene.get(scene_no, [])
-
-        # Quy tắc đoán nguyên nhân chính để người dùng dễ hiểu.
-        reason = "unknown"
-        if success_records:
-            reason = "success"
-        elif has_audiovisual:
-            reason = "ui_audiovisual_load_error"
-        elif has_rate_limit:
-            reason = "rate_limit_or_throttle"
-        elif attempts and small_count == len(attempts):
-            reason = "all_attempts_returned_small_partial_mp4"
-        elif attempts and ok_count == 0:
-            reason = "download_attempted_but_not_ready"
-        elif not attempts and media_ids:
-            reason = "have_media_ids_but_no_download_attempts"
-        elif not media_ids:
-            reason = "no_media_id_detected_for_scene"
-
-        scenes.append({
-            "scene_no": scene_no,
-            "prompt_preview": scene_prompt_preview.get(scene_no, ""),
-            "media_ids": media_ids,
-            "ready_media_ids": ready_ids,
-            "failed_media_ids": failed_ids,
-            "media_status_by_id": {mid: _video_media_status_by_id.get(mid, "") for mid in media_ids},
-            "download_attempts_count": len(attempts),
-            "small_partial_mp4_count": small_count,
-            "download_ok_count": ok_count,
-            "download_success_count": len(success_records),
-            "download_success_records": success_records,
-            "suspected_reason": reason,
-        })
-
-    payload = {
-        "generated_at": datetime.now().isoformat(),
-        "summary": {
-            "total_scenes": len(prompt_scene_order),
-            "downloaded_scenes": len(success_by_scene),
-            "failed_scenes": max(0, len(prompt_scene_order) - len(success_by_scene)),
-            "downloaded_videos": sum(len(rows) for rows in success_by_scene.values()),
-            "has_rate_limit_ui_error": has_rate_limit,
-            "has_audiovisual_load_ui_error": has_audiovisual,
-        },
-        "scenes": scenes,
-    }
-    try:
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False, indent=2)
-        return path
-    except Exception:
-        return ""
+    payload = debug_report.build_flow_video_scene_report_payload(
+        prompts=prompts,
+        download_hash_records=_download_hash_records,
+        flow_ui_error_events=_flow_ui_error_events,
+        video_download_events=_video_download_events,
+        scene_to_video_media_ids=_scene_to_video_media_ids,
+        scene_to_video_ready_media_ids=_scene_to_video_ready_media_ids,
+        scene_to_video_failed_media_ids=_scene_to_video_failed_media_ids,
+        video_media_status_by_id=_video_media_status_by_id,
+        extract_scene_number=extract_scene_number,
+        has_rate_limit_ui_error=_has_rate_limit_ui_error,
+        has_audiovisual_load_ui_error=_has_audiovisual_load_ui_error,
+    )
+    return debug_report.write_json_report(
+        debug_session_dir=_debug_session_dir,
+        filename="flow_video_scene_report.json",
+        payload=payload,
+    )
 
 
 def save_request_response_timeline() -> str:
@@ -2491,94 +1551,14 @@ def save_request_response_timeline() -> str:
     """
     if not _debug_session_dir:
         return ""
-
     path = os.path.join(_debug_session_dir, "request_response_timeline.txt")
-    rows = []
-
-    # ── 1) Timeline API request/response ──
-    for ev in _api_events:
-        ts = datetime.fromtimestamp(ev.get("ts", time.time())).strftime("%H:%M:%S")
-        ev_type = ev.get("type", "")
-        url = str(ev.get("url", ""))
-        if len(url) > 140:
-            url = url[:140] + "...(cut)"
-
-        if ev_type == "api_request":
-            prefix = "UPSCALE_REQUEST" if ev.get("is_upscale") else "API_REQUEST"
-            rows.append(
-                f"[{ts}] {prefix:<14} method={ev.get('method', '')} "
-                f"scene={ev.get('scene_numbers', [])} url={url}"
-            )
-        elif ev_type == "api_response":
-            prefix = "UPSCALE_RESPONSE" if ev.get("is_upscale") else "API_RESPONSE"
-            video_updates = ev.get("video_media_updates_count", 0)
-            rows.append(
-                f"[{ts}] {prefix:<14} status={ev.get('status', '')} "
-                f"scene={ev.get('scene_numbers', [])} task_ids={len(ev.get('task_ids', []))} "
-                f"image_urls={ev.get('image_urls_count', 0)} "
-                f"video_urls={ev.get('video_urls_count', 0)} "
-                f"video_media_updates={video_updates} url={url}"
-            )
-
-    # ── 2) Timeline ảnh (image request/response/fail) ──
-    for ev in _network_events:
-        ts = datetime.fromtimestamp(ev.get("ts", time.time())).strftime("%H:%M:%S")
-        ev_type = ev.get("type", "")
-        url = str(ev.get("url", ""))
-        if len(url) > 140:
-            url = url[:140] + "...(cut)"
-
-        if ev_type == "request":
-            rows.append(
-                f"[{ts}] IMG_REQUEST  method={ev.get('method', '')} "
-                f"rtype={ev.get('resource_type', '')} url={url}"
-            )
-        elif ev_type == "response":
-            rows.append(
-                f"[{ts}] IMG_RESPONSE status={ev.get('status', '')} "
-                f"rtype={ev.get('resource_type', '')} "
-                f"elapsed_ms={ev.get('elapsed_ms', '')} ct={ev.get('content_type', '')} url={url}"
-            )
-        elif ev_type == "request_failed":
-            rows.append(
-                f"[{ts}] IMG_FAILED   rtype={ev.get('resource_type', '')} "
-                f"error={ev.get('failure', '')} url={url}"
-            )
-        elif ev_type == "media_response":
-            bsz = ev.get("body_size", "")
-            rows.append(
-                f"[{ts}] MEDIA_RESP   status={ev.get('status', '')} "
-                f"rtype={ev.get('resource_type', '')} bytes={bsz} "
-                f"ct={ev.get('content_type', '')} url={url}"
-            )
-
-    # ── 3) Timeline lỗi UI video và attempt tải video (debug chi tiết) ──
-    for ev in _flow_ui_error_events:
-        ts = datetime.fromtimestamp(ev.get("ts", time.time())).strftime("%H:%M:%S")
-        msg = " | ".join(ev.get("messages", []) or [])
-        if len(msg) > 180:
-            msg = msg[:180] + "...(cut)"
-        rows.append(f"[{ts}] UI_ERROR     label={ev.get('label', '')} msg={msg}")
-
-    for ev in _video_download_events:
-        ts = datetime.fromtimestamp(ev.get("ts", time.time())).strftime("%H:%M:%S")
-        rows.append(
-            f"[{ts}] VIDEO_DL     scene={ev.get('scene_no')} attempt={ev.get('attempt')} "
-            f"media={ev.get('media_id_short', '')} status={ev.get('media_status', '')} "
-            f"redirect={ev.get('redirect_status', '')} gcs={ev.get('gcs_status', '')} "
-            f"bytes={ev.get('body_size', '')} ct={ev.get('content_type', '')}"
-        )
-
-    # Sắp xếp lại theo timestamp để dễ xem flow thật.
-    rows_sorted = sorted(rows)
-    lines = [
-        "=== REQUEST / RESPONSE TIMELINE ===",
-        f"platform={TARGET_PLATFORM}",
-        f"generated_at={datetime.now().isoformat()}",
-        "",
-    ]
-    lines.extend(rows_sorted)
-
+    lines = debug_report.build_request_response_timeline_lines(
+        api_events=_api_events,
+        network_events=_network_events,
+        flow_ui_error_events=_flow_ui_error_events,
+        video_download_events=_video_download_events,
+        target_platform=TARGET_PLATFORM,
+    )
     try:
         with open(path, "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")
@@ -2594,22 +1574,13 @@ def build_api_scene_first_image_map(prompts: list[str]) -> dict:
     1) scene_to_image_urls (trực tiếp theo scene)
     2) scene_to_task_ids -> task_to_image_urls
     """
-    out = {}
-    for i, p in enumerate(prompts):
-        scene_no = extract_scene_number(p, i + 1)
-        # direct
-        direct = _scene_to_image_urls.get(scene_no, [])
-        if direct:
-            out[scene_no] = direct[0]
-            continue
-        # via task
-        tids = _scene_to_task_ids.get(scene_no, [])
-        for tid in tids:
-            urls = _task_to_image_urls.get(tid, [])
-            if urls:
-                out[scene_no] = urls[0]
-                break
-    return out
+    return debug_report.build_api_scene_first_image_map(
+        prompts=prompts,
+        extract_scene_number=extract_scene_number,
+        scene_to_image_urls=_scene_to_image_urls,
+        scene_to_task_ids=_scene_to_task_ids,
+        task_to_image_urls=_task_to_image_urls,
+    )
 
 
 def get_scene_candidate_urls(scene_no: int, preferred_url: str = "") -> list[str]:
@@ -2620,20 +1591,13 @@ def get_scene_candidate_urls(scene_no: int, preferred_url: str = "") -> list[str
     3) _scene_to_task_ids[scene_no] -> _task_to_image_urls[task_id]
     Dùng để retry tải ảnh khi URL đầu tiên lỗi.
     """
-    urls = []
-    if preferred_url:
-        urls.append(preferred_url)
-
-    direct = _scene_to_image_urls.get(scene_no, []) or []
-    urls.extend(direct)
-
-    tids = _scene_to_task_ids.get(scene_no, []) or []
-    for tid in tids:
-        task_urls = _task_to_image_urls.get(tid, []) or []
-        urls.extend(task_urls)
-
-    # Dedupe, giữ nguyên thứ tự ưu tiên.
-    return list(dict.fromkeys([u for u in urls if isinstance(u, str) and u.startswith("http")]))
+    return debug_report.get_scene_candidate_urls(
+        scene_no=scene_no,
+        preferred_url=preferred_url,
+        scene_to_image_urls=_scene_to_image_urls,
+        scene_to_task_ids=_scene_to_task_ids,
+        task_to_image_urls=_task_to_image_urls,
+    )
 
 
 def get_scene_candidate_video_media_ids(scene_no: int) -> list[str]:
@@ -2643,17 +1607,12 @@ def get_scene_candidate_video_media_ids(scene_no: int) -> list[str]:
     2) media chưa rõ trạng thái (mới nhất trước),
     3) media FAILED (để cuối, chỉ thử khi hết lựa chọn).
     """
-    ready = list(reversed(_scene_to_video_ready_media_ids.get(scene_no, []) or []))
-    all_ids = list(reversed(_scene_to_video_media_ids.get(scene_no, []) or []))
-    failed = set(_scene_to_video_failed_media_ids.get(scene_no, []) or [])
-
-    ordered = []
-    ordered.extend(ready)
-    ordered.extend([mid for mid in all_ids if mid not in ready and mid not in failed])
-    ordered.extend([mid for mid in all_ids if mid in failed])
-
-    # Dedupe giữ nguyên thứ tự ưu tiên.
-    return list(dict.fromkeys([mid for mid in ordered if isinstance(mid, str) and mid]))
+    return debug_report.get_scene_candidate_video_media_ids(
+        scene_no=scene_no,
+        scene_to_video_ready_media_ids=_scene_to_video_ready_media_ids,
+        scene_to_video_media_ids=_scene_to_video_media_ids,
+        scene_to_video_failed_media_ids=_scene_to_video_failed_media_ids,
+    )
 
 
 def _extract_video_media_from_project_initial_data_body(body_json) -> list[dict]:
@@ -3096,7 +2055,7 @@ async def launch_chrome_context(p, profile_dir: str, har_path: str):
     Path(profile_dir).mkdir(parents=True, exist_ok=True)
     return await p.chromium.launch_persistent_context(
         user_data_dir=profile_dir,
-        headless=False,
+        headless=GOOGLE_FLOW_HEADLESS,
         channel="chrome",
         args=[
             "--start-maximized",
@@ -3153,198 +2112,6 @@ def reset_output_dir():
         log(f"Có {failed} file trong output không xóa được", "WARN")
 
 
-def safe_filename(text, max_len=40):
-    safe = re.sub(r'[^\w\s-]', '_', text[:max_len]).strip().replace(' ', '_')
-    return safe or "prompt"
-
-
-def extract_scene_number(prompt_text: str, fallback: int) -> int:
-    """
-    Tách số cảnh từ nội dung prompt.
-    Ví dụ:
-    - "CẢNH 030: ..." -> 30
-    - "CANH 12 ..."   -> 12
-    Nếu không tách được thì dùng fallback.
-    """
-    if not prompt_text:
-        return fallback
-    m = re.search(r"(?:cảnh|canh)\s*0*(\d+)", prompt_text, flags=re.IGNORECASE)
-    if not m:
-        return fallback
-    try:
-        return int(m.group(1))
-    except Exception:
-        return fallback
-
-
-def build_auto_test_prompts(count: int) -> list[str]:
-    """
-    Tạo prompt test ngẫu nhiên để mỗi lần chạy đều khác nhau (dễ debug).
-    Format luôn bắt đầu bằng: "CẢNH X: ..."
-    """
-    run_id = datetime.now().strftime("%Y%m%d-%H%M%S")
-    random.seed(time.time_ns())
-
-    # Bộ từ khóa ngắn gọn để phối ngẫu nhiên, giúp prompt không bị trùng.
-    locations = [
-        "hành lang khách sạn sang trọng",
-        "quán cafe kính nhìn ra phố mưa",
-        "ga tàu điện ngầm giờ cao điểm",
-        "sân thượng thành phố lúc bình minh",
-        "nhà bếp công nghiệp ánh đèn vàng",
-        "studio trắng tối giản",
-    ]
-    moods = [
-        "căng thẳng nhưng kiểm soát",
-        "bình tĩnh lạnh lùng",
-        "ngạc nhiên nhẹ",
-        "quyết đoán mạnh",
-        "trầm tư sâu",
-        "hy vọng trở lại",
-    ]
-    styles = [
-        "cinematic realism",
-        "photojournalistic",
-        "high-detail editorial",
-        "natural documentary style",
-        "dramatic film still",
-    ]
-    camera_shots = [
-        "medium shot, eye-level",
-        "close-up portrait, shallow depth of field",
-        "wide shot, leading lines",
-        "over-shoulder composition",
-        "low-angle dramatic shot",
-    ]
-    lighting = [
-        "soft daylight through window",
-        "moody low-key lighting",
-        "neon rim light",
-        "warm practical lights",
-        "high contrast studio light",
-    ]
-
-    prompts = []
-    for i in range(1, count + 1):
-        loc = random.choice(locations)
-        mood = random.choice(moods)
-        style = random.choice(styles)
-        shot = random.choice(camera_shots)
-        light = random.choice(lighting)
-        unique_tag = random.randint(1000, 9999)
-
-        prompts.append(
-            f"CẢNH {i}: TEST RUN {run_id}-{unique_tag}. "
-            f"Nhân vật nữ đứng tại {loc}, cảm xúc {mood}. "
-            f"Phong cách {style}, góc máy {shot}, ánh sáng {light}, "
-            f"chi tiết da thật, texture quần áo rõ, background có chiều sâu, "
-            f"không chữ, không watermark."
-        )
-
-    return prompts
-
-
-def save_generated_prompts(prompts: list[str]) -> str:
-    """
-    Lưu bộ prompt test ra file để bạn mở lại kiểm tra khi cần.
-    File lưu trong thư mục prompts/ theo đúng quy ước dễ quản lý.
-    """
-    Path(PROMPTS_DIR).mkdir(parents=True, exist_ok=True)
-    out_path = os.path.abspath(
-        os.path.join(
-            PROMPTS_DIR,
-            f"auto_test_prompts_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
-        )
-    )
-    with open(out_path, "w", encoding="utf-8") as f:
-        for p in prompts:
-            f.write(p + "\n")
-    return out_path
-
-
-def load_prompt_pool() -> list[str]:
-    """
-    Đọc danh sách prompt pool.
-    - Ưu tiên file mới: prompts/prompt_pool_1000.txt
-    - Fallback file cũ: prompts/prompt_pool_100.txt
-    Mỗi dòng là 1 prompt.
-    """
-    candidate_files = [
-        PROMPT_POOL_FILE,
-        os.path.join(PROMPTS_DIR, "prompt_pool_100.txt"),
-    ]
-    for file_path in candidate_files:
-        if not os.path.exists(file_path):
-            continue
-        with open(file_path, "r", encoding="utf-8") as f:
-            rows = [ln.strip() for ln in f if ln.strip()]
-        if rows:
-            return rows
-    return []
-
-
-def load_prompt_pool_state() -> dict:
-    """
-    Đọc trạng thái con trỏ pool:
-    - next_index: vị trí bắt đầu lấy ở lần chạy kế tiếp
-    """
-    if not os.path.exists(PROMPT_POOL_STATE_FILE):
-        return {"next_index": 0}
-    try:
-        with open(PROMPT_POOL_STATE_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return {"next_index": int(data.get("next_index", 0))}
-    except Exception:
-        return {"next_index": 0}
-
-
-def save_prompt_pool_state(next_index: int):
-    """Lưu trạng thái pool để lần sau lấy đúng block prompt kế tiếp."""
-    Path(PROMPTS_DIR).mkdir(parents=True, exist_ok=True)
-    payload = {
-        "next_index": next_index,
-        "updated_at": datetime.now().isoformat(),
-    }
-    with open(PROMPT_POOL_STATE_FILE, "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
-
-
-def take_prompts_from_pool(batch_size: int = PROMPT_BATCH_SIZE) -> tuple[list[str], dict]:
-    """
-    Lấy đúng batch_size prompt từ pool theo cơ chế xoay vòng:
-    - Ví dụ pool 100 prompt, batch 10:
-      lần 1 lấy 1..10, lần 2 lấy 11..20, ...
-      hết 100 thì quay lại từ đầu.
-    """
-    pool = load_prompt_pool()
-    if not pool:
-        return [], {"reason": "pool_empty"}
-
-    total = len(pool)
-    state = load_prompt_pool_state()
-    start = state.get("next_index", 0) % total
-
-    selected = []
-    idx = start
-    for _ in range(batch_size):
-        selected.append(pool[idx])
-        idx = (idx + 1) % total
-
-    save_prompt_pool_state(idx)
-    return selected, {
-        "total": total,
-        "start_index": start,
-        "end_index_exclusive": idx,
-    }
-
-
-def write_prompts_file(prompts: list[str], out_file: str = PROMPTS_FILE):
-    """
-    Ghi prompt vào prompts.txt (mỗi dòng 1 prompt).
-    """
-    with open(out_file, "w", encoding="utf-8") as f:
-        for p in prompts:
-            f.write(p + "\n")
 
 
 # ═══════════════════════════════════════════════
@@ -3773,15 +2540,11 @@ async def capture_prompt_submission_trace(page, prompt_index: int, prompt_text: 
 
 def save_prompt_submission_trace() -> str:
     """Lưu map prompt đã gửi để soi tương quan với ảnh trả về."""
-    if not _debug_session_dir:
-        return ""
-    path = os.path.join(_debug_session_dir, "prompt_submission_trace.json")
-    try:
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(_prompt_submission_trace, f, ensure_ascii=False, indent=2)
-        return path
-    except Exception:
-        return ""
+    return debug_report.write_json_report(
+        debug_session_dir=_debug_session_dir,
+        filename="prompt_submission_trace.json",
+        payload=_prompt_submission_trace,
+    )
 
 
 def _sha256_file(path: str) -> str:
@@ -3798,69 +2561,24 @@ def save_download_hash_report() -> str:
     Lưu hash của tất cả file đã tải + nhóm hash trùng lặp.
     Dùng để biết có bị tải trùng ảnh giữa các prompt không.
     """
-    if not _debug_session_dir:
-        return ""
-    dup_map = {}
-    for row in _download_hash_records:
-        sha = row.get("sha256", "")
-        if not sha:
-            continue
-        dup_map.setdefault(sha, []).append(row.get("filename", ""))
-
-    payload = {
-        "generated_at": datetime.now().isoformat(),
-        "count": len(_download_hash_records),
-        "records": _download_hash_records,
-        "duplicates": {k: v for k, v in dup_map.items() if len(v) > 1},
-    }
-    path = os.path.join(_debug_session_dir, "download_hashes.json")
-    try:
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False, indent=2)
-        return path
-    except Exception:
-        return ""
+    payload = debug_report.build_download_hash_payload(_download_hash_records)
+    return debug_report.write_json_report(
+        debug_session_dir=_debug_session_dir,
+        filename="download_hashes.json",
+        payload=payload,
+    )
 
 
 def _read_json_file(path: str):
     """Đọc JSON an toàn, lỗi thì trả None."""
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return None
+    return debug_report.read_json_file(path)
 
 
 def _build_session_metrics(session_dir: str) -> dict:
     """
     Gom chỉ số debug chính của 1 session để phục vụ compare giữa 2 lần chạy.
     """
-    gallery = _read_json_file(os.path.join(session_dir, "gallery_snapshot_before_download.json")) or {}
-    hashes = _read_json_file(os.path.join(session_dir, "download_hashes.json")) or {}
-    scroll = _read_json_file(os.path.join(session_dir, "scroll_trace_before_download.json")) or {}
-
-    new_srcs = gallery.get("new_srcs", []) or []
-    records = hashes.get("records", []) or []
-    hash_values = [r.get("sha256", "") for r in records if r.get("sha256")]
-    unique_hashes = set(hash_values)
-    dup_hash_count = sum(1 for _, files in (hashes.get("duplicates", {}) or {}).items() if len(files) > 1)
-
-    steps = scroll.get("steps", []) or []
-    mounted_peaks = max([s.get("mounted_count", 0) for s in steps], default=0)
-    unique_peaks = max([s.get("unique_src_count", 0) for s in steps], default=0)
-
-    return {
-        "session_dir": session_dir,
-        "session_name": os.path.basename(session_dir),
-        "new_srcs_count": len(new_srcs),
-        "new_srcs": new_srcs,
-        "download_count": len(records),
-        "unique_hash_count": len(unique_hashes),
-        "dup_hash_count": dup_hash_count,
-        "scroll_steps": len(steps),
-        "scroll_mounted_peak": mounted_peaks,
-        "scroll_unique_peak": unique_peaks,
-    }
+    return debug_report.build_session_metrics(session_dir)
 
 
 def compare_with_previous_session() -> str:
@@ -3868,61 +2586,26 @@ def compare_with_previous_session() -> str:
     So sánh session hiện tại với session gần nhất trước đó.
     Xuất cả JSON + TXT để đọc nhanh sự khác biệt.
     """
-    if not _debug_session_dir:
+    prev_dir, report = debug_report.compare_with_previous_session(
+        debug_dir=DEBUG_DIR,
+        debug_session_dir=_debug_session_dir,
+    )
+    if not prev_dir or not report:
         return ""
 
-    sessions = sorted(glob.glob(os.path.join(DEBUG_DIR, "session_*")), key=os.path.getmtime)
-    previous = [s for s in sessions if os.path.abspath(s) != os.path.abspath(_debug_session_dir)]
-    if not previous:
+    json_path = debug_report.write_json_report(
+        debug_session_dir=_debug_session_dir,
+        filename="session_compare_with_previous.json",
+        payload=report,
+    )
+    if not json_path:
         return ""
-    prev_dir = previous[-1]
 
-    current_metrics = _build_session_metrics(_debug_session_dir)
-    prev_metrics = _build_session_metrics(prev_dir)
-
-    cur_srcs = set(current_metrics.get("new_srcs", []))
-    prev_srcs = set(prev_metrics.get("new_srcs", []))
-    overlap_srcs = sorted(cur_srcs & prev_srcs)
-
-    report = {
-        "generated_at": datetime.now().isoformat(),
-        "current": current_metrics,
-        "previous": prev_metrics,
-        "diff": {
-            "new_srcs_count": current_metrics["new_srcs_count"] - prev_metrics["new_srcs_count"],
-            "download_count": current_metrics["download_count"] - prev_metrics["download_count"],
-            "unique_hash_count": current_metrics["unique_hash_count"] - prev_metrics["unique_hash_count"],
-            "dup_hash_count": current_metrics["dup_hash_count"] - prev_metrics["dup_hash_count"],
-            "scroll_mounted_peak": current_metrics["scroll_mounted_peak"] - prev_metrics["scroll_mounted_peak"],
-            "scroll_unique_peak": current_metrics["scroll_unique_peak"] - prev_metrics["scroll_unique_peak"],
-        },
-        "overlap": {
-            "new_srcs_overlap_count": len(overlap_srcs),
-            "new_srcs_overlap_sample": overlap_srcs[:20],
-        },
-    }
-
-    json_path = os.path.join(_debug_session_dir, "session_compare_with_previous.json")
     txt_path = os.path.join(_debug_session_dir, "session_compare_with_previous.txt")
     try:
-        with open(json_path, "w", encoding="utf-8") as f:
-            json.dump(report, f, ensure_ascii=False, indent=2)
-
-        lines = [
-            f"Current : {current_metrics['session_name']}",
-            f"Previous: {prev_metrics['session_name']}",
-            "",
-            f"new_srcs_count : {current_metrics['new_srcs_count']} (diff {report['diff']['new_srcs_count']:+d})",
-            f"download_count : {current_metrics['download_count']} (diff {report['diff']['download_count']:+d})",
-            f"unique_hashes  : {current_metrics['unique_hash_count']} (diff {report['diff']['unique_hash_count']:+d})",
-            f"dup_hash_count : {current_metrics['dup_hash_count']} (diff {report['diff']['dup_hash_count']:+d})",
-            f"scroll_peak(m) : {current_metrics['scroll_mounted_peak']} (diff {report['diff']['scroll_mounted_peak']:+d})",
-            f"scroll_peak(u) : {current_metrics['scroll_unique_peak']} (diff {report['diff']['scroll_unique_peak']:+d})",
-            "",
-            f"overlap new_srcs: {report['overlap']['new_srcs_overlap_count']}",
-        ]
+        txt_content = debug_report.render_compare_text_report(report, prev_dir=prev_dir)
         with open(txt_path, "w", encoding="utf-8") as f:
-            f.write("\n".join(lines))
+            f.write(txt_content)
         return json_path
     except Exception:
         return ""
@@ -6592,7 +5275,10 @@ async def main():
                 else:
                     log(f"Đang chạy mode GOOGLE_FLOW {GOOGLE_FLOW_MEDIA_MODE.upper()} API-only với {len(prompts)} prompt.", "INFO")
 
-            selected_prompts_path = save_selected_prompts_for_session(prompts)
+            selected_prompts_path = save_selected_prompts_for_session(
+                prompts,
+                debug_session_dir=_debug_session_dir,
+            )
             if selected_prompts_path:
                 log(f"Selected prompts file: {selected_prompts_path}", "DBG")
             if structured_plan.get("is_structured"):
@@ -6600,12 +5286,14 @@ async def main():
                 structured_video_path = save_prompts_to_prompts_folder(
                     structured_plan.get("video_prompts", []),
                     "structured_video_prompts_compiled.txt",
+                    prompts_dir=PROMPTS_DIR,
                 )
                 if structured_video_path:
                     log(f"Structured video prompts: {structured_video_path}", "DBG")
                 structured_ref_path = save_prompts_to_prompts_folder(
                     structured_plan.get("reference_generation_prompts", []),
                     "structured_reference_image_prompts.txt",
+                    prompts_dir=PROMPTS_DIR,
                 )
                 if structured_ref_path:
                     log(f"Structured reference prompts: {structured_ref_path}", "DBG")
@@ -6823,13 +5511,18 @@ async def main():
 
     if use_auto_test:
         prompts = build_auto_test_prompts(AUTO_TEST_PROMPTS_COUNT)
-        generated_path = save_generated_prompts(prompts)
+        generated_path = save_generated_prompts(prompts, prompts_dir=PROMPTS_DIR)
         log(f"Đã tạo {len(prompts)} prompt test tự sinh", "INFO")
         log(f"File prompt test: {generated_path}", "PATH")
     else:
         # Ưu tiên dùng pool 100 prompt:
         # Mỗi lần chạy lấy đúng 10 prompt và copy vào prompts.txt.
-        prompts, pool_meta = take_prompts_from_pool(PROMPT_BATCH_SIZE)
+        prompts, pool_meta = take_prompts_from_pool(
+            batch_size=PROMPT_BATCH_SIZE,
+            prompt_pool_file=PROMPT_POOL_FILE,
+            prompt_pool_state_file=PROMPT_POOL_STATE_FILE,
+            prompts_dir=PROMPTS_DIR,
+        )
         if prompts:
             write_prompts_file(prompts, PROMPTS_FILE)
             log(
@@ -6865,7 +5558,7 @@ async def main():
         har_path = os.path.join(_debug_session_dir, "session_network.har")
         browser = await p.chromium.launch_persistent_context(
             user_data_dir=PROFILE_DIR,
-            headless=False,
+            headless=GOOGLE_FLOW_HEADLESS,
             channel="chrome",
             args=[
                 "--start-maximized",

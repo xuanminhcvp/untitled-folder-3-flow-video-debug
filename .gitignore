@@ -14,3 +14,26 @@ chrome_profiles.zip
 # Large browser debug traces (do not commit)
 *.har
 scenarios/**/debug_video_*.har
+node_modules/
+venv/
+.venv/
+env/
+.env/
+__pycache__/
+chrome_profiles/
+debug_sessions/
+output/
+output_images/
+output_data/
+scenarios/
+profile_backups/
+logs/
+debug/
+dist/
+build/
+*.mp4
+*.mov
+*.zip
+*.png
+*.jpg
+.DS_Store

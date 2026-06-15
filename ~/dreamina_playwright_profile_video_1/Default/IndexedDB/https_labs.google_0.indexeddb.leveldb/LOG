@@ -1,0 +1,13 @@
+2026/04/15-17:08:30.838 1276ee Reusing MANIFEST /Users/may1/Desktop/untitled-folder-3-flow-video-debug/~/dreamina_playwright_profile_video_1/Default/IndexedDB/https_labs.google_0.indexeddb.leveldb/MANIFEST-000001
+2026/04/15-17:08:30.838 1276ee Recovering log #10
+2026/04/15-17:08:30.838 1276ee Reusing old log /Users/may1/Desktop/untitled-folder-3-flow-video-debug/~/dreamina_playwright_profile_video_1/Default/IndexedDB/https_labs.google_0.indexeddb.leveldb/000010.log 
+2026/04/15-17:08:30.846 127701 Level-0 table #15: started
+2026/04/15-17:08:30.847 127701 Level-0 table #15: 1519 bytes OK
+2026/04/15-17:08:30.849 127701 Delete type=0 #10
+2026/04/15-17:08:30.849 1276ee Manual compaction at level-0 from '\x00\x08\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x09\x00\x00\x00' @ 0 : 0; will stop at '\x00\x08\x00\x00\x05' @ 479 : 1
+2026/04/15-17:08:30.849 1276ee Compacting 1@0 + 1@1 files
+2026/04/15-17:08:30.850 1276ee Generated table #16@0: 158 keys, 3395 bytes
+2026/04/15-17:08:30.850 1276ee Compacted 1@0 + 1@1 files => 3395 bytes
+2026/04/15-17:08:30.850 1276ee compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/04/15-17:08:30.850 1276ee Delete type=2 #15
+2026/04/15-17:08:30.850 1276ee Manual compaction at level-0 from '\x00\x08\x00\x00\x05' @ 479 : 1 .. '\x00\x09\x00\x00\x00' @ 0 : 0; will stop at (end)

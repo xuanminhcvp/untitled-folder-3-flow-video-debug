@@ -120,16 +120,33 @@ def build_internal_payload(worker: dict, scenario_override: str | None) -> dict:
 
 
 def validate_inputs(payload: dict) -> None:
-    """Kiểm tra file prompts/video trước khi chạy để lỗi rõ ràng cho người dùng."""
+    """Kiểm tra file prompt_character.txt và prompt_image.txt trước khi chạy."""
     scenario_dir = Path(payload["scenario_dir"])
-    prompts_file = scenario_dir / "prompts.txt"
+
+    # File mới: prompt_character.txt + prompt_image.txt
+    char_file  = scenario_dir / "prompt_character.txt"
+    image_file = scenario_dir / "prompt_image.txt"
+    # File cũ (fallback)
+    legacy_file = scenario_dir / "prompts.txt"
 
     if not scenario_dir.exists():
         raise FileNotFoundError(f"Không tìm thấy scenario_dir: {scenario_dir}")
-    if not prompts_file.exists():
-        raise FileNotFoundError(f"Không tìm thấy prompts.txt: {prompts_file}")
 
-    # Tạo output dir nếu chưa có để tránh lỗi ghi file khi download video.
+    # Chấp nhận: có 2 file mới HOẶC có file cũ
+    has_new_files = char_file.exists() or image_file.exists()
+    has_legacy    = legacy_file.exists()
+
+    if not has_new_files and not has_legacy:
+        raise FileNotFoundError(
+            f"Không tìm thấy prompt_character.txt, prompt_image.txt, hoặc prompts.txt tại: {scenario_dir}"
+        )
+
+    if has_new_files:
+        log(f"✓ Dùng file mới: {char_file.name}, {image_file.name}", "OK")
+    else:
+        log(f"⚠ Fallback sang file cũ: {legacy_file.name}", "WARN")
+
+    # Tạo output dir nếu chưa có
     Path(payload["output_dir"]).mkdir(parents=True, exist_ok=True)
 
 
